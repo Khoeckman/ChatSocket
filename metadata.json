@@ -3,5 +3,7 @@
   "creator": "Khoeckman",
   "description": "Opens a WebSocket connection to send and receive Minecraft chats and commands in real time.",
   "version": "1.0.0",
-  "entry": "main.js"
+  "entry": "index.js",
+  "requires": ["Vigilance"],
+  "homepage": "https://github.com/Khoeckman/ChatSocket"
 }
