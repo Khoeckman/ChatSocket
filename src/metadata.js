@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { requestOptions } from './network/http'
 
 export default class Metadata {
   constructor(moduleName, fileName, remoteURL = '') {
