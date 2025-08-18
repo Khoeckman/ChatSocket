@@ -14,8 +14,5 @@
   }
 
   return options
-} */
-
-export function handleError(error) {
-  return error.isAxiosError ? error.code + ': ' + error.response.data : error.message
 }
+ */

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from 'Vigilance';
+import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from 'Vigilance'
 
 @Vigilant('ChatSocket', `ChatSocket Settings`, {
   getCategoryComparator: () => (a, b) => {

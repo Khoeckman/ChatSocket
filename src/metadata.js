@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { handleError } from './utils/request.js'
+import { requestOptions } from './network/http'
 
 export default class Metadata {
   constructor(moduleName, fileName, remoteURL = '') {
@@ -13,13 +13,6 @@ export default class Metadata {
     if (typeof remoteURL !== 'string') return error(new TypeError('remoteURL is not a string'))
     this.remoteURL = remoteURL
     this.remote = null
-  }
-
-  fetchRemote() {
-    return axios
-      .get(this.remoteURL)
-      .then(res => (this.remote = res.data))
-      .catch(handleError)
   }
 
   printVersion() {
@@ -38,14 +31,13 @@ export default class Metadata {
     const messageId = randomId()
     chat(PREFIX + `&aVersion ${this.local.version} &7Fetching latest...`, messageId)
 
-    this.remote = this.fetchRemote(this.remoteURL).then(() => {
-      let latestVersion = ''
-
-      if (this.remote && typeof this.remote.version === 'string') {
-        latestVersion = this.remote.version > this.local.version ? ' &c✘ Latest ' + this.remote.version : ' &2✔ Latest'
-      } else {
-        error(new Error('Could not fetch latest version.'))
-      }
+    const always = () => {
+      const latestVersion =
+        this.remote && typeof this.remote.version === 'string'
+          ? this.remote.version > this.local.version
+            ? ' &c✘ Latest ' + this.remote.version
+            : ' &2✔ Latest'
+          : ''
 
       ChatLib.editChat(
         messageId,
@@ -55,6 +47,18 @@ export default class Metadata {
             .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
         )
       )
-    })
+
+      if (!latestVersion) {
+        error(new Error('Could not fetch latest version.'))
+      }
+    }
+
+    this.remote = axios
+      .get(this.remoteURL)
+      .then(res => {
+        this.remote = res.data
+        always()
+      })
+      .catch(() => always())
   }
 }

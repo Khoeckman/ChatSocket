@@ -1,7 +1,7 @@
-import './src/utils/global.js'
-import './src/utils/console.js'
-import './src/vigilance/settings.js'
-import Metadata from './src/metadata.js'
+import './src/utils/global'
+import './src/utils/console'
+import './src/vigilance/settings'
+import Metadata from './src/metadata'
 
 try {
   global.metadata = new Metadata('ChatSocket', 'metadata.json', 'https://raw.githubusercontent.com/Khoeckman/ChatSocket/main/metadata.json')
