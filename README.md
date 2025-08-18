@@ -1,6 +1,6 @@
 # ChatSocket
 
-**A ChatTriggers module**: Opens a WebSocket connection to send and receive Minecraft chats and commands in real time.
+**A ChatTriggers module**: Opens a WebSocket connection to send and receive CT events in real time.
 
 ## Installation
 
