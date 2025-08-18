@@ -1,14 +1,22 @@
-// import WebSocket from 'WebSocket'
+import WebSocket from 'WebSocket'
 
-// const ws = new WebSocket('ws://' + hostname + ':' + port)
+let ws = new WebSocket('ws://localhost:8080')
 
-// register('chat', (msg, event) => {
-//   ws.send(JSON.stringify({ type: 'chat', message: msg }))
-// })
+ws.onMessage = msg => {
+  console.log('Message: ' + msg)
+}
 
-// ws.onmessage = event => {
-//   let data = JSON.parse(event.data)
-//   if (data.type === 'send_chat') {
-//     ChatLib.chat(data.message)
-//   }
-// }
+ws.onError = exception => {
+  console.log('Error: ' + exception)
+}
+
+ws.onOpen = () => {
+  console.log('Socket Opened')
+  ws.send('Hello Server!')
+}
+
+ws.onClose = () => {
+  console.log('Socket Closed')
+}
+
+ws.connect()

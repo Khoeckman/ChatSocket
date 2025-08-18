@@ -39,5 +39,5 @@ global.dialog = (title, lines) => {
   for (let line of lines) ChatLib.chat(TAB + line)
   ChatLib.chat('')
 
-  World.playSound('random.click', 0.7, 1)
+  World.playSound('random.click', 0.5, 1)
 }

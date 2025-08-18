@@ -2,8 +2,8 @@
   "name": "ChatSocket",
   "creator": "Khoeckman",
   "description": "Opens a WebSocket connection to send and receive Minecraft chats and commands in real time.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "entry": "index.js",
-  "requires": ["PromiseV2", "axios", "Vigilance"],
+  "requires": ["PromiseV2", "axios", "WebSocket", "Vigilance"],
   "homepage": "https://github.com/Khoeckman/ChatSocket"
 }

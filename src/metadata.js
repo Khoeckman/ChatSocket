@@ -14,6 +14,16 @@ export default class Metadata {
     this.remote = null
   }
 
+  getRemote(callback) {
+    this.remote = axios
+      .get(this.remoteURL)
+      .then(res => {
+        this.remote = res.data
+        callback()
+      })
+      .catch(() => callback())
+  }
+
   printVersion() {
     if (!this.local || typeof this.local.version !== 'string')
       return error(new TypeError(`Cannot read properties of ${this.local} (reading 'version')`))
@@ -28,14 +38,14 @@ export default class Metadata {
     }
 
     const messageId = randomId()
-    chat(PREFIX + `&aVersion ${this.local.version} &7Fetching latest...`, messageId)
+    chat(PREFIX + `&aVersion ${this.local.version} &7Getting latest...`, messageId)
 
-    const always = () => {
+    const updateMessage = () => {
       const latestVersion =
         this.remote && typeof this.remote.version === 'string'
           ? this.remote.version > this.local.version
-            ? ' &c✘ Latest ' + this.remote.version
-            : ' &2✔ Latest'
+            ? (World.playSound('mob.villager.no', 0.5, 1), ' &c✘ Latest ' + this.remote.version)
+            : (World.playSound('mob.villager.yes', 0.5, 1), ' &2✔ Latest')
           : ''
 
       ChatLib.editChat(
@@ -47,17 +57,9 @@ export default class Metadata {
         )
       )
 
-      if (!latestVersion) {
-        error(new Error('Could not fetch latest version.'))
-      }
+      if (!latestVersion) error(new Error('Could not fetch latest version.'))
     }
 
-    this.remote = axios
-      .get(this.remoteURL)
-      .then(res => {
-        this.remote = res.data
-        always()
-      })
-      .catch(() => always())
+    this.getRemote(updateMessage)
   }
 }
