@@ -1,4 +1,4 @@
-export function fetchOptions(method, data = null) {
+/* export function requestOptions(method, data = null) {
   method = method.toUpperCase()
 
   const options = {
@@ -14,4 +14,8 @@ export function fetchOptions(method, data = null) {
   }
 
   return options
+} */
+
+export function handleError(error) {
+  return error.isAxiosError ? error.code + ': ' + error.response.data : error.message
 }

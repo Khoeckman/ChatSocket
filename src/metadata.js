@@ -1,4 +1,5 @@
-// import { fetchOptions } from './utils/fetch.js'
+import axios from 'axios'
+import { handleError } from './utils/request.js'
 
 export default class Metadata {
   constructor(moduleName, fileName, remoteURL = '') {
@@ -15,11 +16,10 @@ export default class Metadata {
   }
 
   fetchRemote() {
-    return new Promise(resolve => resolve({ version: '1.0.1' }))
-    // return fetch(this.remoteURL, fetchOptions('GET'))
-    //   .then(res => res.json())
-    //   .then(json => (this.remote = json))
-    //   .catch(error)
+    return axios
+      .get(this.remoteURL)
+      .then(res => (this.remote = res.data))
+      .catch(handleError)
   }
 
   printVersion() {
@@ -38,28 +38,23 @@ export default class Metadata {
     const messageId = randomId()
     chat(PREFIX + `&aVersion ${this.local.version} &7Fetching latest...`, messageId)
 
-    // this.remote = await this.fetchRemote(this.remoteURL)
-    let latestVersion = ''
+    this.remote = this.fetchRemote(this.remoteURL).then(() => {
+      let latestVersion = ''
 
-    if (this.remote && typeof this.remote.version === 'string') {
-      latestVersion = this.remote.version > this.local.version ? ' &c✘ Latest ' + this.remote.version : ' &2✔ Latest'
-    } else {
-      error(new Error('Could not fetch latest version.'))
-    }
+      if (this.remote && typeof this.remote.version === 'string') {
+        latestVersion = this.remote.version > this.local.version ? ' &c✘ Latest ' + this.remote.version : ' &2✔ Latest'
+      } else {
+        error(new Error('Could not fetch latest version.'))
+      }
 
-    ChatLib.chat('hi 1')
-
-    ChatLib.editChat(
-      messageId,
-      new Message(
-        new TextComponent(PREFIX + `&aVersion ${this.local.version}${latestVersion} &7[&8&lGitHub&7]`)
-          .setClick('open_url', this.local.homepage)
-          .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+      ChatLib.editChat(
+        messageId,
+        new Message(
+          new TextComponent(PREFIX + `&aVersion ${this.local.version}${latestVersion} &7[&8&lGitHub&7]`)
+            .setClick('open_url', this.local.homepage)
+            .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+        )
       )
-    )
-
-    ChatLib.chat('hi 2')
-
-    ChatLib.chat(ChatLib.getChatBreak('-'))
+    })
   }
 }
