@@ -1,3 +1,5 @@
+import { PREFIX, TAB } from './'
+
 const logToChat = (type, typeColor, messageColor, ...args) => {
   ChatLib.chat(PREFIX + `&${typeColor}[${type}]&${messageColor} ${args.join(' ')}`)
 }

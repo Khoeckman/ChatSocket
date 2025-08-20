@@ -4,6 +4,6 @@
   "description": "Opens a WebSocket connection to send and receive CT events in real time.",
   "version": "0.1.0",
   "entry": "index.js",
-  "requires": ["PromiseV2", "axios", "WebSocket", "Vigilance"],
+  "requires": ["Vigilance"],
   "homepage": "https://github.com/Khoeckman/ChatSocket"
 }

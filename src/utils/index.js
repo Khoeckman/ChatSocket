@@ -1,23 +1,21 @@
 const Random = Java.type('java.util.Random')
 
-// General
-global.PREFIX = '&7[&6ChatSocket&7] &e'
-global.TAB = '    '
+export const PREFIX = '&7[&6ChatSocket&7] &e'
+export const TAB = '    '
 
-global.rng = new Random()
+export const rng = new Random()
 
-// ChatTriggers
-global.randomId = () => rng.nextInt(2 ** 31 - 1)
+export const generateId = () => rng.nextInt(2 ** 31 - 1)
 
-global.chat = (message, id = null) => {
+export const chat = (message, id = null) => {
   if (!message || typeof message !== 'string') message = ''
   if (!id) return ChatLib.chat(PREFIX + message)
-  new Message(message).setChatLineId(id).chat()
+  new Message(PREFIX + message).setChatLineId(id).chat()
 }
 
-global.error = message => {
+export const error = (message, printStackTrace = false) => {
   chat('&c' + message)
-  if (settings.printStackTrace) {
+  if (printStackTrace) {
     try {
       throw new Error(message)
     } catch (err) {
@@ -30,14 +28,14 @@ global.error = message => {
   World.playSound('random.anvil_land', 0.3, 1)
 }
 
-global.line = (prefix = '', len = 48) => prefix + '&m' + '-'.repeat(len)
+export const line = (prefix = '', len = 48) => prefix + '&m' + '-'.repeat(len)
 
-global.dialog = (title, lines) => {
+export const dialog = (title, lines) => {
   ChatLib.chat('')
   chat(title)
   ChatLib.chat('')
   for (let line of lines) ChatLib.chat(TAB + line)
   ChatLib.chat('')
 
-  World.playSound('random.click', 0.5, 1)
+  World.playSound('random.click', 0.7, 1)
 }
