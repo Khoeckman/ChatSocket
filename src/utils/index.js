@@ -15,6 +15,7 @@ export const chat = (message, id = null) => {
 
 export const error = (message, printStackTrace = false) => {
   chat('&c' + message)
+
   if (printStackTrace) {
     try {
       throw new Error(message)

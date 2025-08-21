@@ -1,7 +1,9 @@
-import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from 'Vigilance'
-import { PREFIX, TAB, rng, generateId, chat, error, line, dialog } from './'
+import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
+import { PREFIX, TAB, rng } from '../utils'
 
-@Vigilant('ChatSocket', `ChatSocket Settings`, {
+const Long = Java.type('java.lang.Long')
+
+@Vigilant('ChatSocket', PREFIX.replaceAll('&', '§') + 'Settings', {
   getCategoryComparator: () => (a, b) => {
     const categories = ['General', 'WebSocket', 'Debug']
     return categories.indexOf(a.name) - categories.indexOf(b.name)
@@ -35,7 +37,7 @@ class Settings {
   checkLatestVersion = true
 
   @ParagraphProperty({
-    name: 'WebSocket URI',
+    name: 'URI',
     description: 'Where the WebSocket server is hosted.',
     category: 'WebSocket',
     subcategory: 'WebSocket',
@@ -45,13 +47,26 @@ class Settings {
   wsURI = 'ws://localhost:47576'
 
   @TextProperty({
-    name: 'WebSocket Secret Key',
-    description: 'Key for authenticating messages from ChatSocket.',
+    name: 'Secret Key',
+    description: 'Key included in every WebSocket message from ChatSocket, which can be used to authenticate messages.',
     category: 'WebSocket',
     subcategory: 'WebSocket',
     protected: true,
   })
-  wsSecret = rng.nextLong().toString(36) + rng.nextLong().toString(36)
+  wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
+
+  @ButtonProperty({
+    name: 'Regenerate Secret Key',
+    description: 'This action cannot be undone.',
+    category: 'WebSocket',
+    subcategory: 'WebSocket',
+    placeholder: '§cRegenerate',
+  })
+  wsRegenSecret() {
+    this.wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
+    // this.save()
+    this.openGUI()
+  }
 
   /* @ParagraphProperty({
     name: 'Hostname',
@@ -86,7 +101,7 @@ class Settings {
     category: 'Debug',
     subcategory: 'Logger',
   })
-  logChat = false
+  logChat = true
 
   @SwitchProperty({
     name: 'File Logger',

@@ -1,29 +1,29 @@
-import { PREFIX, TAB, rng, generateId, chat, error, line, dialog } from './'
-import settings from '../settings'
-import WebSocket from './WebSocket'
-import ChatSocketClient from './ChatSocketClient'
+// import { PREFIX, TAB, rng, generateId, chat, error, line, dialog } from './'
+// import settings from '../settings'
+// import WebSocket from './WebSocket'
+// import ChatSocketClient from './ChatSocketClient'
 
-/*settings.wsURI || */
-export let ws = new WebSocket('ws://localhost:47576')
+// /*settings.wsURI || */
+// export let ws = new WebSocket('ws://localhost:47576')
 
-ws.onMessage = msg => {
-  chat('Message: ' + msg)
-}
+// ws.onMessage = msg => {
+//   chat('Message: ' + msg)
+// }
 
-ws.onError = exception => {
-  chat('Error: ' + exception)
-}
+// ws.onError = exception => {
+//   chat('Error: ' + exception)
+// }
 
-ws.onOpen = () => {
-  chat('Socket Opened')
-  ws.send('Hello Server!')
-}
+// ws.onOpen = () => {
+//   chat('Socket Opened')
+//   ws.send('Hello Server!')
+// }
 
-ws.onClose = () => {
-  chat('Socket Closed')
-}
+// ws.onClose = () => {
+//   chat('Socket Closed')
+// }
 
-ws.connect()
+// ws.connect()
 
 /**
  * Connects (or reconnects) the WebSocket to the given URI

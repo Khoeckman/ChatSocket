@@ -1,60 +1,58 @@
+import settings from '../Vigilance/settings'
+
 const URI = Java.type('java.net.URI')
 const WebSocketClient = Java.type('org.java_websocket.client.WebSocketClient')
 
 export default class WebSocket {
-  static CONNECTING = 0
-  static OPEN = 1
-  static CLOSING = 2
-  static CLOSED = 3
+  constructor(uri) {
+    if (typeof url !== 'string') return error(new TypeError('url is not a string'), settings.printStackTrace)
+    this.uri = new URI(this.uri)
 
-  constructor(url) {
-    this.url = url
+    this.onMessage = () => {}
+    this.onError = () => {}
+    this.onOpen = () => {}
+    this.onClose = () => {}
 
-    // Browser-like event handlers
-    this.onopen = null
-    this.onmessage = null
-    this.onerror = null
-    this.onclose = null
-
-    this.readyState = WebSocket.CONNECTING
+    const _this = this
 
     this.socket = new JavaAdapter(
       WebSocketClient,
       {
-        onOpen: handshake => {
-          this.readyState = WebSocket.OPEN
-          if (typeof this.onopen === 'function') this.onopen({ type: 'open', handshake })
+        onMessage(msg) {
+          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &2➡&a' + msg)
+          _this.onMessage(msg)
         },
-        onMessage: message => {
-          if (typeof this.onmessage === 'function') this.onmessage({ type: 'message', data: message })
+        onError(ex) {
+          if (settings.logChat) error(ex, settings.printStackTrace)
+          _this.onError(ex)
         },
-        onError: exception => {
-          if (typeof this.onerror === 'function') this.onerror({ type: 'error', error: exception })
+        onOpen(handshake) {
+          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &2✔ &aConnection opened. ' + _this.uri.toString())
+          _this.onOpen(handshake)
         },
-        onClose: (code, reason, remote) => {
-          this.readyState = WebSocket.CLOSED
-          if (typeof this.onclose === 'function') this.onclose({ type: 'close', code, reason, remote })
+        onClose(code, reason, remote) {
+          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &4✖ &cConnection closed. ' + _this.uri.toString())
+          _this.onClose(code, reason, remote)
         },
       },
-      new URI(this.url)
+      this.uri
     )
+  }
 
+  send(msg) {
+    if (settings.logChat) ChatLib.chat('&7[&ews://&7] &4⬅&a' + msg)
+    this.socket.send(msg)
+  }
+
+  connect() {
     this.socket.connect()
   }
 
-  send(data) {
-    if (this.readyState === WebSocket.CONNECTING) throw new Error("Failed to execute 'send' on 'WebSocket': Still in CONNECTING state.")
-    if (this.readyState === WebSocket.CLOSING || this.readyState === WebSocket.CLOSED)
-      throw new Error('WebSocket is already in CLOSING or CLOSED state.')
-
-    this.socket.send(String(data))
+  close() {
+    this.socket.close()
   }
 
-  close() {
-    if (this.readyState === WebSocket.CLOSING || this.readyState === WebSocket.CLOSED)
-      throw new Error('WebSocket is already in CLOSING or CLOSED state.')
-
-    this.readyState = WebSocket.CLOSING
-    this.socket.close()
+  reconnect() {
+    this.socket.reconnect()
   }
 }

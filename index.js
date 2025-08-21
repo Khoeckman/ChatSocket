@@ -1,13 +1,11 @@
-import './src/utils/console'
 import { PREFIX, TAB, rng, generateId, chat, error, line, dialog } from './src/utils'
-import settings from './src/utils/settings'
+import settings from './src/Vigilance/settings'
 import metadata from './src/utils/metadata'
 import WebSocket from './src/net/WebSocket'
 
 try {
   let client = null
 
-  // Command: /cs help
   register('command', (command, ...args) => {
     try {
       if (typeof command !== 'string') command = 'help'
@@ -28,13 +26,18 @@ try {
           break
 
         case 'open':
-          console.debug('open start', settings.wsURI)
-          client = new WebSocket(settings.wsURI)
-          console.debug('open end')
+          chat('&eopen start URI:', settings.wsURI)
+          client = new WebSocket('ws://localhost:47576')
+          client.connect()
+          chat('&eopen end')
+
+          client.onOpen = handshake => {
+            chat('')
+          }
           break
 
         case 'close':
-          console.debug('close')
+          chat('&eclose')
           break
 
         case 'version':
@@ -43,7 +46,7 @@ try {
           break
 
         default:
-          dialog('Commands:', [
+          dialog('Commands', [
             '&e/cs &6sett&eings &7 Opens the settings GUI.',
             '&e/cs &6conn&eection &7 Prints info about the &fWebSocket&7 connection.',
             '&e/cs open &7 Opens the &fWebSocket&7 connection.',

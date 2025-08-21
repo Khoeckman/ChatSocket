@@ -1,5 +1,5 @@
 import { PREFIX, TAB, generateId, chat, error } from './'
-import settings from './settings'
+import settings from '../Vigilance/settings'
 
 class Metadata {
   constructor(moduleName, fileName, remoteURL = 'null') {
@@ -12,7 +12,6 @@ class Metadata {
 
     if (typeof remoteURL !== 'string') return error(new TypeError('remoteURL is not a string'), settings.printStackTrace)
     this.remoteURL = remoteURL
-    // this.getRemote2()
   }
 
   getRemote(onFinally, onFinallyArgs) {
@@ -51,9 +50,9 @@ class Metadata {
     const latestVersion =
       this.remote && typeof this.remote.version === 'string'
         ? this.remote.version > this.local.version
-          ? '&c✘ Latest ' + this.remote.version
+          ? '&c✖ Latest ' + this.remote.version
           : '&2✔ Latest'
-        : '&c✘ Latest unknown'
+        : '&c✖ Latest unknown'
 
     ChatLib.editChat(
       messageId,
