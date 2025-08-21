@@ -1,38 +1,39 @@
-import settings from '../Vigilance/settings'
+import { PREFIX, TAB, rng, generateId, chat, error, line, dialog } from '../utils'
+import settings from '../vigilance/settings'
 
 const URI = Java.type('java.net.URI')
 const WebSocketClient = Java.type('org.java_websocket.client.WebSocketClient')
 
 export default class WebSocket {
   constructor(uri) {
-    if (typeof url !== 'string') return error(new TypeError('url is not a string'), settings.printStackTrace)
-    this.uri = new URI(this.uri)
+    if (typeof uri !== 'string') return error(new TypeError('uri is not a string'), settings.printStackTrace)
+    this.uri = new URI(uri)
 
     this.onMessage = () => {}
     this.onError = () => {}
     this.onOpen = () => {}
     this.onClose = () => {}
 
-    const _this = this
+    const thiz = this
 
     this.socket = new JavaAdapter(
       WebSocketClient,
       {
         onMessage(msg) {
-          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &2➡&a' + msg)
-          _this.onMessage(msg)
+          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &2➡ &a' + msg)
+          thiz.onMessage(msg)
         },
         onError(ex) {
           if (settings.logChat) error(ex, settings.printStackTrace)
-          _this.onError(ex)
+          thiz.onError(ex)
         },
         onOpen(handshake) {
-          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &2✔ &aConnection opened. ' + _this.uri.toString())
-          _this.onOpen(handshake)
+          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &2✔ &aConnection opened. &f' + thiz.uri.toString())
+          thiz.onOpen(handshake)
         },
         onClose(code, reason, remote) {
-          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &4✖ &cConnection closed. ' + _this.uri.toString())
-          _this.onClose(code, reason, remote)
+          if (settings.logChat) ChatLib.chat('&7[&ews://&7] &4✖ &cConnection closed. &f' + thiz.uri.toString())
+          thiz.onClose(code, reason, remote)
         },
       },
       this.uri
@@ -40,7 +41,7 @@ export default class WebSocket {
   }
 
   send(msg) {
-    if (settings.logChat) ChatLib.chat('&7[&ews://&7] &4⬅&a' + msg)
+    if (settings.logChat) ChatLib.chat('&7[&ews://&7] &4⬅ &a' + msg)
     this.socket.send(msg)
   }
 

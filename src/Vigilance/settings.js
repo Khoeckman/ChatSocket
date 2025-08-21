@@ -64,7 +64,6 @@ class Settings {
   })
   wsRegenSecret() {
     this.wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
-    // this.save()
     this.openGUI()
   }
 

@@ -1,5 +1,5 @@
 import { PREFIX, TAB, generateId, chat, error } from './'
-import settings from '../Vigilance/settings'
+import settings from '../vigilance/settings'
 
 class Metadata {
   constructor(moduleName, fileName, remoteURL = 'null') {
@@ -33,9 +33,12 @@ class Metadata {
 
     if (!settings.checkLatestVersion) {
       ChatLib.chat(
-        new TextComponent(PREFIX + `&aVersion ${this.local.version} &7[&8&lGitHub&7]`)
-          .setClick('open_url', this.local.homepage)
-          .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+        new Message(
+          PREFIX + `&aVersion ${this.local.version} `,
+          new TextComponent('&7[&8&lGitHub&7]')
+            .setClick('open_url', this.local.homepage)
+            .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+        )
       )
       return
     }
@@ -57,7 +60,8 @@ class Metadata {
     ChatLib.editChat(
       messageId,
       new Message(
-        new TextComponent(PREFIX + `&aVersion ${this.local.version} ${latestVersion} &7[&8&lGitHub&7]`)
+        PREFIX + `&aVersion ${this.local.version} ${latestVersion} `,
+        new TextComponent('&7[&8&lGitHub&7]')
           .setClick('open_url', this.local.homepage)
           .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
       )
