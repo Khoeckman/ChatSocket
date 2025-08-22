@@ -22,7 +22,7 @@ class Metadata {
       } catch (err) {
         error(err)
       } finally {
-        Client.scheduleTask(() => onFinally(...onFinallyArgs))
+        onFinally(...onFinallyArgs)
       }
     }).start()
   }
@@ -47,7 +47,6 @@ class Metadata {
     chat(`&aVersion ${this.local.version} &7● Getting latest...`, messageId)
 
     this.getRemote(this.#updateVersionStatus, [messageId])
-    World.playSound('random.orb', 0.7, 1)
   }
 
   #updateVersionStatus = messageId => {
@@ -58,16 +57,18 @@ class Metadata {
           : '&2✔ Latest'
         : '&c✖ Latest unknown'
 
-    ChatLib.editChat(
-      messageId,
-      new Message(
-        PREFIX + `&aVersion ${this.local.version} ${latestVersion} `,
-        new TextComponent('&7[&8&lGitHub&7]')
-          .setClick('open_url', this.local.homepage)
-          .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+    Client.scheduleTask(() => {
+      ChatLib.editChat(
+        messageId,
+        new Message(
+          PREFIX + `&aVersion ${this.local.version} ${latestVersion} `,
+          new TextComponent('&7[&8&lGitHub&7]')
+            .setClick('open_url', this.local.homepage)
+            .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+        )
       )
-    )
-    // World.playSound('mob.villager.' + (latestVersion.includes('.') ? 'yes' : 'no'), 0.7, 1)
+    })
+    World.playSound('mob.villager.' + (latestVersion.includes('✔') ? 'yes' : 'no'), 0.7, 1)
   }
 }
 

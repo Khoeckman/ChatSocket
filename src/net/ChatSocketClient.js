@@ -18,6 +18,7 @@ export default class ChatSocketClient {
 
     this.readyState = ChatSocketClient.CLOSED
     this.hasConnected = false
+    this.manuallyClosed = false
 
     this.receive = null
 
@@ -33,7 +34,7 @@ export default class ChatSocketClient {
           Client.scheduleTask(() => {
             if (settings.logChat) chat(`&2&l+ &aConnected to &f${this.uri}`)
           })
-          World.playSound('portal.portal', 0.7, 1)
+          World.playSound('random.levelup', 0.7, 1)
         },
         onMessage(message) {
           if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
@@ -60,7 +61,9 @@ export default class ChatSocketClient {
               else chat(`&4&l- &cDisconnected from &f${this.uri} &7[&e${code}&7]`)
             }
           })
-          World.playSound('dig.glass', 0.7, 1)
+
+          if (code === -1) World.playSound('random.anvil_land', 0.3, 1)
+          else World.playSound('dig.glass', 0.7, 1)
         },
       },
       this.uri
@@ -97,6 +100,7 @@ export default class ChatSocketClient {
 
     this.readyState = ChatSocketClient.CLOSING
     this.socket.close()
+    this.manuallyClosed = true
   }
 
   reconnect() {

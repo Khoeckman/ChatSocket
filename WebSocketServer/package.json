@@ -1,0 +1,22 @@
+{
+  "name": "chatsocketserver",
+  "version": "1.0.0",
+  "description": "Example project to help demonstrate ChatSocket, a ChatTriggers module.",
+  "keywords": [
+    "ChatTriggers",
+    "ChatSocket",
+    "WebSocket",
+    "WebSocketServer",
+    "Server"
+  ],
+  "license": "MIT",
+  "author": "Khoeckman",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "server": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

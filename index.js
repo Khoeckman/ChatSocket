@@ -6,6 +6,7 @@ import { chat, error, dialog } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
+import { encode } from './src/net/protocol'
 
 let ws = new ChatSocketClient(settings.wsURI)
 
@@ -26,7 +27,6 @@ try {
             '&e/cs open &7 Connects to the &fWebSocket&7.',
             '&e/cs close &7 Disconnects from &fWebSocket&7.',
             '&e/cs status &7 Prints the status of the &fWebSocket&7.',
-            '&e/cs send <message> &7 Manually send a message to the &fWebSocket&7.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
           ])
@@ -69,15 +69,6 @@ try {
           )
           break
 
-        case 'send':
-          if (!args.length) {
-            error('Missing required parameter: &e<message>')
-            break
-          }
-          ws.send(args.join(' '))
-
-          break
-
         case 'version':
         case 'ver':
           metadata.printVersionStatus()
@@ -97,7 +88,7 @@ try {
   register('chat', event => {
     try {
       const message = ChatLib.getChatMessage(event, true)
-      if (ws.readyState === ChatSocketClient.OPEN) ws.send(message)
+      if (ws.readyState === ChatSocketClient.OPEN) ws.send(encode('chat', message))
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -112,6 +103,22 @@ try {
 
   chat('&eModule loaded. Type "/cs" for help.')
   metadata.printVersionStatus()
+
+  // Autoreconnect
+  register('step', () => {
+    try {
+      if (!settings.wsAuto || ws.readyState === ChatSocketClient.CONNECTING || ws.readyState === ChatSocketClient.OPEN || ws.manuallyClosed)
+        return
+
+      try {
+        ws.close()
+      } catch (err) {}
+      ws = new ChatSocketClient(settings.wsURI)
+      ws.connect()
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  }).setDelay(5)
 } catch (err) {
   error(err, settings.printStackTrace)
 }
