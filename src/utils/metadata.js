@@ -1,4 +1,4 @@
-import { PREFIX, TAB, generateId, chat, error } from './'
+import { PREFIX, generateId, chat, error } from './'
 import settings from '../vigilance/settings'
 
 class Metadata {
@@ -66,7 +66,8 @@ class Metadata {
           .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
       )
     )
-    World.playSound('mob.villager.' + (latestVersion.includes('✔') ? 'yes' : 'no'), 0.7, 1)
+    World.playSound('mob.villager.' + (latestVersion.includes('.') ? 'yes' : 'no'), 0.7, 1)
+    chat('TODO sound not working?')
   }
 }
 

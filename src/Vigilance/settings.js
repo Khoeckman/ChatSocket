@@ -1,5 +1,5 @@
 import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
-import { PREFIX, TAB, rng } from '../utils'
+import { PREFIX, rng } from '../utils'
 
 const Long = Java.type('java.lang.Long')
 
@@ -28,6 +28,8 @@ const Long = Java.type('java.lang.Long')
   },
 })
 class Settings {
+  // General
+
   @CheckboxProperty({
     name: 'Check Latest Version',
     description: 'Keep track of whether you have the latest version of ChatSocket.',
@@ -35,6 +37,8 @@ class Settings {
     subcategory: 'Version',
   })
   checkLatestVersion = true
+
+  // WebSocket
 
   @ParagraphProperty({
     name: 'URI',
@@ -48,7 +52,7 @@ class Settings {
 
   @TextProperty({
     name: 'Secret Key',
-    description: 'Key included in every WebSocket message from ChatSocket, which can be used to authenticate messages.',
+    description: 'Key included in every WebSocket message from ChatSocket. The WebSocket server should use this to authenticate messages.',
     category: 'WebSocket',
     subcategory: 'WebSocket',
     protected: true,
@@ -57,7 +61,7 @@ class Settings {
 
   @ButtonProperty({
     name: 'Regenerate Secret Key',
-    description: 'This action cannot be undone.',
+    description: 'You can also edit the field and choose your own key.',
     category: 'WebSocket',
     subcategory: 'WebSocket',
     placeholder: '§cRegenerate',
@@ -67,32 +71,7 @@ class Settings {
     this.openGUI()
   }
 
-  /* @ParagraphProperty({
-    name: 'Hostname',
-    description: 'Enter the address the WebSocket.',
-    category: 'General',
-    subcategory: 'WebSocket',
-    placeholder: 'myhostname.com',
-  })
-  wsHostname = 'localhost' */
-
-  /* @NumberProperty({
-    name: 'Port',
-    description: 'Enter the port number for the WebSocket (0 - 65535).',
-    category: 'General',
-    subcategory: 'WebSocket',
-    min: 0,
-    max: 65535,
-  })
-  wsPort = 47576 */
-
-  /* @TextProperty({
-    name: 'Port',
-    description: 'Enter the port number for the WebSocket (0 - 65535).',
-    category: 'General',
-    subcategory: 'WebSocket',
-  })
-  wsPort = '47576' */
+  // Debug
 
   @SwitchProperty({
     name: 'Chat Logger',
@@ -116,7 +95,6 @@ class Settings {
     category: 'Debug',
     subcategory: 'Logger',
   })
-  // fun read(fileLocation: String): String?
   logFileDir = './config/ChatTriggers/modules/ChatSocket/log/'
 
   @SwitchProperty({
@@ -140,15 +118,6 @@ class Settings {
         this.wsURI = 'ws://localhost:47576'
         return error(`&f${this.wsURI}&c is not a valid WebSocket URI.`, this.printStackTrace)
       }
-    }) */
-
-    /* this.registerListener('Hostname', () => {
-      this.wsHostname ||= 'localhost'
-    })
-
-    this.registerListener('Port', () => {
-      this.wsPort = +this.wsPort
-      if (!Number.isFinite(+this.wsPort) || +this.wsPort < 0 || +this.wsPort > 65535) this.wsPort = '47576'
     }) */
   }
 }

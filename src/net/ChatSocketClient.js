@@ -1,47 +1,134 @@
+import { chat, error } from '../utils'
+import settings from '../vigilance/settings'
+
+const URI = Java.type('java.net.URI')
+const WebSocketClient = Java.type('org.java_websocket.client.WebSocketClient')
+
 export default class ChatSocketClient {
-  constructor(address) {
-    this.address = address
+  static CONNECTING = 0
+  static OPEN = 1
+  static CLOSING = 2
+  static CLOSED = 3
 
-    this.onMessage = () => {}
-    this.onError = () => {}
-    this.onOpen = () => {}
-    this.onClose = () => {}
+  static PREFIX = '&7[&f&lWS&7] '
 
-    const _this = this
+  constructor(uri) {
+    if (typeof uri !== 'string') return error(new TypeError('uri is not a string'), settings.printStackTrace)
+    this.uri = new URI(uri)
+
+    this.readyState = ChatSocketClient.CLOSED
+    this.hasConnected = false
+
+    this.receive = null
+
+    const ws = this
 
     this.socket = new JavaAdapter(
-      org.java_websocket.client.WebSocketClient,
+      WebSocketClient,
       {
+        onOpen(handshake) {
+          ws.readyState = ChatSocketClient.OPEN
+
+          ws.deleteConnectingMessage()
+          Client.scheduleTask(() => {
+            if (settings.logChat) chat(`&2&l+ &aConnected to &f${this.uri}`)
+            World.playSound('portal.portal', 0.7, 1)
+          })
+        },
         onMessage(message) {
-          _this.onMessage(message)
+          if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
+          if (typeof ws.receive === 'function') ws.receive(message)
         },
         onError(exception) {
-          _this.onError(exception)
-        },
-        onOpen(handshake) {
-          _this.onOpen(handshake)
+          error(new Error(exception), settings.printStackTrace)
+
+          ws.deleteConnectingMessage()
+          ws.deleteDisconnectingMessage()
+
+          if (ws.readyState === ChatSocketClient.CLOSED) return
+
+          // Force close
+          ws.socket.close()
+          ws.readyState = ChatSocketClient.CLOSED
         },
         onClose(code, reason, remote) {
-          _this.onClose(code, reason, remote)
+          ws.readyState = ChatSocketClient.CLOSED
+
+          ws.deleteDisconnectingMessage()
+          Client.scheduleTask(() => {
+            if (settings.logChat) {
+              if (remote) chat(`&4&l- &cConnection closed by remote host &f${this.uri} &7[${code}]`)
+              else chat(`&4&l- &cDisconnected from &f${this.uri} &7[${code}]`)
+            }
+            World.playSound('dig.glass', 0.7, 1)
+          })
         },
       },
-      new java.net.URI(this.address)
+      this.uri
     )
   }
 
   send(message) {
-    this.socket.send(message)
+    if (this.readyState !== ChatSocketClient.OPEN) return
+    /* throw new Error(
+        `Failed to execute 'send' on 'WebSocket': ${this.readyState === ChatSocketClient.CONNECTING ? 'Still' : 'Already'} in ${
+          this.readyState
+        } state.`
+      ) */
+
+    this.socket.send(String(message))
+    if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&4⬅ &a' + String(message))
   }
 
   connect() {
+    if (this.readyState === ChatSocketClient.CONNECTING || this.readyState === ChatSocketClient.OPEN) {
+      this.deleteConnectingMessage()
+      throw new Error('WebSocket is already in CONNECTING or OPEN state.')
+    }
+    if (this.readyState === ChatSocketClient.CLOSING) {
+      this.deleteConnectingMessage()
+      throw new Error('WebSocket is still in CLOSING state.')
+    }
+
+    this.readyState = ChatSocketClient.CONNECTING
     this.socket.connect()
+    this.hasConnected = true
   }
 
   close() {
+    if (this.readyState === ChatSocketClient.CLOSING || this.readyState === ChatSocketClient.CLOSED) {
+      this.deleteDisconnectingMessage()
+      throw new Error('WebSocket is already in CLOSING or CLOSED state.')
+    }
+
+    this.readyState = ChatSocketClient.CLOSING
     this.socket.close()
   }
 
   reconnect() {
-    this.socket.reconnect()
+    if (this.readyState === ChatSocketClient.CONNECTING || this.readyState === ChatSocketClient.OPEN) {
+      this.deleteConnectingMessage()
+      throw new Error('WebSocket is already in CONNECTING or OPEN state.')
+    }
+    if (this.readyState === ChatSocketClient.CLOSING) {
+      this.deleteConnectingMessage()
+      throw new Error('WebSocket is still in CLOSING state.')
+    }
+
+    this.readyState = ChatSocketClient.CONNECTING
+    if (this.hasConnected) this.socket.reconnect()
+    else this.socket.connect()
+  }
+
+  deleteConnectingMessage() {
+    Client.scheduleTask(() => {
+      ChatLib.deleteChat(47576001)
+    })
+  }
+
+  deleteDisconnectingMessage() {
+    Client.scheduleTask(() => {
+      ChatLib.deleteChat(47576002)
+    })
   }
 }
