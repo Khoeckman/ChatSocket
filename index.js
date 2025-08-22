@@ -15,15 +15,18 @@ try {
       if (typeof command !== 'string') command = ''
       else command = command.toLowerCase()
 
+      if (!Array.isArray(args)) args = []
+
       switch (command) {
         case '':
         case 'help':
           dialog('Commands', [
             '&e/cs &6sett&eings &7 Opens the settings GUI.',
             '&e/cs &6sett&eings load &7 Loads the config.toml&7 into settings.',
-            '&e/cs status &7 Prints the status of the &fWebSocket&7.',
             '&e/cs open &7 Connects to the &fWebSocket&7.',
             '&e/cs close &7 Disconnects from &fWebSocket&7.',
+            '&e/cs status &7 Prints the status of the &fWebSocket&7.',
+            '&e/cs send <message> &7 Manually send a message to the &fWebSocket&7.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
           ])
@@ -31,23 +34,17 @@ try {
 
         case 'settings':
         case 'sett':
-          if (args && Array.isArray(args)) {
-            if (args[0] === 'load') {
-              settings.config.loadData()
-              chat('Loaded config.toml&e into settings.')
-              World.playSound('random.orb', 0.7, 1)
+          if (args.length) {
+            if (args[0] !== 'load') {
+              error(`Unknown command. Type "/cs" for help. `)
+              break
             }
+            settings.config.loadData()
+            chat('Loaded config.toml&e into settings.')
+            World.playSound('random.orb', 0.7, 1)
             break
           }
           settings.openGUI()
-          break
-
-        case 'status':
-          chat(
-            `Connection to &f${ws ? ws.uri : settings.wsURI}&e ● ${
-              ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][ws ? ws.readyState ?? 3 : 3]
-            }`
-          )
           break
 
         case 'open':
@@ -55,10 +52,7 @@ try {
           chat(`&2&l+ &aConnecting to &f${settings.wsURI}&a...`, 47576001)
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
           ws.connect()
-
-          ws.receive = message => {
-            chat('TODO handle received message: ' + message)
-          }
+          ws.receive = message => {}
           break
 
         case 'close':
@@ -67,13 +61,30 @@ try {
           ws.close()
           break
 
+        case 'status':
+          chat(
+            `Connection to &f${ws ? ws.uri : settings.wsURI}&e ● ${
+              ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][ws.readyState ?? 3]
+            }`
+          )
+          break
+
+        case 'send':
+          if (!args.length) {
+            error('Missing required parameter: &e<message>')
+            break
+          }
+          ws.send(args.join(' '))
+
+          break
+
         case 'version':
         case 'ver':
           metadata.printVersionStatus()
           break
 
         default:
-          error(`Unknown command. Type "/cs" for help. ('${command}')`)
+          error(`Unknown command. Type "/cs" for help. `)
           break
       }
     } catch (err) {
@@ -85,8 +96,8 @@ try {
 
   register('chat', event => {
     try {
-      const message = ChatLib.getChatMessage(event, false)
-      if (ws) ws.send(message)
+      const message = ChatLib.getChatMessage(event, true)
+      if (ws.readyState === ChatSocketClient.OPEN) ws.send(message)
     } catch (err) {
       error(err, settings.printStackTrace)
     }

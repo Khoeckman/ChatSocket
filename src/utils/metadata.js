@@ -47,6 +47,7 @@ class Metadata {
     chat(`&aVersion ${this.local.version} &7● Getting latest...`, messageId)
 
     this.getRemote(this.#updateVersionStatus, [messageId])
+    World.playSound('random.orb', 0.7, 1)
   }
 
   #updateVersionStatus = messageId => {
@@ -66,8 +67,7 @@ class Metadata {
           .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
       )
     )
-    World.playSound('mob.villager.' + (latestVersion.includes('.') ? 'yes' : 'no'), 0.7, 1)
-    chat('TODO sound not working?')
+    // World.playSound('mob.villager.' + (latestVersion.includes('.') ? 'yes' : 'no'), 0.7, 1)
   }
 }
 

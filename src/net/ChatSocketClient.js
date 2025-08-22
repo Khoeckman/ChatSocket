@@ -32,24 +32,22 @@ export default class ChatSocketClient {
           ws.deleteConnectingMessage()
           Client.scheduleTask(() => {
             if (settings.logChat) chat(`&2&l+ &aConnected to &f${this.uri}`)
-            World.playSound('portal.portal', 0.7, 1)
           })
+          World.playSound('portal.portal', 0.7, 1)
         },
         onMessage(message) {
           if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
           if (typeof ws.receive === 'function') ws.receive(message)
         },
         onError(exception) {
-          error(new Error(exception), settings.printStackTrace)
+          error('WebSocket Error: ' + exception, settings.printStackTrace)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
 
-          if (ws.readyState === ChatSocketClient.CLOSED) return
-
           // Force close
-          ws.socket.close()
           ws.readyState = ChatSocketClient.CLOSED
+          ws.socket.close()
         },
         onClose(code, reason, remote) {
           ws.readyState = ChatSocketClient.CLOSED
@@ -57,11 +55,12 @@ export default class ChatSocketClient {
           ws.deleteDisconnectingMessage()
           Client.scheduleTask(() => {
             if (settings.logChat) {
-              if (remote) chat(`&4&l- &cConnection closed by remote host &f${this.uri} &7[${code}]`)
-              else chat(`&4&l- &cDisconnected from &f${this.uri} &7[${code}]`)
+              if (remote) chat(`&4&l- &cConnection closed by &f${this.uri} &7[&e${code}&7]`)
+              else if (code === -1) chat(`&4&l- &cFailed to connect to &f${this.uri} &7[&e${code}&7]`)
+              else chat(`&4&l- &cDisconnected from &f${this.uri} &7[&e${code}&7]`)
             }
-            World.playSound('dig.glass', 0.7, 1)
           })
+          World.playSound('dig.glass', 0.7, 1)
         },
       },
       this.uri
@@ -69,12 +68,7 @@ export default class ChatSocketClient {
   }
 
   send(message) {
-    if (this.readyState !== ChatSocketClient.OPEN) return
-    /* throw new Error(
-        `Failed to execute 'send' on 'WebSocket': ${this.readyState === ChatSocketClient.CONNECTING ? 'Still' : 'Already'} in ${
-          this.readyState
-        } state.`
-      ) */
+    if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
 
     this.socket.send(String(message))
     if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&4⬅ &a' + String(message))

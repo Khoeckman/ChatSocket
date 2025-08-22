@@ -110,7 +110,7 @@ class Settings {
 
     this.addDependency('File Logger Directory', 'File Logger')
 
-    /* this.registerListener('WebSocket URI', (wsURI) => {
+    /* this.registerListener('URI', (wsURI) => {
       this.wsURI = wsURI.trim()
       const wsPattern = /^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/
 
