@@ -22,6 +22,9 @@ export default class ChatSocketClient {
     this.connectingMessageId = randomId()
     this.disconnectingMessageId = randomId()
 
+    // Overrideable function
+    this.onReceive = null
+
     const ws = this
 
     this.client = new JavaAdapter(
@@ -31,14 +34,14 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.OPEN
 
           ws.deleteConnectingMessage()
-          Client.scheduleTask(() => {
-            if (settings.wsLogChat) chat(`&2&l+ &aConnected to &f${this.uri}`)
-          })
+          // Client.scheduleTask(() => {
+          if (settings.wsLogChat) chat(`&2&l+&a Connected to &f${this.uri}`)
+          // })
           World.playSound('random.levelup', 0.7, 1)
         },
         onMessage(message) {
           if (settings.wsLogChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
-          if (typeof global.ChatSocket_onReceive !== 'function') global.ChatSocket_onReceive.call(ws, message)
+          if (typeof ws.onReceive !== 'function') ws.onReceive(ws, message)
         },
         onError(exception) {
           if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace)
@@ -54,16 +57,15 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.CLOSED
 
           ws.deleteDisconnectingMessage()
-          Client.scheduleTask(() => {
-            if (settings.wsLogChat) {
-              if (remote) chat(`&4&l- &cConnection closed by &f${this.uri} &7[&e${code}&7]`)
-              else if (code === -1) chat(`&4&l- &cFailed to connect to &f${this.uri} &7[&e${code}&7]`)
-              else chat(`&4&l- &cDisconnected from &f${this.uri} &7[&e${code}&7]`)
-            }
-          })
+          // Client.scheduleTask(() => {
+          if (settings.wsLogChat) {
+            if (remote) chat(`&4&l-&c Connection closed by &f${this.uri} &7[&e${code}&7]`)
+            else if (code === -1) chat(`&4&l-&c Failed to connect to &f${this.uri} &7[&e${code}&7]`)
+            else chat(`&4&l-&c Disconnected from &f${this.uri} &7[&e${code}&7]`)
+          }
+          // })
 
-          if (code === -1) World.playSound('random.anvil_land', 0.3, 1)
-          else World.playSound('dig.glass', 0.7, 1)
+          if (code !== -1) World.playSound('dig.glass', 0.7, 1)
         },
       },
       this.uri
@@ -73,7 +75,7 @@ export default class ChatSocketClient {
   send(message) {
     if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
 
-    this.client.send(String(message))
+    this.client.send(String(settings.wsSecret.replaceAll(' ', '') + ' ' + message))
     if (settings.wsLogChat) ChatLib.chat(ChatSocketClient.PREFIX + '&4⬅ &a' + String(message))
   }
 
@@ -87,6 +89,7 @@ export default class ChatSocketClient {
       throw new Error('WebSocket is still in CLOSING state.')
     }
 
+    this.printConnectingMessage()
     this.readyState = ChatSocketClient.CONNECTING
     this.client.connect()
   }
@@ -97,6 +100,7 @@ export default class ChatSocketClient {
       throw new Error('WebSocket is already in CLOSING or CLOSED state.')
     }
 
+    this.printDisconnectingMessage()
     this.readyState = ChatSocketClient.CLOSING
     this.client.close()
     this.manuallyClosed = true
@@ -118,22 +122,22 @@ export default class ChatSocketClient {
   }
 
   printConnectingMessage() {
-    chat(`&2&l+ &aConnecting to &f${settings.wsURI}&a...`, this.connectingMessageId)
+    chat(`&2&l+&a Connecting to &f${settings.wsURI}&a...`, this.connectingMessageId)
   }
 
   printDisconnectingMessage() {
-    chat(`&4&l-&c Disconnecting from &f${ws.uri}&c...`, this.disconnectingMessageId)
+    chat(`&4&l-&c Disconnecting from &f${this.uri}&c...`, this.disconnectingMessageId)
   }
 
   deleteConnectingMessage() {
-    Client.scheduleTask(() => {
-      ChatLib.deleteChat(this.connectingMessageId)
-    })
+    // Client.scheduleTask(() => {
+    ChatLib.deleteChat(this.connectingMessageId)
+    // })
   }
 
   deleteDisconnectingMessage() {
-    Client.scheduleTask(() => {
-      ChatLib.deleteChat(this.disconnectingMessageId)
-    })
+    // Client.scheduleTask(() => {
+    ChatLib.deleteChat(this.disconnectingMessageId)
+    // })
   }
 }

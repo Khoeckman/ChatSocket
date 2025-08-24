@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws'
 
 // Utils
-const stripFormatting = str => str.replace(/&[0-9a-fklmnor]/g, '')
+const stripFormatting = str => String(str).replace(/&[0-9a-fklmnor]/g, '')
 
 // Make sure this matches ChatSocket's setting
 const settings = {
@@ -24,7 +24,7 @@ wss.on('connection', (client, request) => {
   client.on('error', console.error)
 
   client.on('close', () => {
-    console.log('- Client disconnected', ws.ip)
+    console.log('- Client disconnected', client.ip)
   })
 })
 

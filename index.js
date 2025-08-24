@@ -6,9 +6,9 @@ import { chat, error, dialog } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
-import { encode } from './src/net/protocol'
 
 let ws = new ChatSocketClient(settings.wsURI)
+let autoconnect = true
 
 try {
   register('command', (command, ...args) => {
@@ -24,8 +24,8 @@ try {
           dialog('Commands', [
             '&e/cs &6sett&eings &7 Opens the settings GUI.',
             '&e/cs &6sett&eings load &7 Loads the config.toml&7 into settings.',
-            '&e/cs open &7 Connects to the &fWebSocket&7.',
-            '&e/cs close &7 Disconnects from &fWebSocket&7.',
+            '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
+            '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs status &7 Prints the status of the &fWebSocket&7.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
@@ -49,14 +49,16 @@ try {
 
         case 'open':
         case 'o':
-          chat(`&2&l+ &aConnecting to &f${settings.wsURI}&a...`, 47576001)
+          autoconnect = true
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
           ws.connect()
+          ws.onReceive = global.ChatSocket_onReceive
           break
 
         case 'close':
+        case 'c':
         case 'x':
-          chat(`&4&l-&c Disconnecting from &f${ws.uri}&c...`, 47576002)
+          autoconnect = false
           ws.close()
           break
 
@@ -84,15 +86,6 @@ try {
     .setName('cs')
     .setAliases('chatsocket')
 
-  register('chat', event => {
-    try {
-      const message = ChatLib.getChatMessage(event, true)
-      if (ws.readyState === ChatSocketClient.OPEN) ws.send(encode('chat', message))
-    } catch (err) {
-      error(err, settings.printStackTrace)
-    }
-  })
-
   // Close WebSocket when unloading the module
   register('gameUnload', () => {
     try {
@@ -103,29 +96,52 @@ try {
   chat('&eModule loaded. Type "/cs" for help.')
   metadata.printVersionStatus()
 
+  if (typeof registerWebSocket === 'function') registerWebSocket()
+
   // Autoreconnect
   register('step', () => {
     try {
-      if (!settings.wsAuto || ws.readyState === ChatSocketClient.CONNECTING || ws.readyState === ChatSocketClient.OPEN || ws.manuallyClosed)
+      if (
+        !autoconnect ||
+        !settings.wsAutoconnect ||
+        ws.readyState === ChatSocketClient.CONNECTING ||
+        ws.readyState === ChatSocketClient.OPEN
+      )
         return
 
+      // Close previous WebSocket before creating a new instance
       try {
         ws.close()
       } catch (err) {}
+
       ws = new ChatSocketClient(settings.wsURI)
-      ws.connect()
+      ws.connect(true)
     } catch (err) {
       error(err, settings.printStackTrace)
     }
-  }).setDelay(5)
+  }).setDelay(1)
 } catch (err) {
-  error(err, settings.printStackTrace)
+  if (settings.wsErr) error(err, settings.printStackTrace)
 }
 
 // Add ChatSocket to 'requires' in your own module then
 // override this function to add your own logic
-global.ChatSocket_onReceive = function receive(message) {
-  const ws = this
+global.ChatSocket_onReceive = function receive(ws, message) {
   const uri = ws.uri
   ChatLib.chat(PREFIX + uri + ': ' + message)
+}
+
+function registerWebSocket() {
+  register('chat', event => {
+    try {
+      if (ws.readyState !== ChatSocketClient.OPEN) return
+
+      const message = ChatLib.getChatMessage(event, true)
+      ws.send('CHAT ' + message)
+
+      if (settings.wsLogChat) cancel(event)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
 }

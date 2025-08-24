@@ -18,7 +18,7 @@ const Long = Java.type('java.lang.Long')
     const names = [
       'Check Latest Version',
       'URI',
-      'Autoreconnect',
+      'Autoconnect',
       'Secret Key',
       'Regenerate Secret Key',
       'Chat Logger',
@@ -31,7 +31,6 @@ const Long = Java.type('java.lang.Long')
   },
 })
 class Settings {
-
   // WebSocket
 
   @ParagraphProperty({
@@ -45,12 +44,12 @@ class Settings {
   wsURI = 'ws://localhost:47576'
 
   @CheckboxProperty({
-    name: 'Autoreconnect',
-    description: 'Reconnect when the connection closes.',
+    name: 'Autoconnect',
+    description: 'Connect when the connection is closed.',
     category: 'WebSocket',
     subcategory: 'WebSocket',
   })
-  wsAuto = true
+  wsAutoconnect = true
 
   @TextProperty({
     name: 'Secret Key',
@@ -139,8 +138,17 @@ class Settings {
         return error(`&f${this.wsURI}&c is not a valid WebSocket URI.`, this.printStackTrace)
       }
     }) */
+
+    this.registerListener('Secret Key', (wsSecret) => {
+      this.wsSecret = wsSecret.replaceAll(' ', '')
+      const wsPattern = /^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/
+
+      if (!wsPattern.test(this.wsURI)) {
+        this.wsURI = 'ws://localhost:47576'
+        return error(`&f${this.wsURI}&c is not a valid WebSocket URI.`, this.printStackTrace)
+      }
+    })
   }
 }
 
-const settings = new Settings()
-export default settings
+export default settings = new Settings()
