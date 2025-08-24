@@ -1,4 +1,4 @@
-import { chat, error } from '../utils'
+import { randomId, chat, error } from '../utils'
 import settings from '../vigilance/settings'
 
 const URI = Java.type('java.net.URI')
@@ -18,13 +18,13 @@ export default class ChatSocketClient {
 
     this.readyState = ChatSocketClient.CLOSED
     this.hasConnected = false
-    this.manuallyClosed = false
 
-    this.receive = null
+    this.connectingMessageId = randomId()
+    this.disconnectingMessageId = randomId()
 
     const ws = this
 
-    this.socket = new JavaAdapter(
+    this.client = new JavaAdapter(
       WebSocketClient,
       {
         onOpen(handshake) {
@@ -32,30 +32,30 @@ export default class ChatSocketClient {
 
           ws.deleteConnectingMessage()
           Client.scheduleTask(() => {
-            if (settings.logChat) chat(`&2&l+ &aConnected to &f${this.uri}`)
+            if (settings.wsLogChat) chat(`&2&l+ &aConnected to &f${this.uri}`)
           })
           World.playSound('random.levelup', 0.7, 1)
         },
         onMessage(message) {
-          if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
-          if (typeof ws.receive === 'function') ws.receive(message)
+          if (settings.wsLogChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
+          if (typeof global.ChatSocket_onReceive !== 'function') global.ChatSocket_onReceive.call(ws, message)
         },
         onError(exception) {
-          error('WebSocket Error: ' + exception, settings.printStackTrace)
+          if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
 
           // Force close
           ws.readyState = ChatSocketClient.CLOSED
-          ws.socket.close()
+          ws.client.close()
         },
         onClose(code, reason, remote) {
           ws.readyState = ChatSocketClient.CLOSED
 
           ws.deleteDisconnectingMessage()
           Client.scheduleTask(() => {
-            if (settings.logChat) {
+            if (settings.wsLogChat) {
               if (remote) chat(`&4&l- &cConnection closed by &f${this.uri} &7[&e${code}&7]`)
               else if (code === -1) chat(`&4&l- &cFailed to connect to &f${this.uri} &7[&e${code}&7]`)
               else chat(`&4&l- &cDisconnected from &f${this.uri} &7[&e${code}&7]`)
@@ -73,8 +73,8 @@ export default class ChatSocketClient {
   send(message) {
     if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
 
-    this.socket.send(String(message))
-    if (settings.logChat) ChatLib.chat(ChatSocketClient.PREFIX + '&4⬅ &a' + String(message))
+    this.client.send(String(message))
+    if (settings.wsLogChat) ChatLib.chat(ChatSocketClient.PREFIX + '&4⬅ &a' + String(message))
   }
 
   connect() {
@@ -88,8 +88,7 @@ export default class ChatSocketClient {
     }
 
     this.readyState = ChatSocketClient.CONNECTING
-    this.socket.connect()
-    this.hasConnected = true
+    this.client.connect()
   }
 
   close() {
@@ -99,7 +98,7 @@ export default class ChatSocketClient {
     }
 
     this.readyState = ChatSocketClient.CLOSING
-    this.socket.close()
+    this.client.close()
     this.manuallyClosed = true
   }
 
@@ -114,19 +113,27 @@ export default class ChatSocketClient {
     }
 
     this.readyState = ChatSocketClient.CONNECTING
-    if (this.hasConnected) this.socket.reconnect()
-    else this.socket.connect()
+    if (this.hasConnected) this.client.reconnect()
+    else this.client.connect()
+  }
+
+  printConnectingMessage() {
+    chat(`&2&l+ &aConnecting to &f${settings.wsURI}&a...`, this.connectingMessageId)
+  }
+
+  printDisconnectingMessage() {
+    chat(`&4&l-&c Disconnecting from &f${ws.uri}&c...`, this.disconnectingMessageId)
   }
 
   deleteConnectingMessage() {
     Client.scheduleTask(() => {
-      ChatLib.deleteChat(47576001)
+      ChatLib.deleteChat(this.connectingMessageId)
     })
   }
 
   deleteDisconnectingMessage() {
     Client.scheduleTask(() => {
-      ChatLib.deleteChat(47576002)
+      ChatLib.deleteChat(this.disconnectingMessageId)
     })
   }
 }

@@ -5,38 +5,32 @@ const Long = Java.type('java.lang.Long')
 
 @Vigilant('ChatSocket', PREFIX.replaceAll('&', '§') + 'Settings', {
   getCategoryComparator: () => (a, b) => {
-    const categories = ['General', 'WebSocket', 'Debug']
+    const categories = ['WebSocket', 'Version', 'Debug']
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
-    const subcategories = ['General', 'WebSocket', 'Logger', 'Errors']
+    const subcategories = ['General', 'WebSocket', 'Authentication', 'Logger', 'Errors']
     return (
       subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
   },
   getPropertyComparator: () => (a, b) => {
     const names = [
-      'Check Version',
-      'WebSocket URI',
-      'WebSocket Secret Key',
+      'Check Latest Version',
+      'URI',
+      'Autoreconnect',
+      'Secret Key',
+      'Regenerate Secret Key',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
       'Stack Trace',
+      'WebSocket Errors',
     ]
     return names.indexOf(a.attributesExt.name) - names.indexOf(b.attributesExt.name)
   },
 })
 class Settings {
-  // General
-
-  @CheckboxProperty({
-    name: 'Check Latest Version',
-    description: 'Keep track of whether you have the latest version of ChatSocket.',
-    category: 'General',
-    subcategory: 'Version',
-  })
-  checkLatestVersion = true
 
   // WebSocket
 
@@ -50,11 +44,19 @@ class Settings {
   })
   wsURI = 'ws://localhost:47576'
 
+  @CheckboxProperty({
+    name: 'Autoreconnect',
+    description: 'Reconnect when the connection closes.',
+    category: 'WebSocket',
+    subcategory: 'WebSocket',
+  })
+  wsAuto = true
+
   @TextProperty({
     name: 'Secret Key',
     description: 'Key included in every WebSocket message from ChatSocket. The WebSocket server should use this to authenticate messages.',
     category: 'WebSocket',
-    subcategory: 'WebSocket',
+    subcategory: 'Authentication',
     protected: true,
   })
   wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
@@ -63,7 +65,7 @@ class Settings {
     name: 'Regenerate Secret Key',
     description: 'You can also edit the field and choose your own key.',
     category: 'WebSocket',
-    subcategory: 'WebSocket',
+    subcategory: 'Authentication',
     placeholder: '§cRegenerate',
   })
   wsRegenSecret() {
@@ -71,13 +73,15 @@ class Settings {
     this.openGUI()
   }
 
+  // Version
+
   @CheckboxProperty({
-    name: 'Autoreconnect',
-    description: 'Reconnect when the connection closes.',
-    category: 'WebSocket',
-    subcategory: 'WebSocket',
+    name: 'Check Latest Version',
+    description: 'Keep track of whether you have the latest version of ChatSocket.',
+    category: 'Version',
+    subcategory: 'Version',
   })
-  wsAuto = true
+  checkLatestVersion = true
 
   // Debug
 
@@ -87,7 +91,7 @@ class Settings {
     category: 'Debug',
     subcategory: 'Logger',
   })
-  logChat = true
+  wsLogChat = true
 
   @SwitchProperty({
     name: 'File Logger',
@@ -95,7 +99,7 @@ class Settings {
     category: 'Debug',
     subcategory: 'Logger',
   })
-  logFile = false
+  wsLogFile = false
 
   @ParagraphProperty({
     name: 'File Logger Directory',
@@ -105,13 +109,21 @@ class Settings {
   })
   logFileDir = './config/ChatTriggers/modules/ChatSocket/log/'
 
-  @SwitchProperty({
+  @CheckboxProperty({
     name: 'Stack Trace',
     description: 'Print the stack trace of errors.',
     category: 'Debug',
     subcategory: 'Errors',
   })
   printStackTrace = false
+
+  @CheckboxProperty({
+    name: 'WebSocket Errors',
+    description: 'Print WebSocket errors.',
+    category: 'Debug',
+    subcategory: 'Errors',
+  })
+  wsErr = false
 
   constructor() {
     this.initialize(this)

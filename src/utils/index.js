@@ -5,7 +5,7 @@ export const TAB = '    '
 
 export const rng = new Random()
 
-export const generateId = () => rng.nextInt(2 ** 31 - 1)
+export const randomId = () => rng.nextInt(2 ** 31 - 1)
 
 export const chat = (message, id = null) => {
   if (!message || typeof message !== 'string') message = ''

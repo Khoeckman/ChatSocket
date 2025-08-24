@@ -41,7 +41,7 @@ try {
             }
             settings.config.loadData()
             chat('Loaded config.toml&e into settings.')
-            World.playSound('random.orb', 0.7, 1)
+            World.playSound('note.pling', 0.7, 1)
             break
           }
           settings.openGUI()
@@ -52,7 +52,6 @@ try {
           chat(`&2&l+ &aConnecting to &f${settings.wsURI}&a...`, 47576001)
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
           ws.connect()
-          ws.receive = message => {}
           break
 
         case 'close':
@@ -121,4 +120,12 @@ try {
   }).setDelay(5)
 } catch (err) {
   error(err, settings.printStackTrace)
+}
+
+// Add ChatSocket to 'requires' in your own module then
+// override this function to add your own logic
+global.ChatSocket_onReceive = function receive(message) {
+  const ws = this
+  const uri = ws.uri
+  ChatLib.chat(PREFIX + uri + ': ' + message)
 }

@@ -1,4 +1,4 @@
-import { PREFIX, generateId, chat, error } from './'
+import { PREFIX, randomId, chat, error } from './'
 import settings from '../vigilance/settings'
 
 class Metadata {
@@ -43,7 +43,7 @@ class Metadata {
       return
     }
 
-    const messageId = generateId()
+    const messageId = randomId()
     chat(`&aVersion ${this.local.version} &7● Getting latest...`, messageId)
 
     this.getRemote(this.#updateVersionStatus, [messageId])
