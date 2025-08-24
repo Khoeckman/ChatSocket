@@ -9,7 +9,7 @@ const Long = Java.type('java.lang.Long')
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
-    const subcategories = ['General', 'WebSocket', 'Connection', 'Logger', 'Errors']
+    const subcategories = ['General', 'WebSocket', 'Logger', 'Errors']
     return (
       subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
@@ -73,9 +73,9 @@ class Settings {
 
   @CheckboxProperty({
     name: 'Autoreconnect',
-    description: 'Reconnecting with the WebSocket when the connection closes.',
+    description: 'Reconnect when the connection closes.',
     category: 'WebSocket',
-    subcategory: 'Connection',
+    subcategory: 'WebSocket',
   })
   wsAuto = true
 
