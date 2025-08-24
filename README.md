@@ -8,13 +8,19 @@ Configure and open a WebSocket connection to send and receive ChatTrigger events
 1. Install [ChatTriggers](https://github.com/ChatTriggers/ChatTriggers/releases)
 2. Download `ChatSocket.zip` from [Releases](https://github.com/Khoeckman/ChatSocket/releases/latest)
 3. Extract `ChatSocket.zip` to `%appdata%/.minecraft/config/ChatTriggers/modules/`
-4. Launch Minecraft or run `/ct reload` in chat.
+4. Launch Minecraft or reload all ChatTriggers modules by running `/ct load` in chat.
 5. After loading it should say: `[ChatSocket] Module Loaded. Type "/cs" for help.`
 
 ## Credits
 
-This module was not possible without code from the following modules:
+This module contains modified code from the following modules:
 
 1. [Vigilance - By FalseHonesty](https://chattriggers.com/modules/v/Vigilance)
 2. [WebSocket - By Debug](https://chattriggers.com/modules/v/WebSocket)
-3. [CTAutocomplete - By lotymax](https://chattriggers.com/modules/v/CTAutocomplete)
+
+## Devdependencies
+
+Run `/ct import CTAutocomplete` in Minecraft to be able to use this devdependency.
+This is only necessary if you wish to make changes to ChatSocket.
+
+[CTAutocomplete - By lotymax](https://chattriggers.com/modules/v/CTAutocomplete)

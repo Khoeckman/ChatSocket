@@ -1,4 +1,4 @@
-// Run "/ct import CTAutocomplete" in Minecraft to use this devdependency
+// Run `/ct import CTAutocomplete` in Minecraft to be able to use this devdependency
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
@@ -26,7 +26,7 @@ try {
             '&e/cs &6sett&eings load &7 Loads the config.toml&7 into settings.',
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
-            '&e/cs status &7 Prints the status of the &fWebSocket&7.',
+            '&e/cs &6s&etatus &7 Prints the status of the &fWebSocket&7.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
           ])
@@ -63,6 +63,7 @@ try {
           break
 
         case 'status':
+        case 's':
           chat(
             `Connection to &f${ws ? ws.uri : settings.wsURI}&e ● ${
               ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][ws.readyState ?? 3]

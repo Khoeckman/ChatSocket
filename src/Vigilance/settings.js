@@ -139,9 +139,9 @@ class Settings {
       }
     }) */
 
-    this.registerListener('Secret Key', (wsSecret) => {
+    this.registerListener('Secret Key', wsSecret => {
       this.wsSecret = wsSecret.replaceAll(' ', '')
-      const wsPattern = /^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/
+      const wsPattern = /[a-]/
 
       if (!wsPattern.test(this.wsURI)) {
         this.wsURI = 'ws://localhost:47576'
