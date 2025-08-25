@@ -33,7 +33,7 @@ This hook allows your module to handle incoming messages from the ChatSocket ser
 **Example Override:**
 
 ```js
-global.ChatSocket_onReceive = function (type, value, settings) {
+global.ChatSocket_onReceive = function receive(type, value, settings) {
   const ws = this // Instance of `/src/net/ChatSocketClient.js`
 
   switch (type) {
@@ -61,7 +61,3 @@ Run `/ct import CTAutocomplete` in Minecraft to be able to use this devdependenc
 This is only necessary if you wish to make changes to ChatSocket.
 
 [CTAutocomplete - By lotymax](https://chattriggers.com/modules/v/CTAutocomplete)
-
-```
-
-```
