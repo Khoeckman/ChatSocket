@@ -2,11 +2,11 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-// import './src/utils/global'
 import { chat, error, dialog } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
+import './src/utils/global'
 
 let ws = new ChatSocketClient(settings.wsURI)
 ws.autoconnect = World.isLoaded()
@@ -95,7 +95,7 @@ try {
     } catch (err) {}
   })
 
-  if (typeof registerWebSocket === 'function') registerWebSocket()
+  if (typeof registerClientEvents === 'function') registerClientEvents.call(ws, ChatSocketClient, settings)
 
   // Autoreconnect
   register('step', () => {
@@ -123,7 +123,9 @@ try {
   if (settings.wsErr) error(err, settings.printStackTrace)
 }
 
-function registerWebSocket() {
+function registerClientEvents(ChatSocketClient, settings) {
+  const ws = this
+
   register('chat', event => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return

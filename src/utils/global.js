@@ -1,9 +1,18 @@
-import { PREFIX, error } from './'
+/**
+ * Hook for handling incoming ChatSocket messages.
+ *
+ * Usage:
+ * 1. Add 'ChatSocket' to the 'requires' array in your module.
+ * 2. Override this function in your module to implement custom behavior.
+ */
+global.ChatSocket_onReceive = function receive(type, value, settings) {
+  const ws = this
 
-// Add ChatSocket to 'requires' in your own module then
-// override this function to add your own logic
-
-global.ChatSocket_onReceive = function receive(ws, type, value) {
-  const uri = ws.uri
-  ChatLib.chat(PREFIX + uri + ': [' + type + '] ' + value)
+  switch (type) {
+    case 'AUTH':
+      break
+    case 'CHAT':
+      if (!settings.wsLogChat) ChatLib.chat(value)
+      break
+  }
 }

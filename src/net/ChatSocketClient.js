@@ -60,7 +60,7 @@ export default class ChatSocketClient {
           }
 
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
-          if (typeof ws.onReceive === 'function') ws.onReceive(ws, type, value)
+          if (typeof ws.onReceive === 'function') ws.onReceive.call(ws, type, value, settings)
         },
         onError(exception) {
           if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, settings.wsAutoconnect)

@@ -26,6 +26,7 @@ wss.on('connection', (client, request) => {
     }
 
     switch (type) {
+      // Its not mandatory for the client to send an AUTH message but it allows them to receive messages before sending any
       case 'AUTH':
         client.uuid = value
         wss.send(client, 'AUTH', 'ACK')
@@ -33,7 +34,13 @@ wss.on('connection', (client, request) => {
       case 'CHAT':
         wss.send(client, 'CHAT', 'ACK')
         break
-      case 'BROADCAST':
+      case 'SAY':
+        wss.send(client, 'SAY', 'ACK')
+        break
+      case 'COMMAND':
+        wss.send(client, 'COMMAND', 'ACK')
+        break
+      case 'BC:CHAT':
         wss.broadcast('CHAT', value)
         break
     }
