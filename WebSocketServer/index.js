@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import ChatSocketServer from './ChatSocketServer.js'
 
-if (typeof process.env.SECRET_KEY !== 'string') {
+if (typeof process.env.SECRET_KEY !== 'string' || process.env.SECRET_KEY.length < 1) {
   throw new TypeError(`Missing or invalid environment variable
 
   -> SECRET_KEY is not set in your .env file

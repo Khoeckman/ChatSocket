@@ -14,5 +14,8 @@ global.ChatSocket_onReceive = function receive(type, value, settings) {
     case 'CHAT':
       if (!settings.wsLogChat) ChatLib.chat(value)
       break
+    case 'COMMAND':
+      ChatLib.command(value)
+      break
   }
 }
