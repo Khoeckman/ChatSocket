@@ -11,6 +11,39 @@ Configure and open a WebSocket connection to send and receive ChatTrigger events
 4. Launch Minecraft or reload all ChatTriggers modules by running `/ct load` in chat.
 5. After loading it should say: `[ChatSocket] Module Loaded. Type "/cs" for help.`
 
+## How To Use
+
+The **ChatSocket** module allows you to interact with Minecraft programmatically **without modifying Minecraft’s internal code**. It achieves this using **WebSocket communication**, letting you send and receive messages between your own WebSocket server and Minecraft.
+
+### Setting Up Your Server
+
+1. You can start from the template in `WebSocketServer/`, or build your server in any language you prefer.
+2. The only requirement is that messages follow the **ChatSocket encoding format**.
+
+### Message Encoding
+
+Each message sent between the server and client must follow this syntax:
+
+```
+SECRET_KEY TYPE VALUE
+```
+
+- `SECRET_KEY` — Your authentication key. **Must not contain spaces.**
+- `TYPE` — The message type (e.g., `AUTH`, `CHAT`, or custom types).
+- `VALUE` — The payload of the message. Can contain spaces and does not need to be trimmed.
+
+**Example:**
+
+```
+3b9e06e2db0ba8327d6584e5c2cd1f2e CHAT Hello Minecraft!
+```
+
+### Notes
+
+- The module handles message encoding and decoding automatically; you only need to follow the syntax.
+- You can extend the module by overriding hooks like `ChatSocket_onReceive` to implement custom behavior for different message types.
+- Keep your `SECRET_KEY` secure if your WebSocket server is public.
+
 ## Hooks
 
 ### `ChatSocket_onReceive(type, value, settings)`
