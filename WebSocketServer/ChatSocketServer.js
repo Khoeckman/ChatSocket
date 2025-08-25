@@ -53,21 +53,23 @@ export default class ChatSocketServer extends WebSocketServer {
   receive(client, data, stripFormatting = false) {
     let { secretKey, type, value } = ChatSocketServer.decodeMessage(data)
     const isAuth = this.secretKey === secretKey
+    client.isAuth = isAuth
 
     console.log(
-      ChatSocketServer.mcToAnsi(`&2-> &e${client.ip} &7[&${isAuth ? 'a' : 'c'}${secretKey}&7] &r&l\x1b[48;5;11m&l ${type} &r &a${value}`)
+      ChatSocketServer.mcToAnsi(`&2-> &e${client.ip} &7[&${isAuth ? 'a' : 'c'}${secretKey}&7]&r &l\x1b[48;5;11m&l ${type} &r &a${value}`)
     )
     if (stripFormatting) value = ChatSocketServer.removeMcFormatting(value)
-    return { isAuth, type, value }
+    return { secretKey, type, value }
   }
 
   send(client, type, value) {
     if (client.readyState !== client.OPEN) return
 
-    const message = ChatSocketServer.encodeMessage(this.secretKey, type, value)
+    const secretKey = client.isAuth ? this.secretKey : 0
+    const message = ChatSocketServer.encodeMessage(secretKey, type, value)
     client.send(message)
     console.log(
-      ChatSocketServer.mcToAnsi(`&4<- &e${client.ip} &7[&a${this.secretKey}&7]&r&l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${value}`)
+      ChatSocketServer.mcToAnsi(`&4<- &e${client.ip} &7[&a${secretKey}&7]&r &l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${value}`)
     )
   }
 
