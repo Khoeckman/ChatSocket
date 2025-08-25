@@ -84,6 +84,11 @@ try {
     .setName('cs')
     .setAliases('chatsocket')
 
+  register('gameLoad', () => {
+    chat('&eModule loaded. Type "/cs" for help.')
+    metadata.printVersionStatus()
+  })
+
   // Close WebSocket when unloading the module
   register('gameUnload', () => {
     try {
@@ -115,9 +120,6 @@ try {
       error(err, settings.printStackTrace)
     }
   }).setDelay(1)
-
-  chat('&eModule loaded. Type "/cs" for help.')
-  metadata.printVersionStatus()
 } catch (err) {
   if (settings.wsErr) error(err, settings.printStackTrace)
 }

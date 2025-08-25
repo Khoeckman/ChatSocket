@@ -1,4 +1,4 @@
-import { PREFIX, randomInt, chat, error } from './'
+import { PREFIX, chat, error } from './'
 import settings from '../vigilance/settings'
 
 class Metadata {
@@ -34,21 +34,20 @@ class Metadata {
       return error(new TypeError(`Cannot read properties of ${this.local} (reading 'version')`), settings.printStackTrace)
 
     if (!settings.checkLatestVersion) {
-      ChatLib.chat(
+      chat(
         new Message(
-          PREFIX + `&aVersion ${this.local.version} `,
+          `&aVersion ${this.local.version} `,
           new TextComponent('&7[&8&lGitHub&7]')
             .setClick('open_url', this.local.homepage)
             .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
-        ).setChatLineId(messageId)
+        ).setChatLineId(47576000)
       )
       return
     }
 
-    const messageId = randomInt(2 ** 15, 2 ** 31)
-    chat(`&aVersion ${this.local.version} &7● Getting latest...`, messageId)
+    chat(`&aVersion ${this.local.version} &7● Getting latest...`, 47576000)
 
-    this.getRemote(this.#updateVersionStatus, [messageId])
+    this.getRemote(this.#updateVersionStatus, [47576000])
   }
 
   #updateVersionStatus = messageId => {
@@ -61,18 +60,19 @@ class Metadata {
           : '&2✔ Latest'
         : '&c✖ Latest unknown'
 
-    Client.scheduleTask(() => {
-      ChatLib.editChat(
-        messageId,
+    try {
+      ChatLib.clearChat(messageId)
+      chat(
         new Message(
-          PREFIX,
           `&aVersion ${this.local.version} ${latestVersion} `,
           new TextComponent('&7[&8&lGitHub&7]')
             .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
             .setClick('open_url', this.local.homepage)
-        )
+        ).setChatLineId(messageId)
       )
-    })
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
     World.playSound('mob.villager.' + (latestVersion.includes('✔') ? 'yes' : 'no'), 0.7, 1)
   }
 }

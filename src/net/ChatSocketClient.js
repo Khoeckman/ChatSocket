@@ -167,10 +167,18 @@ export default class ChatSocketClient {
   }
 
   deleteConnectingMessage() {
-    ChatLib.clearChat(this.connectingMessageId)
+    try {
+      ChatLib.clearChat(this.connectingMessageId)
+    } catch (err) {
+      if (settings.wsErr) error(err, settings.printStackTrace)
+    }
   }
 
   deleteDisconnectingMessage() {
-    ChatLib.clearChat(this.disconnectingMessageId)
+    try {
+      ChatLib.clearChat(this.disconnectingMessageId)
+    } catch (err) {
+      if (settings.wsErr) error(err, settings.printStackTrace)
+    }
   }
 }
