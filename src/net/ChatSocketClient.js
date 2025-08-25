@@ -90,7 +90,7 @@ export default class ChatSocketClient {
   }
 
   static encodeMessage(secretKey, type, value) {
-    return String(secretKey || '').replaceAll(' ', '') + ' ' + type.toUpperCase() + ' ' + value
+    return String(secretKey || '').replaceAll(' ', '') + ' ' + type.toUpperCase() + ' ' + (value ?? '')
   }
 
   static decodeMessage(message) {
@@ -114,7 +114,7 @@ export default class ChatSocketClient {
     if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
 
     this.client.send(ChatSocketClient.encodeMessage(settings.wsSecret, type, value))
-    if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${value}`)
+    if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${value ?? ''}`)
   }
 
   connect() {

@@ -19,11 +19,23 @@ wss.on('connection', (client, request) => {
 
   client.on('message', data => {
     const { type, value } = wss.receive(client, data)
+
     if (!client.isAuth) {
       wss.send(client, 'AUTH', "Secret keys don't match")
       return
     }
-    wss.broadcast(type, value)
+
+    switch (type) {
+      case 'AUTH':
+        wss.send(client, 'AUTH', 'ACK')
+        break
+      case 'CHAT':
+        wss.send(client, 'CHAT', 'ACK')
+        break
+      case 'BROADCAST':
+        wss.broadcast('CHAT', value)
+        break
+    }
   })
 
   client.on('error', console.error)
