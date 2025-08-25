@@ -5,65 +5,55 @@ export default class ChatSocketServer extends WebSocketServer {
     super({ port })
 
     this.port = port
-    this.secretKey = secretKey
-  }
-
-  static removeMcFormatting(str) {
-    return String(str).replace(/[&§][0-9a-fklmnor]/g, '')
+    this.secretKey = secretKey.replaceAll(' ', '')
   }
 
   static mcToAnsi(str) {
     const codes = {
-      0: '\x1b[30m', // black
-      1: '\x1b[34m', // dark blue
-      2: '\x1b[32m', // dark green
-      3: '\x1b[36m', // dark aqua (cyan)
-      4: '\x1b[31m', // dark red
-      5: '\x1b[35m', // dark purple (magenta)
-      6: '\x1b[33m', // gold (yellow-ish)
-      7: '\x1b[37m', // gray
-      8: '\x1b[90m', // dark gray
-      9: '\x1b[94m', // blue
-      a: '\x1b[92m', // green
-      b: '\x1b[96m', // aqua (bright cyan)
-      c: '\x1b[91m', // red
-      d: '\x1b[95m', // light purple
-      e: '\x1b[93m', // yellow
-      f: '\x1b[97m', // white
+      0: '\x1b[38;5;0m', // black
+      1: '\x1b[38;5;4m', // dark blue
+      2: '\x1b[38;5;2m', // dark green
+      3: '\x1b[38;5;6m', // dark aqua
+      4: '\x1b[38;5;1m', // dark red
+      5: '\x1b[38;5;5m', // dark purple
+      6: '\x1b[38;5;3m', // gold
+      7: '\x1b[38;5;7m', // gray
+      8: '\x1b[38;5;8m', // dark gray
+      9: '\x1b[38;5;12m', // blue
+      a: '\x1b[38;5;10m', // green
+      b: '\x1b[38;5;14m', // aqua
+      c: '\x1b[38;5;9m', // red
+      d: '\x1b[38;5;13m', // light purple
+      e: '\x1b[38;5;11m', // yellow
+      f: '\x1b[38;5;15m', // white
       l: '\x1b[1m', // bold
       m: '\x1b[9m', // strikethrough
       n: '\x1b[4m', // underline
       o: '\x1b[3m', // italic
       r: '\x1b[0m', // reset
     }
-    return str.replace(/[&§]([0-9a-fklmnor])/gi, (_, code) => codes[code.toLowerCase()] || '')
+    return str.replace(/[&§]([0-9a-fklmnor])/g, (_, code) => codes[code] || '') + '\x1b[0m'
   }
 
+  static removeMcFormatting(str) {
+    return String(str).replace(/[&§][0-9a-fklmnor]/g, '')
+  }
+
+  // Prepare to send to ChatSocket
   static encodeMessage(secretKey, type, value) {
-    secretKey = secretKey.replaceAll(' ', '')
-    type = type.toUpperCase()
-    value = value.trim()
-    return String((secretKey ? secretKey : '') + ' ' + type + ' ' + value)
+    return secretKey + ' ' + type.toUpperCase() + ' ' + value
   }
 
+  // Parse message from ChatSocket
   static decodeMessage(message) {
-    let [, secretKey, type, value] =
-      String(message)
-        .trim()
-        .split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
-
+    let [, secretKey, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
     return { secretKey, type: type.toUpperCase(), value }
   }
 
   receive(client, data, stripFormatting = true) {
     let { secretKey, type, value } = ChatSocketServer.decodeMessage(data)
 
-    console.log(
-      ChatSocketServer.mcToAnsi(
-        `\x1b[38;5;1m⬅ \x1b[38;5;11m${client.ip} \x1b[38;5;15m[\x1b[38;5;11m${type}\x1b[38;5;15m] \x1b[38;5;9m${value}\x1b[0m`
-      )
-    )
-
+    console.log(ChatSocketServer.mcToAnsi(`&4<- &e${client.ip} &r&l\x1b[48;5;11m&l ${type} &r &c${value}`))
     if (stripFormatting) value = ChatSocketServer.removeMcFormatting(value)
 
     return { secretKey, type, value }
@@ -72,16 +62,9 @@ export default class ChatSocketServer extends WebSocketServer {
   send(client, type, value) {
     if (client.readyState !== client.OPEN) return
 
-    type = type.toUpperCase()
-    value = value.trim()
-
     const message = ChatSocketServer.encodeMessage(this.secretKey, type, value)
     client.send(message)
-    console.log(
-      ChatSocketServer.mcToAnsi(
-        `§c➡ \x1b[38;5;11m${client.ip} \x1b[38;5;15m[\x1b[38;5;11m${type}\x1b[38;5;15m] \x1b[38;5;10m${value}\x1b[0m`
-      )
-    )
+    console.log(ChatSocketServer.mcToAnsi(`&2-> &e${client.ip} &r&l\x1b[48;5;11m&l ${type.toUpperCase()} &r &a${value}`))
   }
 
   broadcast(type, value) {

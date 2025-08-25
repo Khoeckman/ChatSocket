@@ -22,7 +22,7 @@ try {
       switch (command) {
         case '':
         case 'help':
-          dialog('Commands', [
+          dialog('&eCommands', [
             '&e/cs &6sett&eings &7 Opens the settings GUI.',
             '&e/cs &6sett&eings load &7 Loads the config.toml&7 into settings.',
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
@@ -41,7 +41,7 @@ try {
               break
             }
             settings.config.loadData()
-            chat('Loaded config.toml&e into settings.')
+            chat('&eLoaded config.toml&e into settings.')
             World.playSound('note.pling', 0.7, 1)
             break
           }
@@ -91,9 +91,6 @@ try {
     } catch (err) {}
   })
 
-  chat('&eModule loaded. Type "/cs" for help.')
-  metadata.printVersionStatus()
-
   if (typeof registerWebSocket === 'function') registerWebSocket()
 
   // Autoreconnect
@@ -118,6 +115,10 @@ try {
       error(err, settings.printStackTrace)
     }
   }).setDelay(1)
+
+  chat('&eModule loaded. Type "/cs" for help.')
+  metadata.printVersionStatus()
+  error(new Message(new TextComponent('test').setHoverValue('hallo'), 'iets anders'))
 } catch (err) {
   if (settings.wsErr) error(err, settings.printStackTrace)
 }

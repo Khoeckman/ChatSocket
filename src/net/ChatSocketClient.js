@@ -30,20 +30,31 @@ export default class ChatSocketClient {
       {
         onOpen(handshake) {
           ws.readyState = ChatSocketClient.OPEN
-
           ws.deleteConnectingMessage()
+
           if (settings.wsLogChat) chat(`&2&l+&a Connected to &f${this.uri}`)
           World.playSound('random.levelup', 0.7, 1)
         },
         onMessage(message) {
           const { secretKey, type, value } = ChatSocketClient.decodeMessage(message)
+          const localSecretKey = settings.wsSecret.replaceAll(' ', '')
 
-          if (settings.secretKey !== secretKey) {
-            if (settings.wsErr) error(`WebSocket Error: Secret key does not match &7(&e${secretKey}&7)`, settings.printStackTrace)
+          if (localSecretKey !== secretKey) {
+            if (settings.wsErr)
+              error(
+                new Message(
+                  "WebSocket Error: Secret keys don't match",
+                  `\n&f${TAB}Remote: `,
+                  new TextComponent('&7[&eHover to view&7]').setHoverValue('&e' + secretKey),
+                  `\n&f${TAB}Local: `,
+                  new TextComponent('&7[&eHover to view&7]').setHoverValue('&e' + localSecretKey)
+                ),
+                settings.printStackTrace
+              )
             return
           }
 
-          if (settings.wsLogChat) ChatLib.chat(`&2➡ &7[&e${type}&7] &a${value}`)
+          if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
           if (typeof ws.onReceive === 'function') ws.onReceive(ws, type, value)
         },
         onError(exception) {
@@ -58,8 +69,8 @@ export default class ChatSocketClient {
         },
         onClose(code, reason, remote) {
           ws.readyState = ChatSocketClient.CLOSED
-
           ws.deleteDisconnectingMessage()
+
           if (settings.wsLogChat) {
             if (remote) chat(`&4&l-&c Connection closed by &f${this.uri} &7[&e${code}&7]`)
             else if (code === -1) chat(`&4&l-&c Failed to connect to &f${this.uri} &7[&e${code}&7]`)
@@ -73,19 +84,12 @@ export default class ChatSocketClient {
     )
   }
 
-  static encodeMessage(type, value) {
-    const secretKey = settings.wsSecret.replaceAll(' ', '')
-    type = type.toUpperCase()
-    value = value.trim()
-    return String((secretKey ? secretKey : '') + ' ' + type + ' ' + value)
+  static encodeMessage(secretKey, type, value) {
+    return String(secretKey || '').replaceAll(' ', '') + ' ' + type.toUpperCase() + ' ' + value
   }
 
   static decodeMessage(message) {
-    let [, secretKey, type, value] =
-      String(message)
-        .trim()
-        .split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
-
+    let [, secretKey, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
     return { secretKey, type: type.toUpperCase(), value }
   }
 
@@ -104,11 +108,8 @@ export default class ChatSocketClient {
   sendEncoded(type, value) {
     if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
 
-    type = type.toUpperCase()
-    value = value.trim()
-
-    this.client.send(ChatSocketClient.encodeMessage(type, value))
-    if (settings.wsLogChat) ChatLib.chat(`&4⬅ &7[&e${type}&7] &c${value}`)
+    this.client.send(ChatSocketClient.encodeMessage(settings.wsSecret, type, value))
+    if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${value}`)
   }
 
   connect() {
@@ -154,7 +155,7 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    chat(`Connection to &f${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
+    chat(`&eConnection to &f${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
   }
 
   printConnectingMessage() {

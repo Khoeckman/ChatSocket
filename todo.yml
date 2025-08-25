@@ -1,0 +1,3 @@
+todo:
+  - 'Print status on world join'
+  - 'Keep track of wether player is in world and open and close connection'
