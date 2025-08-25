@@ -1,4 +1,4 @@
-import { randomInt, chat, error } from '../utils'
+import { TAB, randomInt, chat, error } from '../utils'
 import settings from '../vigilance/settings'
 
 const URI = Java.type('java.net.URI')
@@ -46,10 +46,10 @@ export default class ChatSocketClient {
               error(
                 new Message(
                   "WebSocket Error: Secret keys don't match",
-                  `\n&f${TAB}Remote: `,
-                  new TextComponent('&7[&eHover to view&7]').setHoverValue('&e' + secretKey),
-                  `\n&f${TAB}Local: `,
-                  new TextComponent('&7[&eHover to view&7]').setHoverValue('&e' + localSecretKey)
+                  `\n&e${TAB}Remote &4● `,
+                  new TextComponent('&7[&cHover to view&7]').setHoverValue('&c' + secretKey),
+                  `\n&e${TAB}Local &2● `,
+                  new TextComponent('&7[&aHover to view&7]').setHoverValue('&a' + localSecretKey)
                 ),
                 settings.printStackTrace,
                 settings.wsAutoconnect

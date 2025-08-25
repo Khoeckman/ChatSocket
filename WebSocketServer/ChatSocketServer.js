@@ -74,6 +74,6 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   broadcast(type, value) {
-    for (const client of this.clients) this.send(client, type, value)
+    for (const client of this.clients) if (client.isAuth) this.send(client, type, value)
   }
 }
