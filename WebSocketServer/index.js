@@ -27,6 +27,7 @@ wss.on('connection', (client, request) => {
 
     switch (type) {
       case 'AUTH':
+        client.uuid = value
         wss.send(client, 'AUTH', 'ACK')
         break
       case 'CHAT':
