@@ -65,10 +65,11 @@ class Metadata {
       ChatLib.editChat(
         messageId,
         new Message(
-          PREFIX + `&aVersion ${this.local.version} ${latestVersion} `,
+          PREFIX,
+          `&aVersion ${this.local.version} ${latestVersion} `,
           new TextComponent('&7[&8&lGitHub&7]')
-            .setClick('open_url', this.local.homepage)
             .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+            .setClick('open_url', this.local.homepage)
         )
       )
     })

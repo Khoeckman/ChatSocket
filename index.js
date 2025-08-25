@@ -118,7 +118,6 @@ try {
 
   chat('&eModule loaded. Type "/cs" for help.')
   metadata.printVersionStatus()
-  error(new Message(new TextComponent('test').setHoverValue('hallo'), 'iets anders'))
 } catch (err) {
   if (settings.wsErr) error(err, settings.printStackTrace)
 }
