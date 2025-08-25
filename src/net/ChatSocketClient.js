@@ -15,6 +15,7 @@ export default class ChatSocketClient {
     this.uri = new URI(uri)
 
     this.readyState = ChatSocketClient.CLOSED
+    this.autoconnect = true
     this.hasConnected = false
 
     this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
@@ -78,7 +79,9 @@ export default class ChatSocketClient {
             else chat(`&4&l-&c Disconnected from &f${this.uri} &7[&e${code}&7]`)
           }
 
-          if (code !== -1) World.playSound('dig.glass', 0.7, 1)
+          if (code === -1) {
+            if (!ws.autoconnect) World.playSound('random.anvil_land', 0.3, 1)
+          } else World.playSound('dig.glass', 0.7, 1)
         },
       },
       this.uri

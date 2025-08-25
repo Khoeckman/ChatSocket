@@ -9,7 +9,7 @@ import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
 
 let ws = new ChatSocketClient(settings.wsURI)
-let autoconnect = World.isLoaded()
+ws.autoconnect = World.isLoaded()
 
 try {
   register('command', (command, ...args) => {
@@ -50,7 +50,6 @@ try {
 
         case 'open':
         case 'o':
-          autoconnect = true
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
           ws.connect()
           ws.onReceive = global.ChatSocket_onReceive
@@ -59,7 +58,7 @@ try {
         case 'close':
         case 'c':
         case 'x':
-          autoconnect = false
+          ws.autoconnect = false
           ws.close()
           break
 
@@ -89,8 +88,8 @@ try {
     metadata.printVersionStatus()
   })
 
-  // Close WebSocket when unloading the module
   register('gameUnload', () => {
+    // Close WebSocket when unloading the module
     try {
       ws.close()
     } catch (err) {}
@@ -102,7 +101,7 @@ try {
   register('step', () => {
     try {
       if (
-        !autoconnect ||
+        !ws.autoconnect ||
         !settings.wsAutoconnect ||
         ws.readyState === ChatSocketClient.CONNECTING ||
         ws.readyState === ChatSocketClient.OPEN
