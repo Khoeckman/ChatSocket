@@ -41,8 +41,7 @@ const DecoratorCollector = config => ({
       const isFloatDesired = attributes.type === PropertyType.DECIMAL_SLIDER || attributes.type === PropertyType.PERCENT_SLIDER
       props.push(
         new PropertyData(
-          attributes,
-          new JavaAdapter(PropertyValue, JSBackedPropertyValue(config, prop, isIntegerDesired, isFloatDesired)),
+          attributes, new JavaAdapter(PropertyValue, JSBackedPropertyValue(config, prop, isIntegerDesired, isFloatDesired)),
           instance
         )
       )
@@ -51,8 +50,7 @@ const DecoratorCollector = config => ({
     Object.getOwnPropertyNames(clazz.__config_functions__).forEach(func => {
       props.push(
         new PropertyData(
-          clazz.__config_functions__[func],
-          new JavaAdapter(CallablePropertyValue, JSFunctionCallableValue(config, func)),
+          clazz.__config_functions__[func], new JavaAdapter(CallablePropertyValue, JSFunctionCallableValue(config, func)),
           instance
         )
       )
@@ -63,184 +61,165 @@ const DecoratorCollector = config => ({
 
 export function createPropertyAttributesExt(propertyType, configObj) {
   return new PropertyAttributesExt(
-    propertyType,
-    configObj.name,
-    configObj.category,
-    configObj.subcategory ?? '',
-    configObj.description ?? '',
-    configObj.min ?? 0,
-    configObj.max ?? 0,
-    configObj.minF ?? 0,
-    configObj.maxF ?? 0,
-    configObj.decimalPlaces ?? 1,
-    configObj.increment ?? 1,
-    configObj.options ?? new java.util.ArrayList(),
-    configObj.allowAlpha ?? true,
-    configObj.placeholder ?? '',
-    configObj.protected ?? false,
-    configObj.triggerActionOnInitialization ?? true,
-    configObj.hidden ?? false
+    propertyType, configObj.name, configObj.category, configObj.subcategory ?? '', configObj.description ?? '', configObj.min ?? 0, configObj.max ?? 0,
+    configObj.minF ?? 0, configObj.maxF ?? 0, configObj.decimalPlaces ?? 1, configObj.increment ?? 1, configObj.options ?? new java.util.ArrayList(),
+    configObj.allowAlpha ?? true, configObj.placeholder ?? '', configObj.protected ?? false, configObj.triggerActionOnInitialization ?? true, configObj
+    .hidden ?? false
   )
 }
 
 export decorator @Vigilant(
-    moduleName,
-    guiTitle = "Settings",
-    sortingBehaviorSettings = {}
-) {
+    moduleName, guiTitle = "Settings", sortingBehaviorSettings = {}
+  ) {
     @wrap((clazz) => {
-        clazz.prototype.__config_props__ = {};
-        clazz.prototype.__config_functions__ = {};
+        clazz.prototype.__config_props__ = {}
+        clazz.prototype.__config_functions__ = {}
         clazz.prototype.initialize = instance => {
             // TODO: If the @initialize decorator becomes a thing, put this code there.
-            const collector = new JavaAdapter(PropertyCollector, DecoratorCollector(instance));
-            const sortingBehavior = new JavaAdapter(SortingBehavior, sortingBehaviorSettings);
+            const collector = new JavaAdapter(PropertyCollector, DecoratorCollector(instance))
+            const sortingBehavior = new JavaAdapter(SortingBehavior, sortingBehaviorSettings)
             const config = new JavaAdapter(
-                VigilantClass, {},
-                new java.io.File(`./config/ChatTriggers/modules/${moduleName}/config.toml`),
-                guiTitle,
-                collector,
+                VigilantClass, {}, new java.io.File(`./config/ChatTriggers/modules/${moduleName}/config.toml`), guiTitle, collector,
                 sortingBehavior
-            );
-            config.initialize();
+            )
+            config.initialize()
 
             const findProp = propName => {
                 const prop = collector.getProperties().find(prop => prop.attributes.name === propName)
 
                 if (prop === undefined) {
-                    throw new Error(`Property not found with name ${propName}`);
+                    throw new Error(`Property not found with name ${propName}`)
                 }
-
-                return prop;
+                return prop
             }
 
-            instance.config = config;
-            instance.openGUI = () => GuiHandler.openGui(config.gui());
+            instance.config = config
+
+            instance.openGUI = () => GuiHandler.openGui(config.gui())
+
             instance.registerListener = (name, func) => {
                 findProp(name).action = newValue => {
-                    func(newValue);
-                    return Unit;
-                };
-            };
+                    func(newValue)
+                    return Unit
+                }
+            }
             instance.registerProperty = (propertyData) => {
-                config.registerProperty(propertyData);
-            };
+                config.registerProperty(propertyData)
+            }
+
             instance.addDependency = (dependentName, dependencyName) => {
-                const dependent = findProp(dependentName);
-                const dependency = findProp(dependencyName);
+                const dependent = findProp(dependentName)
+                const dependency = findProp(dependencyName)
 
                 if (dependency.attributesExt.type !== PropertyType.SWITCH && dependency.attributesExt.type !== PropertyType.CHECKBOX) {
-                    throw new Error(`Dependencies must be a boolean data type but ${dependencyName} is a ${dependency.attributesExt.type}`);
+                    throw new Error(`Dependencies must be a boolean data type but ${dependencyName} is a ${dependency.attributesExt.type}`)
                 }
-
-                dependency.setHasDependants(true);
-                dependent.setDependsOn(dependency);
-            };
-            instance.hideProperty = (propertyName) => {
-                findProp(propertyName).attributesExt.hidden = true;
-            };
-            instance.showProperty = (propertyName) => {
-                findProp(propertyName).attributesExt.hidden = false;
-            };
-            instance.hidePropertyIf = (propertyName, condition) => {
-                if (typeof condition === "function") {
-                    if (condition()) {
-                        instance.hideProperty(propertyName);
-                    }
-                }
-                if (typeof condition === "boolean") {
-                    if (condition) {
-                        instance.hideProperty(propertyName);
-                    }
-                }
-            };
-            instance.setCategoryDescription = (categoryName, description) => {
-                config.setCategoryDescription(categoryName, description);
-            };
-            instance.setSubcategoryDescription = (categoryName, subcategoryName, description) => {
-                config.setSubcategoryDescription(categoryName, subcategoryName, description);
-            };
-            instance.save = () => {
-                config.markDirty();
-                config.writeData();
+                dependency.setHasDependants(true)
+                dependent.setDependsOn(dependency)
             }
-            configs.push(config);
-        };
-        return clazz;
+
+            instance.hideProperty = (propertyName) => {
+                findProp(propertyName).attributesExt.hidden = true
+            }
+
+            instance.showProperty = (propertyName) => {
+                findProp(propertyName).attributesExt.hidden = false
+            }
+
+            instance.hidePropertyIf = (propertyName, condition) => {
+                if (typeof condition === "function" && condition()) instance.hideProperty(propertyName)
+                else if (condition) instance.hideProperty(propertyName)
+            }
+            instance.setCategoryDescription = (categoryName, description) => {
+                config.setCategoryDescription(categoryName, description)
+            }
+
+            instance.setSubcategoryDescription = (categoryName, subcategoryName, description) => {
+                config.setSubcategoryDescription(categoryName, subcategoryName, description)
+            }
+
+            instance.save = () => {
+                config.markDirty()
+                config.writeData()
+            }
+
+            configs.push(config)
+        }
+        return clazz
     })
 }
 
 export decorator @SwitchProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.SWITCH, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.SWITCH, config)
     })
 }
 
 export decorator @CheckboxProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.CHECKBOX, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.CHECKBOX, config)
     })
 }
 
 export decorator @TextProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.TEXT, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.TEXT, config)
     })
 }
 
 export decorator @ParagraphProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.PARAGRAPH, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.PARAGRAPH, config)
     })
 }
 
 export decorator @PercentSliderProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.PERCENT_SLIDER, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.PERCENT_SLIDER, config)
     })
 }
 
 export decorator @SliderProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.SLIDER, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.SLIDER, config)
     })
 }
 
 export decorator @DecimalSliderProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.DECIMAL_SLIDER, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.DECIMAL_SLIDER, config)
     })
 }
 
 export decorator @NumberProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.NUMBER, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.NUMBER, config)
     })
 }
 
 export decorator @ColorProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.COLOR, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.COLOR, config)
     })
 }
 
 export decorator @SelectorProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.SELECTOR, config);
+    target.__config_props__[propertyKey] = createPropertyAttributesExt(PropertyType.SELECTOR, config)
     })
 }
 
 export decorator @ButtonProperty(config) {
     @register((target, propertyKey) => {
-        target.__config_functions__[propertyKey] = createPropertyAttributesExt(PropertyType.BUTTON, config);
+    target.__config_functions__[propertyKey] = createPropertyAttributesExt(PropertyType.BUTTON, config)
     })
 }
 
 register('gameUnload', () => {
-  configs.forEach(config => {
+    configs.forEach(config => {
     config.markDirty()
     config.writeData()
-  })
+    })
 })
 
 export const Color = Java.type('java.awt.Color')

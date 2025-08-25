@@ -1,4 +1,4 @@
-import { PREFIX, randomId, chat, error } from './'
+import { PREFIX, randomInt, chat, error } from './'
 import settings from '../vigilance/settings'
 
 class Metadata {
@@ -28,6 +28,8 @@ class Metadata {
   }
 
   printVersionStatus() {
+    if (!World.isLoaded()) return
+
     if (!this.local || typeof this.local.version !== 'string')
       return error(new TypeError(`Cannot read properties of ${this.local} (reading 'version')`), settings.printStackTrace)
 
@@ -43,13 +45,15 @@ class Metadata {
       return
     }
 
-    const messageId = randomId()
+    const messageId = randomInt(2 ** 15, 2 ** 31)
     chat(`&aVersion ${this.local.version} &7● Getting latest...`, messageId)
 
     this.getRemote(this.#updateVersionStatus, [messageId])
   }
 
   #updateVersionStatus = messageId => {
+    if (!World.isLoaded()) return
+
     const latestVersion =
       this.remote && typeof this.remote.version === 'string'
         ? this.remote.version > this.local.version
@@ -57,17 +61,17 @@ class Metadata {
           : '&2✔ Latest'
         : '&c✖ Latest unknown'
 
-    // Client.scheduleTask(() => {
-    ChatLib.editChat(
-      messageId,
-      new Message(
-        PREFIX + `&aVersion ${this.local.version} ${latestVersion} `,
-        new TextComponent('&7[&8&lGitHub&7]')
-          .setClick('open_url', this.local.homepage)
-          .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+    Client.scheduleTask(() => {
+      ChatLib.editChat(
+        messageId,
+        new Message(
+          PREFIX + `&aVersion ${this.local.version} ${latestVersion} `,
+          new TextComponent('&7[&8&lGitHub&7]')
+            .setClick('open_url', this.local.homepage)
+            .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+        )
       )
-    )
-    // })
+    })
     World.playSound('mob.villager.' + (latestVersion.includes('✔') ? 'yes' : 'no'), 0.7, 1)
   }
 }

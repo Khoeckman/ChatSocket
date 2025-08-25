@@ -2,13 +2,14 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
+import './src/utils/global'
 import { chat, error, dialog } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
 
 let ws = new ChatSocketClient(settings.wsURI)
-let autoconnect = true
+let autoconnect = World.isLoaded()
 
 try {
   register('command', (command, ...args) => {
@@ -64,11 +65,7 @@ try {
 
         case 'status':
         case 's':
-          chat(
-            `Connection to &f${ws ? ws.uri : settings.wsURI}&e ● ${
-              ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][ws.readyState ?? 3]
-            }`
-          )
+          ws.printConnectionStatus()
           break
 
         case 'version':
@@ -125,20 +122,13 @@ try {
   if (settings.wsErr) error(err, settings.printStackTrace)
 }
 
-// Add ChatSocket to 'requires' in your own module then
-// override this function to add your own logic
-global.ChatSocket_onReceive = function receive(ws, message) {
-  const uri = ws.uri
-  ChatLib.chat(PREFIX + uri + ': ' + message)
-}
-
 function registerWebSocket() {
   register('chat', event => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const message = ChatLib.getChatMessage(event, true)
-      ws.send('CHAT ' + message)
+      ws.sendEncoded('CHAT', message)
 
       if (settings.wsLogChat) cancel(event)
     } catch (err) {

@@ -1,4 +1,4 @@
-import { randomId, chat, error } from '../utils'
+import { randomInt, chat, error } from '../utils'
 import settings from '../vigilance/settings'
 
 const URI = Java.type('java.net.URI')
@@ -10,8 +10,6 @@ export default class ChatSocketClient {
   static CLOSING = 2
   static CLOSED = 3
 
-  static PREFIX = '&7[&f&lWS&7] '
-
   constructor(uri) {
     if (typeof uri !== 'string') return error(new TypeError('uri is not a string'), settings.printStackTrace)
     this.uri = new URI(uri)
@@ -19,8 +17,8 @@ export default class ChatSocketClient {
     this.readyState = ChatSocketClient.CLOSED
     this.hasConnected = false
 
-    this.connectingMessageId = randomId()
-    this.disconnectingMessageId = randomId()
+    this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
+    this.disconnectingMessageId = this.connectingMessageId + 1
 
     // Overrideable function
     this.onReceive = null
@@ -34,14 +32,19 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.OPEN
 
           ws.deleteConnectingMessage()
-          // Client.scheduleTask(() => {
           if (settings.wsLogChat) chat(`&2&l+&a Connected to &f${this.uri}`)
-          // })
           World.playSound('random.levelup', 0.7, 1)
         },
         onMessage(message) {
-          if (settings.wsLogChat) ChatLib.chat(ChatSocketClient.PREFIX + '&2➡ &a' + message)
-          if (typeof ws.onReceive !== 'function') ws.onReceive(ws, message)
+          const { secretKey, type, value } = ChatSocketClient.decodeMessage(message)
+
+          if (settings.secretKey !== secretKey) {
+            if (settings.wsErr) error(`WebSocket Error: Secret key does not match &7(&e${secretKey}&7)`, settings.printStackTrace)
+            return
+          }
+
+          if (settings.wsLogChat) ChatLib.chat(`&2➡ &7[&e${type}&7] &a${value}`)
+          if (typeof ws.onReceive === 'function') ws.onReceive(ws, type, value)
         },
         onError(exception) {
           if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace)
@@ -57,13 +60,11 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.CLOSED
 
           ws.deleteDisconnectingMessage()
-          // Client.scheduleTask(() => {
           if (settings.wsLogChat) {
             if (remote) chat(`&4&l-&c Connection closed by &f${this.uri} &7[&e${code}&7]`)
             else if (code === -1) chat(`&4&l-&c Failed to connect to &f${this.uri} &7[&e${code}&7]`)
             else chat(`&4&l-&c Disconnected from &f${this.uri} &7[&e${code}&7]`)
           }
-          // })
 
           if (code !== -1) World.playSound('dig.glass', 0.7, 1)
         },
@@ -72,11 +73,42 @@ export default class ChatSocketClient {
     )
   }
 
+  static encodeMessage(type, value) {
+    const secretKey = settings.wsSecret.replaceAll(' ', '')
+    type = type.toUpperCase()
+    value = value.trim()
+    return String((secretKey ? secretKey : '') + ' ' + type + ' ' + value)
+  }
+
+  static decodeMessage(message) {
+    let [, secretKey, type, value] =
+      String(message)
+        .trim()
+        .split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
+
+    return { secretKey, type: type.toUpperCase(), value }
+  }
+
   send(message) {
     if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
+    this.client.send(message)
+  }
 
-    this.client.send(String(settings.wsSecret.replaceAll(' ', '') + ' ' + message))
-    if (settings.wsLogChat) ChatLib.chat(ChatSocketClient.PREFIX + '&4⬅ &a' + String(message))
+  /**
+   * Sends an encoded message over the WebSocket, including the secret key and a type.
+   *
+   * @param {string} type - The type/category of the message (e.g. "CHAT", "COMMAND").
+   * @param {string} value - The message content.
+   * @throws {Error} Throws if the WebSocket is not in the OPEN state.
+   */
+  sendEncoded(type, value) {
+    if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
+
+    type = type.toUpperCase()
+    value = value.trim()
+
+    this.client.send(ChatSocketClient.encodeMessage(type, value))
+    if (settings.wsLogChat) ChatLib.chat(`&4⬅ &7[&e${type}&7] &c${value}`)
   }
 
   connect() {
@@ -121,6 +153,10 @@ export default class ChatSocketClient {
     else this.client.connect()
   }
 
+  printConnectionStatus() {
+    chat(`Connection to &f${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
+  }
+
   printConnectingMessage() {
     chat(`&2&l+&a Connecting to &f${settings.wsURI}&a...`, this.connectingMessageId)
   }
@@ -130,14 +166,10 @@ export default class ChatSocketClient {
   }
 
   deleteConnectingMessage() {
-    // Client.scheduleTask(() => {
-    ChatLib.deleteChat(this.connectingMessageId)
-    // })
+    ChatLib.clearChat(this.connectingMessageId)
   }
 
   deleteDisconnectingMessage() {
-    // Client.scheduleTask(() => {
-    ChatLib.deleteChat(this.disconnectingMessageId)
-    // })
+    ChatLib.clearChat(this.disconnectingMessageId)
   }
 }

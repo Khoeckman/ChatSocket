@@ -5,7 +5,9 @@ export const TAB = '    '
 
 export const rng = new Random()
 
-export const randomId = () => rng.nextInt(2 ** 31 - 1)
+export const randomInt = (inclMin, exclMax) => {
+  return inclMin + rng.nextInt(exclMax - inclMin)
+}
 
 export const chat = (message, id = null) => {
   if (!message || typeof message !== 'string') message = ''

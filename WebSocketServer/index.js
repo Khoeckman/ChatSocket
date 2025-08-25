@@ -1,24 +1,15 @@
-import { WebSocketServer } from 'ws'
-
-// Utils
-const stripFormatting = str => String(str).replace(/&[0-9a-fklmnor]/g, '')
+import ChatSocketServer from './ChatSocketServer.js'
 
 // Make sure this matches ChatSocket's setting
-const settings = {
-  port: 47576,
-  secretKey: 'd05ea80be14130f8387e308121bc18f9',
-}
-
-const clients = []
-const wss = new WebSocketServer({ port: settings.port })
+const wss = new ChatSocketServer(47576, 'd05ea80be14130f8387e308121bc18f9')
 
 wss.on('connection', (client, request) => {
   client.ip = request.socket.remoteAddress
   console.log('+ Client connected', client.ip)
 
   client.on('message', (data, isBinairy) => {
-    receive(client, data)
-    broadcast(wss, stripFormatting(data), isBinairy)
+    const { type, value } = wss.receive(client, data)
+    wss.broadcast(type, value)
   })
 
   client.on('error', console.error)
@@ -28,20 +19,4 @@ wss.on('connection', (client, request) => {
   })
 })
 
-console.log('ChatSocket server running on ws://localhost:' + settings.port)
-
-function broadcast(wss, data, isBinairy) {
-  for (const client of wss.clients) send(client, data, isBinairy)
-}
-
-function receive(client, data) {
-  const message = data.toString()
-  console.log('INCOMING <-', client.ip, message)
-  return message
-}
-
-function send(client, data, isBinairy = false) {
-  if (client.readyState !== client.OPEN) return
-  client.send(data, { binairy: isBinairy })
-  console.log('OUTGOING ->', client.ip, data.toString())
-}
+console.log('ChatSocket server running on ws://localhost:' + wss.port)

@@ -1,5 +1,5 @@
 import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
-import { PREFIX, rng } from '../utils'
+import { PREFIX, rng, error } from '../utils'
 
 const Long = Java.type('java.lang.Long')
 
@@ -39,13 +39,13 @@ class Settings {
     category: 'WebSocket',
     subcategory: 'WebSocket',
     placeholder: 'ws://',
-    triggerActionOnInitialization: false,
+    triggerActionOnInitialization: true,
   })
   wsURI = 'ws://localhost:47576'
 
   @CheckboxProperty({
     name: 'Autoconnect',
-    description: 'Connect when the connection is closed.',
+    description: 'Connect when WebSocket is in CLOSING or CLOSED state.',
     category: 'WebSocket',
     subcategory: 'WebSocket',
   })
@@ -57,6 +57,7 @@ class Settings {
     category: 'WebSocket',
     subcategory: 'Authentication',
     protected: true,
+    triggerActionOnInitialization: true,
   })
   wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
 
@@ -127,27 +128,20 @@ class Settings {
   constructor() {
     this.initialize(this)
 
+    // this.registerListener('URI', new_wsURI => {
+    //   new_wsURI = new_wsURI.trim()
+
+    //   if (!new_wsURI.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
+    //     // this.wsURI = 'ws://localhost:47576'
+    //     return error(new Error(`&f${new_wsURI}&c is an invalid WebSocket URI`), this.printStackTrace)
+    //   }
+    // })
+
+    // this.registerListener('Secret Key', new_wsSecret => {
+    //   this.wsSecret = new_wsSecret.replaceAll(' ', '')
+    // })
+
     this.addDependency('File Logger Directory', 'File Logger')
-
-    /* this.registerListener('URI', (wsURI) => {
-      this.wsURI = wsURI.trim()
-      const wsPattern = /^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/
-
-      if (!wsPattern.test(this.wsURI)) {
-        this.wsURI = 'ws://localhost:47576'
-        return error(`&f${this.wsURI}&c is not a valid WebSocket URI.`, this.printStackTrace)
-      }
-    }) */
-
-    this.registerListener('Secret Key', wsSecret => {
-      this.wsSecret = wsSecret.replaceAll(' ', '')
-      const wsPattern = /[a-]/
-
-      if (!wsPattern.test(this.wsURI)) {
-        this.wsURI = 'ws://localhost:47576'
-        return error(`&f${this.wsURI}&c is not a valid WebSocket URI.`, this.printStackTrace)
-      }
-    })
   }
 }
 
