@@ -10,7 +10,7 @@ wss.on('connection', (client, request) => {
   client.on('message', data => {
     const { isAuth, type, value } = wss.receive(client, data)
     if (!isAuth) {
-      wss.send('AUTH', "Secret keys don't match")
+      wss.send(client, 'AUTH', "Secret keys don't match")
       return
     }
     wss.broadcast(type, value)

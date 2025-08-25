@@ -39,8 +39,9 @@ export default class ChatSocketClient {
         onMessage(message) {
           const { secretKey, type, value } = ChatSocketClient.decodeMessage(message)
           const localSecretKey = settings.wsSecret.replaceAll(' ', '')
+          const isAuth = localSecretKey === secretKey
 
-          if (localSecretKey !== secretKey) {
+          if (!isAuth) {
             if (settings.wsErr)
               error(
                 new Message(
@@ -51,7 +52,7 @@ export default class ChatSocketClient {
                   new TextComponent('&7[&eHover to view&7]').setHoverValue('&e' + localSecretKey)
                 ),
                 settings.printStackTrace,
-                true
+                settings.wsAutoconnect
               )
             return
           }
@@ -60,7 +61,7 @@ export default class ChatSocketClient {
           if (typeof ws.onReceive === 'function') ws.onReceive(ws, type, value)
         },
         onError(exception) {
-          if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, true)
+          if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
@@ -80,7 +81,7 @@ export default class ChatSocketClient {
           }
 
           if (code === -1) {
-            if (!ws.autoconnect) World.playSound('random.anvil_land', 0.3, 1)
+            if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)
           } else World.playSound('dig.glass', 0.7, 1)
         },
       },

@@ -66,7 +66,9 @@ export default class ChatSocketServer extends WebSocketServer {
 
     const message = ChatSocketServer.encodeMessage(this.secretKey, type, value)
     client.send(message)
-    console.log(ChatSocketServer.mcToAnsi(`&4<- &e${client.ip} &r&l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${value}`))
+    console.log(
+      ChatSocketServer.mcToAnsi(`&4<- &e${client.ip} &7[&a${this.secretKey}&7]&r&l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${value}`)
+    )
   }
 
   broadcast(type, value) {

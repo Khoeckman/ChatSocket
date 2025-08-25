@@ -123,7 +123,7 @@ class Settings {
     category: 'Debug',
     subcategory: 'Errors',
   })
-  wsErr = false
+  wsErr = true
 
   constructor() {
     this.initialize(this)
