@@ -49,7 +49,8 @@ export default class ChatSocketClient {
                   `\n&f${TAB}Local: `,
                   new TextComponent('&7[&eHover to view&7]').setHoverValue('&e' + localSecretKey)
                 ),
-                settings.printStackTrace
+                settings.printStackTrace,
+                true
               )
             return
           }
@@ -58,7 +59,7 @@ export default class ChatSocketClient {
           if (typeof ws.onReceive === 'function') ws.onReceive(ws, type, value)
         },
         onError(exception) {
-          if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace)
+          if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, true)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()

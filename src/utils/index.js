@@ -29,7 +29,7 @@ export const chat = (message, id = null) => {
   message.chat()
 }
 
-export const error = (message, printStackTrace = false) => {
+export const error = (message, printStackTrace = false, silent = false) => {
   // Prefix message with red color
   if (typeof message === 'string') {
     message = new Message(PREFIX, '&c' + message)
@@ -61,7 +61,7 @@ export const error = (message, printStackTrace = false) => {
         .forEach(line => ChatLib.chat('&c' + line))
     }
   }
-  World.playSound('random.anvil_land', 0.3, 1)
+  if (!silent) World.playSound('random.anvil_land', 0.3, 1)
 }
 
 export const line = (prefix = '', len = 48) => prefix + '&m' + '-'.repeat(len)

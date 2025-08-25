@@ -8,7 +8,11 @@ wss.on('connection', (client, request) => {
   console.log(ChatSocketServer.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
 
   client.on('message', data => {
-    const { type, value } = wss.receive(client, data, false)
+    const { isAuth, type, value } = wss.receive(client, data)
+    if (!isAuth) {
+      wss.send('AUTH', "Secret keys don't match")
+      return
+    }
     wss.broadcast(type, value)
   })
 
