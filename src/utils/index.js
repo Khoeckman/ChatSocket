@@ -16,20 +16,22 @@ export const randomInt = (inclMin, exclMax) => {
 
 // ChatTriggers
 export const chat = (message, id = null) => {
-  if (!message || typeof message === 'string') {
-    message = new Message(PREFIX, String(message))
+  if (typeof message === 'string') {
+    message = new Message(PREFIX, message)
   } else if (isJavaClass(message, 'com.chattriggers.ctjs.minecraft.objects.message.TextComponent')) {
     message = new Message(PREFIX, message)
   } else if (isJavaClass(message, 'com.chattriggers.ctjs.minecraft.objects.message.Message')) {
     message.addTextComponent(0, new TextComponent(PREFIX))
+  } else {
+    message = new Message(PREFIX, String(message))
   }
-  if (Number.isFinite(id)) message.setChatLineId(id)
+  if (Number.isFinite(id)) message = message.setChatLineId(id)
   message.chat()
 }
 
 export const error = (message, printStackTrace = false) => {
   // Prefix message with red color
-  if (!message || typeof message === 'string') {
+  if (typeof message === 'string') {
     message = new Message(PREFIX, '&c' + message)
   } else if (isJavaClass(message, 'com.chattriggers.ctjs.minecraft.objects.message.TextComponent')) {
     message.setText('&c' + message.getText())
@@ -44,6 +46,8 @@ export const error = (message, printStackTrace = false) => {
       message.setTextComponent(i, textComponent)
     }
     message.addTextComponent(0, PREFIX)
+  } else {
+    message = new Message(PREFIX, '&c' + message)
   }
   message.chat()
 

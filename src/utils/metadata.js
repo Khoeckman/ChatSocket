@@ -40,7 +40,7 @@ class Metadata {
           new TextComponent('&7[&8&lGitHub&7]')
             .setClick('open_url', this.local.homepage)
             .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
-        )
+        ).setChatLineId(messageId)
       )
       return
     }

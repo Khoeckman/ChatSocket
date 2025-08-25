@@ -2,7 +2,7 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-import './src/utils/global'
+// import './src/utils/global'
 import { chat, error, dialog } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
