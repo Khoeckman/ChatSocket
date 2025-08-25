@@ -35,6 +35,8 @@ export default class ChatSocketClient {
 
           if (settings.wsLogChat) chat(`&2&l+&a Connected to &f${this.uri}`)
           World.playSound('random.levelup', 0.7, 1)
+
+          ws.sendEncoded('AUTH')
         },
         onMessage(message) {
           const { secretKey, type, value } = ChatSocketClient.decodeMessage(message)
