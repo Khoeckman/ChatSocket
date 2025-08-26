@@ -29,30 +29,10 @@ wss.on('connection', (client, request) => {
 
     if (type === 'AUTH') {
       client.uuid = Utils.isUUID(value) ? value : null
-      wss.send(client, 'AUTH', 'ACK')
+      wss.send(client, 'AUTH', 'Success')
     }
 
-    switch (type) {
-      case 'AUTH':
-        client.uuid = Utils.isUUID(value) ? value : null
-        wss.send(client, 'AUTH', 'ACK')
-        break
-      case 'CHAT':
-        // wss.send(client, 'CHAT', 'ACK')
-        break
-      case 'SAY':
-        // wss.send(client, 'SAY', 'ACK')
-        break
-      case 'CMD':
-        // wss.send(client, 'CMD', 'ACK')
-        break
-      case 'BC:CHAT':
-        wss.broadcast('CHAT', value)
-        break
-      case 'BC:SAY':
-        wss.broadcast('SAY', value)
-        break
-    }
+    wss.forward(client, type, value)
   })
 
   client.on('error', console.error)

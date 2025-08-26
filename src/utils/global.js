@@ -8,8 +8,6 @@ import { chat, error } from './'
  * 2. Override this function in your module to implement custom behavior.
  */
 global.ChatSocket_onWebSocketReceive = function (type, value, settings) {
-  chat('wsErr: ' + settings.wsErr)
-
   switch (type) {
     case 'AUTH':
       break

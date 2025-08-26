@@ -39,7 +39,13 @@ export default class ChatSocketServer extends WebSocketServer {
     console.log(Utils.mcToAnsi(`&4<- &e${client.ip} &7[&a${secretKey}&7]&r &l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${value ?? ''}`))
   }
 
-  broadcast(type, value) {
-    for (const client of this.clients) if (client.isAuth) this.send(client, type, value)
+  forward(client, type, value) {
+    for (const currentClient of this.clients) {
+      if (!currentClient.isAuth || client) continue
+
+      // Only relay between different client types (Controller <-> MC).
+      // Prevents sending messages back to the same side (Controller <-> Controller or MC <-> MC).
+      if (client.uuid !== currentClient.uuid) this.send(currentClient, type, value)
+    }
   }
 }
