@@ -21,7 +21,7 @@ export default class ChatSocketClient {
     this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
     this.disconnectingMessageId = this.connectingMessageId + 1
 
-    this.onReceive = global.ChatSocket_onReceive || null
+    this.onReceive = global.ChatSocket_onWebSocketReceive || null
 
     const ws = this
 
@@ -60,7 +60,7 @@ export default class ChatSocketClient {
             return
           }
 
-          if (typeof ws.onReceive === 'function') ws.onReceive(type, value)
+          if (typeof ws.onReceive === 'function') ws.onReceive(type, value, settings)
         },
         onError(exception) {
           if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, settings.wsAutoconnect)

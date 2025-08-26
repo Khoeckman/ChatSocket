@@ -46,7 +46,7 @@ SECRET_KEY TYPE VALUE
 
 ## Hooks
 
-### `ChatSocket_onReceive(type, value, settings)`
+### `ChatSocket_onWebSocketReceive(type, value, settings)`
 
 This hook allows your module to handle incoming messages from the ChatSocket server. You can override it to implement custom logic for different message types.
 
@@ -66,7 +66,7 @@ This hook allows your module to handle incoming messages from the ChatSocket ser
 **Example Override:**
 
 ```js
-global.ChatSocket_onReceive = function receive(type, value, settings) {
+global.ChatSocket_onWebSocketReceive = function (type, value, settings) {
   const ws = this // Instance of `/src/net/ChatSocketClient.js`
 
   switch (type) {

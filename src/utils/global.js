@@ -1,5 +1,4 @@
 import { chat, error } from './'
-import settings from '../vigilance/settings'
 
 /**
  * Hook for handling incoming ChatSocket messages.
@@ -8,7 +7,9 @@ import settings from '../vigilance/settings'
  * 1. Add 'ChatSocket' to the 'requires' array in your module.
  * 2. Override this function in your module to implement custom behavior.
  */
-global.ChatSocket_onReceive = function (type, value) {
+global.ChatSocket_onWebSocketReceive = function (type, value, settings) {
+  chat('wsErr: ' + settings.wsErr)
+
   switch (type) {
     case 'AUTH':
       break
