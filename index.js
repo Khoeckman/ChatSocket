@@ -51,8 +51,9 @@ try {
         case 'open':
         case 'o':
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
-          ws.connect()
+
           ws.onReceive = global.ChatSocket_onReceive
+          ws.connect()
           break
 
         case 'close':
@@ -95,7 +96,22 @@ try {
     } catch (err) {}
   })
 
-  if (typeof registerClientEvents === 'function') registerClientEvents.call(ws, ChatSocketClient, settings)
+  register('worldLoad', () => {
+    try {
+      if (!ws.autoconnect) ws.printConnectionStatus()
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
+  register('worldUnload', () => {
+    try {
+      ws.autoconnect = false
+      ws.close()
+    } catch (err) {}
+  })
+
+  registerWebSocketTriggers()
 
   // Autoreconnect
   register('step', () => {
@@ -123,8 +139,19 @@ try {
   if (settings.wsErr) error(err, settings.printStackTrace)
 }
 
-function registerClientEvents(ChatSocketClient, settings) {
-  const ws = this
+function registerWebSocketTriggers() {
+  register('messageSent', message => {
+    try {
+      // Disable Hypixel polling commands
+      if (message === '/locraw') return
+
+      if (ws.readyState !== ChatSocketClient.OPEN) return
+
+      ws.sendEncoded('SAY', message)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
 
   register('chat', event => {
     try {

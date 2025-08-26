@@ -1,5 +1,6 @@
 import 'dotenv/config'
-import ChatSocketServer from './ChatSocketServer.js'
+import Utils from './src/Utils.js'
+import ChatSocketServer from './src/ChatSocketServer.js'
 
 if (typeof process.env.SECRET_KEY !== 'string' || process.env.SECRET_KEY.length < 1) {
   throw new TypeError(`Missing or invalid environment variable
@@ -15,7 +16,8 @@ const wss = new ChatSocketServer(47576, process.env.SECRET_KEY)
 wss.on('connection', (client, request) => {
   client.ip = request.socket.remoteAddress
   client.isAuth = false
-  console.log(ChatSocketServer.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
+  client.uuid = null
+  console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
 
   client.on('message', data => {
     const { type, value } = wss.receive(client, data)
@@ -25,10 +27,14 @@ wss.on('connection', (client, request) => {
       return
     }
 
+    if (type === 'AUTH') {
+      client.uuid = Utils.isUUID(value) ? value : null
+      wss.send(client, 'AUTH', 'ACK')
+    }
+
     switch (type) {
-      // Its not mandatory for the client to send an AUTH message but it allows them to receive messages before sending any
       case 'AUTH':
-        client.uuid = value
+        client.uuid = Utils.isUUID(value) ? value : null
         wss.send(client, 'AUTH', 'ACK')
         break
       case 'CHAT':
@@ -52,8 +58,8 @@ wss.on('connection', (client, request) => {
   client.on('error', console.error)
 
   client.on('close', () => {
-    console.log(ChatSocketServer.mcToAnsi(`&4&l-&r &e${client.ip}&c disconnected`))
+    console.log(Utils.mcToAnsi(`&4&l-&r &e${client.ip}&c disconnected`))
   })
 })
 
-console.log(ChatSocketServer.mcToAnsi(`&6ChatSocket&r server running on &f&nws://localhost:${wss.port}`))
+console.log(Utils.mcToAnsi(`&6ChatSocket&r server running on &f&nws://localhost:${wss.port}`))

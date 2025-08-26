@@ -22,9 +22,15 @@ export default class ChatSocketClient {
     this.disconnectingMessageId = this.connectingMessageId + 1
 
     // Overrideable function
-    this.onReceive = null
+    this.onReceive = function () {}
 
     const ws = this
+
+    this._dispatchMessage = (type, value) => {
+      if (typeof ws.onReceive === 'function') {
+        ws.onReceive(type, value)
+      }
+    }
 
     this.client = new JavaAdapter(
       WebSocketClient,
@@ -43,13 +49,15 @@ export default class ChatSocketClient {
           const localSecretKey = settings.wsSecret.replaceAll(' ', '')
           const isAuth = localSecretKey === secretKey
 
+          if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
+
           if (!isAuth) {
-            if (settings.wsErr)
+            if (type === 'AUTH' && settings.wsErr)
               error(
                 new Message(
-                  "WebSocket Error: Secret keys don't match",
-                  `\n&e${TAB}Remote &4● `,
-                  new TextComponent('&7[&cHover to view&7]').setHoverValue('&c' + secretKey),
+                  'WebSocket Error: ',
+                  value,
+                  `\n&e${TAB}Remote &4● &7[&cCheck .env file of WebSocketServer&7]`,
                   `\n&e${TAB}Local &2● `,
                   new TextComponent('&7[&aHover to view&7]').setHoverValue('&a' + localSecretKey)
                 ),
@@ -58,9 +66,7 @@ export default class ChatSocketClient {
               )
             return
           }
-
-          if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
-          if (typeof ws.onReceive === 'function') ws.onReceive.call(ws, type, value, settings)
+          ws._dispatchMessage(type, value)
         },
         onError(exception) {
           if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
