@@ -21,16 +21,9 @@ export default class ChatSocketClient {
     this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
     this.disconnectingMessageId = this.connectingMessageId + 1
 
-    // Overrideable function
     this.onReceive = global.ChatSocket_onReceive || null
 
     const ws = this
-
-    this._dispatchMessage = (type, value) => {
-      if (typeof this.onReceive === 'function') {
-        this.onReceive(type, value)
-      }
-    }
 
     this.client = new JavaAdapter(
       WebSocketClient,
@@ -66,7 +59,8 @@ export default class ChatSocketClient {
               )
             return
           }
-          ws._dispatchMessage(type, value)
+
+          if (typeof ws.onReceive === 'function') ws.onReceive(type, value)
         },
         onError(exception) {
           if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
