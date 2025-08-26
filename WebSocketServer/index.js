@@ -32,16 +32,19 @@ wss.on('connection', (client, request) => {
         wss.send(client, 'AUTH', 'ACK')
         break
       case 'CHAT':
-        wss.send(client, 'CHAT', 'ACK')
+        // wss.send(client, 'CHAT', 'ACK')
         break
       case 'SAY':
-        wss.send(client, 'SAY', 'ACK')
+        // wss.send(client, 'SAY', 'ACK')
         break
-      case 'COMMAND':
-        wss.send(client, 'COMMAND', 'ACK')
+      case 'CMD':
+        // wss.send(client, 'CMD', 'ACK')
         break
       case 'BC:CHAT':
         wss.broadcast('CHAT', value)
+        break
+      case 'BC:SAY':
+        wss.broadcast('SAY', value)
         break
     }
   })
