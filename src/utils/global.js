@@ -1,4 +1,5 @@
-import { chat } from './'
+import { chat, error } from './'
+import settings from '../vigilance/settings'
 
 /**
  * Hook for handling incoming ChatSocket messages.
@@ -8,8 +9,6 @@ import { chat } from './'
  * 2. Override this function in your module to implement custom behavior.
  */
 global.ChatSocket_onReceive = function (type, value) {
-  ChatLib.chat('type: ' + type)
-
   switch (type) {
     case 'AUTH':
       break
