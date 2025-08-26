@@ -7,8 +7,9 @@ import { chat } from './'
  * 1. Add 'ChatSocket' to the 'requires' array in your module.
  * 2. Override this function in your module to implement custom behavior.
  */
-global.ChatSocket_onReceive = function onReceive(type, value) {
-  chat('type: ' + type)
+global.ChatSocket_onReceive = function (type, value) {
+  ChatLib.chat('type: ' + type)
+
   switch (type) {
     case 'AUTH':
       break

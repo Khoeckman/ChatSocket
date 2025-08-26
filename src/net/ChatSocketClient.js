@@ -22,13 +22,13 @@ export default class ChatSocketClient {
     this.disconnectingMessageId = this.connectingMessageId + 1
 
     // Overrideable function
-    this.onReceive = function () {}
+    this.onReceive = global.ChatSocket_onReceive || null
 
     const ws = this
 
     this._dispatchMessage = (type, value) => {
-      if (typeof ws.onReceive === 'function') {
-        ws.onReceive(type, value)
+      if (typeof this.onReceive === 'function') {
+        this.onReceive(type, value)
       }
     }
 

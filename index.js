@@ -51,8 +51,6 @@ try {
         case 'open':
         case 'o':
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
-
-          ws.onReceive = global.ChatSocket_onReceive
           ws.connect()
           break
 
