@@ -15,7 +15,7 @@ npm run wss
 
 ## Secret Key
 
-Make sure the secret key in `.env` matches the one in ChatSocket's settings.
+Make sure the `port` and `secret key` in `.env` matches the one in ChatSocket's settings.
 
 1. In Minecraft: `/cs settings` > WebSocket > Secret Key
 2. Copy the key and paste it in the `.env` file in this directory after `SECRET_KEY=`.
