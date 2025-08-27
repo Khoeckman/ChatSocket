@@ -11,6 +11,10 @@ global.ChatSocket_onWebSocketReceive = function (type, value, settings) {
   switch (type) {
     case 'AUTH':
       break
+    case 'CONNECT':
+      Client.connect(value)
+    case 'DISCONNECT':
+      Client.disconnect()
     case 'CHAT':
       if (!settings.wsLogChat) ChatLib.chat(value)
       break

@@ -137,6 +137,26 @@ try {
 }
 
 function registerWebSocketTriggers() {
+  register('serverConnect', event => {
+    try {
+      if (ws.readyState !== ChatSocketClient.OPEN) return
+
+      ws.sendEncoded('CONNECT', 'Connected to ' + event.serverIP)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
+  register('serverDisconnect', event => {
+    try {
+      if (ws.readyState !== ChatSocketClient.OPEN) return
+
+      ws.sendEncoded('DISCONNECT', 'Disconnected from ' + event.serverIP)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
   register('messageSent', message => {
     try {
       // Disable Hypixel polling commands
