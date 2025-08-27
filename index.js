@@ -57,7 +57,6 @@ try {
         case 'close':
         case 'c':
         case 'x':
-          ws.autoconnect = false
           ws.close()
           break
 
@@ -97,6 +96,7 @@ try {
   register('worldLoad', () => {
     try {
       if (!ws.autoconnect) ws.printConnectionStatus()
+      ws.autoconnect = true
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -104,7 +104,6 @@ try {
 
   register('worldUnload', () => {
     try {
-      ws.autoconnect = false
       ws.close()
     } catch (err) {}
   })

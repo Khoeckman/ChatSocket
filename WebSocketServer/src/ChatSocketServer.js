@@ -41,8 +41,8 @@ export default class ChatSocketServer extends WebSocketServer {
 
   forward(client, type, value) {
     for (const currentClient of this.clients) {
-      // Only relay between different client types (Controller <-> MC).
-      // Prevents sending messages back to the same side (Controller <-> Controller or MC <-> MC).
+      // Only relay between different client types (Controller <-> Minecraft).
+      // Prevents sending messages back to the same side (Controller <-> Controller or Minecraft <-> Minecraft).
       if (currentClient.isAuth && client.uuid !== currentClient.uuid) this.send(currentClient, type, value)
     }
   }

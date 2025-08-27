@@ -15,7 +15,7 @@ export default class ChatSocketClient {
     this.uri = new URI(uri)
 
     this.readyState = ChatSocketClient.CLOSED
-    this.autoconnect = true
+    this.autoconnect = false
     this.hasConnected = false
 
     this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
@@ -140,8 +140,8 @@ export default class ChatSocketClient {
 
     this.printDisconnectingMessage()
     this.readyState = ChatSocketClient.CLOSING
+    this.autoconnect = false
     this.client.close()
-    this.manuallyClosed = true
   }
 
   reconnect() {
