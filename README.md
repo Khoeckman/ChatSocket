@@ -63,6 +63,8 @@ This hook allows your module to handle incoming messages from the ChatSocket ser
 | `value`    | `any`      | The payload of the message.                                                                                               |
 | `settings` | `Settings` | The current ChatSocket settings instance, allowing access to user-configurable options. (see `src/vigilance/settings.js`) |
 
+> **Note:** The default implementation of this hook can be found in [`src/utils/global.js`](src/utils/global.js).
+
 **Example Override:**
 
 ```js
