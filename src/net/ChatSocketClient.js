@@ -30,7 +30,7 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.OPEN
           ws.deleteConnectingMessage()
 
-          chat(`&2&l+&a Connected to &f${this.uri}`)
+          chat(`&2&l+&a Connected to&f ${this.uri}`)
           World.playSound('random.levelup', 0.7, 1)
 
           ws.sendEncoded('AUTH', Player.getUUID())
@@ -57,9 +57,9 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.CLOSED
           ws.deleteDisconnectingMessage()
 
-          if (remote) chat(`&4&l-&c Connection closed by &f${this.uri} &7[&e${code}&7]`)
-          else if (code === -1) chat(`&4&l-&c Failed to connect to &f${this.uri} &7[&e${code}&7]`)
-          else chat(`&4&l-&c Disconnected from &f${this.uri} &7[&e${code}&7]`)
+          if (remote) chat(`&4&l-&c Connection closed by&f ${this.uri} &7[&e${code}&7]`)
+          else if (code === -1) chat(`&4&l-&c Failed to connect to&f ${this.uri} &7[&e${code}&7]`)
+          else chat(`&4&l-&c Disconnected from&f ${this.uri} &7[&e${code}&7]`)
 
           if (code === -1) {
             if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)
@@ -141,15 +141,15 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    chat(`&eConnection to &f${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
+    chat(`&eConnection to&f ${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
   }
 
   printConnectingMessage() {
-    chat(`&2&l+&a Connecting to &f${settings.wsURI}&a...`, this.connectingMessageId)
+    chat(`&2&l+&a Connecting to&f ${settings.wsURI}&a...`, this.connectingMessageId)
   }
 
   printDisconnectingMessage() {
-    chat(`&4&l-&c Disconnecting from &f${this.uri}&c...`, this.disconnectingMessageId)
+    chat(`&4&l-&c Disconnecting from&f ${this.uri}&c...`, this.disconnectingMessageId)
   }
 
   deleteConnectingMessage() {
