@@ -24,16 +24,13 @@
   --rl: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fg: var(--white);
-    --bg: var(--black);
-  }
-}
-
 html {
   scroll-behavior: smooth;
-  background: var(--bg);
+  background: url('../img/minecraftBanner.webp');
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-color: var(--black);
   font-family: system-ui, sans-serif;
   font-size: 16px;
   color: var(--fg);
@@ -82,7 +79,7 @@ label {
 }
 
 .window {
-  background-color: #111;
+  background-color: #fff9;
   border-radius: 0.3rem;
   padding: 3rem 4rem;
 }
@@ -100,12 +97,20 @@ label {
 }
 
 #ChatSocket select {
+  background-color: var(--bg);
+  border: 1px solid #222;
+  border-radius: 0.3rem;
+  color: var(--fg);
   width: fit-content;
+  padding: 0.5rem;
 }
 
 #ChatSocket textarea {
+  background-color: var(--bg);
   border-radius: 0.3em;
+  color: var(--fg);
   width: 100%;
+  padding: 0.5rem;
 }
 
 #ChatSocket button {

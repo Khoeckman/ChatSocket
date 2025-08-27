@@ -133,7 +133,7 @@ try {
     }
   }).setDelay(1)
 } catch (err) {
-  if (settings.wsErr) error(err, settings.printStackTrace)
+  error(err, settings.printStackTrace)
 }
 
 function registerWebSocketTriggers() {

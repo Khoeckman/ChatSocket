@@ -1,6 +1,10 @@
 export default class ChatSocketController extends WebSocket {
   constructor(url, secretKey, logElement) {
-    super(url)
+    try {
+      super(url)
+    } catch (err) {
+      this.onerror(err)
+    }
 
     // Todo: validate
     console.log(this.url)

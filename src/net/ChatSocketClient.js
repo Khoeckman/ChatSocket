@@ -40,19 +40,15 @@ export default class ChatSocketClient {
           const localSecretKey = settings.wsSecret.replaceAll(' ', '')
           const isAuth = localSecretKey === secretKey
 
+          // Ignore precarious messages
+          if (!isAuth && type !== 'AUTH') return
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
-
-          if (!isAuth) {
-            if (type === 'AUTH' && settings.wsErr) {
-              error('WebSocket Error: ' + value, settings.printStackTrace, settings.wsAutoconnect)
-            }
-            return
-          }
+          else if (!isAuth && type === 'AUTH') error('WebSocket Error: ' + value, settings.printStackTrace, true)
 
           if (typeof global.ChatSocket_onMessage === 'function') global.ChatSocket_onMessage(type, value, settings)
         },
         onError(exception) {
-          if (settings.wsErr) error('WebSocket Error: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
+          if (settings.wsPrintEx) error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()

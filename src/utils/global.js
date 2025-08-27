@@ -21,7 +21,7 @@ global.ChatSocket_onWebSocketReceive = function (type, value, settings) {
       ChatLib.command(value)
       break
     default:
-      if (settings.wsErr) error(`WebSocket Error: Unsupported message type '${type}'`, settings.printStackTrace, settings.wsAutoconnect)
+      error(`WebSocket Error: Unsupported message type '${type}'`, settings.printStackTrace, true)
       break
   }
 }

@@ -26,7 +26,7 @@ wss.on('connection', (client, request) => {
       return
     }
 
-    if (client.uuid === undefined) {
+    if (client.uuid === undefined && type !== 'AUTH') {
       client.isAuth = false
       wss.send(client, 'AUTH', 'Unauthenticated')
       return
@@ -34,7 +34,7 @@ wss.on('connection', (client, request) => {
 
     if (type === 'AUTH') {
       client.uuid = Utils.isUUID(value) ? value : null
-      wss.send(client, 'AUTH', 'Authenticated as' + (client.uuid ? 'Minecraft' : 'Controller'))
+      wss.send(client, 'AUTH', 'Authenticated as ' + (client.uuid ? 'Minecraft' : 'Controller'))
     }
 
     wss.forward(client, type, value)

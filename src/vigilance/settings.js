@@ -118,12 +118,12 @@ class Settings {
   printStackTrace = false
 
   @CheckboxProperty({
-    name: 'WebSocket Errors',
-    description: 'Print WebSocket errors.',
+    name: 'WebSocket Java Exceptions',
+    description: 'Print java exceptions thrown by the WebSocket.',
     category: 'Debug',
     subcategory: 'Errors',
   })
-  wsErr = true
+  wsPrintEx = true
 
   constructor() {
     this.initialize(this)

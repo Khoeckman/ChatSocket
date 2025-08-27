@@ -10,8 +10,8 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   // Prepare to send to ChatSocket
-  static encodeMessage(secretKey, type, value) {
-    return secretKey + ' ' + type.toUpperCase() + ' ' + (value ?? '')
+  static encodeMessage(isAuth, type, value) {
+    return +!!isAuth + ' ' + type.toUpperCase() + ' ' + (value ?? '')
   }
 
   // Parse message from ChatSocket
@@ -33,10 +33,14 @@ export default class ChatSocketServer extends WebSocketServer {
   send(client, type, value) {
     if (client.readyState !== client.OPEN) return
 
-    const secretKey = client.isAuth ? this.secretKey : '*'
-    const message = ChatSocketServer.encodeMessage(secretKey, type, value)
-    client.send(message)
-    console.log(Utils.mcToAnsi(`&4<- &e${client.ip} &7[&a${secretKey}&7]&r &l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${value ?? ''}`))
+    client.send(ChatSocketServer.encodeMessage(client.isAuth, type, value))
+    console.log(
+      Utils.mcToAnsi(
+        `&4<- &e${client.ip} &7[&${client.isAuth ? 'a' : 'c'}${+!!client.isAuth}&7]&r &l\x1b[48;5;11m&l ${type.toUpperCase()} &r &c${
+          value ?? ''
+        }`
+      )
+    )
   }
 
   forward(client, type, value) {
