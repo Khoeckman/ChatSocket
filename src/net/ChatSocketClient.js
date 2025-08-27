@@ -36,14 +36,10 @@ export default class ChatSocketClient {
           ws.sendEncoded('AUTH', Player.getUUID())
         },
         onMessage(message) {
-          const { secretKey, type, value } = ChatSocketClient.decodeMessage(message)
-          const localSecretKey = settings.wsSecret.replaceAll(' ', '')
-          const isAuth = localSecretKey === secretKey
+          const { isAuth, type, value } = ChatSocketClient.decodeMessage(message)
 
-          // Ignore precarious messages
-          if (!isAuth && type !== 'AUTH') return
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
-          else if (!isAuth && type === 'AUTH') error('WebSocket Error: ' + value, settings.printStackTrace, true)
+          if (!isAuth && type === 'AUTH') error('WebSocket Error: ' + value, settings.printStackTrace, true)
 
           if (typeof global.ChatSocket_onMessage === 'function') global.ChatSocket_onMessage(type, value, settings)
         },
@@ -79,8 +75,8 @@ export default class ChatSocketClient {
   }
 
   static decodeMessage(message) {
-    let [, secretKey, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
-    return { secretKey, type: String(type).toUpperCase(), value }
+    let [, isAuth, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
+    return { isAuth, type: String(type).toUpperCase(), value }
   }
 
   send(message) {
