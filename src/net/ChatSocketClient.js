@@ -86,7 +86,7 @@ export default class ChatSocketClient {
 
   static decodeMessage(message) {
     let [, secretKey, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
-    return { secretKey, type: type.toUpperCase(), value }
+    return { secretKey, type: String(type).toUpperCase(), value }
   }
 
   send(message) {
