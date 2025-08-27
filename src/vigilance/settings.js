@@ -25,7 +25,7 @@ const Long = Java.type('java.lang.Long')
       'File Logger',
       'File Logger Directory',
       'Stack Trace',
-      'WebSocket Errors',
+      'WebSocket Exceptions',
     ]
     return names.indexOf(a.attributesExt.name) - names.indexOf(b.attributesExt.name)
   },
@@ -93,7 +93,7 @@ class Settings {
   })
   wsLogChat = true
 
-  @SwitchProperty({
+  /* @SwitchProperty({
     name: 'File Logger',
     description: 'Log WebSocket traffic in a file.',
     category: 'Debug',
@@ -107,7 +107,7 @@ class Settings {
     category: 'Debug',
     subcategory: 'Logger',
   })
-  logFileDir = './config/ChatTriggers/modules/ChatSocket/log/'
+  logFileDir = './config/ChatTriggers/modules/ChatSocket/log/' */
 
   @CheckboxProperty({
     name: 'Stack Trace',
@@ -118,7 +118,7 @@ class Settings {
   printStackTrace = false
 
   @CheckboxProperty({
-    name: 'WebSocket Java Exceptions',
+    name: 'WebSocket Exceptions',
     description: 'Print java exceptions thrown by the WebSocket.',
     category: 'Debug',
     subcategory: 'Errors',
@@ -128,20 +128,20 @@ class Settings {
   constructor() {
     this.initialize(this)
 
-    // this.registerListener('URI', new_wsURI => {
-    //   new_wsURI = new_wsURI.trim()
+    /* this.registerListener('URI', new_wsURI => {
+      new_wsURI = new_wsURI.trim()
 
-    //   if (!new_wsURI.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
-    //     // this.wsURI = 'ws://localhost:47576'
-    //     return error(new Error(`&f${new_wsURI}&c is an invalid WebSocket URI`), this.printStackTrace)
-    //   }
-    // })
+      if (!new_wsURI.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
+        // this.wsURI = 'ws://localhost:47576'
+        return error(new Error(`&f${new_wsURI}&c is an invalid WebSocket URI`), this.printStackTrace)
+      }
+    })
 
-    // this.registerListener('Secret Key', new_wsSecret => {
-    //   this.wsSecret = new_wsSecret.replaceAll(' ', '')
-    // })
+    this.registerListener('Secret Key', new_wsSecret => {
+      this.wsSecret = new_wsSecret.replaceAll(' ', '')
+    }) */
 
-    this.addDependency('File Logger Directory', 'File Logger')
+    // this.addDependency('File Logger Directory', 'File Logger')
   }
 }
 
