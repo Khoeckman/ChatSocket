@@ -20,7 +20,7 @@ export default class ChatSocketServer extends WebSocketServer {
     return { secretKey, type: String(type).toUpperCase(), value }
   }
 
-  receive(client, data, stripFormatting = false) {
+  onmessage(client, data, stripFormatting = false) {
     let { secretKey, type, value } = ChatSocketServer.decodeMessage(data)
     const isAuth = this.secretKey === secretKey
     client.isAuth = isAuth

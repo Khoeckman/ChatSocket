@@ -1,0 +1,129 @@
+:root {
+  --white: #fff;
+  --black: #000;
+
+  --fg: var(--black);
+  --bg: var(--white);
+
+  --pri: #4a85c9;
+
+  --red-d: hsl(8, 100%, 40%);
+  --red: hsl(8, 100%, 50%);
+  --red-l: hsl(8, 100%, 60%);
+
+  --green-d: hsl(128, 100%, 40%);
+  --green: hsl(128, 100%, 50%);
+  --green-l: hsl(128, 100%, 70%);
+
+  --ss: 3rem;
+  --sm: 6rem;
+  --sl: 12rem;
+
+  --rs: 0.15rem;
+  --rm: 0.3rem;
+  --rl: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: var(--white);
+    --bg: var(--black);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  color: var(--fg);
+}
+
+body {
+  display: flex;
+  flex-flow: column;
+  gap: 4rem;
+  margin: 4rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+p,
+span {
+  max-width: 40em;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button:disabled {
+  cursor: initial;
+}
+
+img {
+  vertical-align: top;
+}
+
+/* CUSTOM */
+
+h1,
+h2 {
+  margin: 0;
+}
+
+label {
+  font-weight: bold;
+}
+
+.window {
+  background-color: #111;
+  border-radius: 0.3rem;
+  padding: 3rem 4rem;
+}
+
+#ChatSocket {
+  display: flex;
+  flex-flow: column;
+  gap: 1.5rem;
+}
+
+#ChatSocket label {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+}
+
+#ChatSocket select {
+  width: fit-content;
+}
+
+#ChatSocket textarea {
+  border-radius: 0.3em;
+  width: 100%;
+}
+
+#ChatSocket button {
+  background: var(--fg);
+  border: 0;
+  border-radius: 0.3em;
+  padding: 0.5rem 1rem;
+  width: fit-content;
+  transition: background 100ms, color 100ms;
+}
+
+#ChatSocket button:active {
+  background: #ccc;
+  transition: none;
+}
+
+#log {
+  overflow-y: scroll;
+  font-family: monospace;
+  max-height: 70vh;
+}

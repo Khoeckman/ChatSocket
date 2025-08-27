@@ -1,4 +1,4 @@
-class Utils {
+export default class Utils {
   static mcToAnsi(str) {
     const codes = {
       0: '\x1b[38;5;0m', // black
@@ -34,5 +34,3 @@ class Utils {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(str)
   }
 }
-
-export default Utils

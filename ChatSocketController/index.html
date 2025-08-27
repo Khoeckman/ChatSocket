@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="description" content="" />
+
+    <!-- Browser Tab -->
+    <title>ChatSocket</title>
+    <link rel="icon" href="./img/favicon.webp" />
+
+    <!-- Google Fonts: Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap" rel="stylesheet" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./css/normalize.css" />
+    <link rel="stylesheet" href="./css/style.css" />
+
+    <!-- JS -->
+    <script src="./js/main.js" type="module"></script>
+  </head>
+
+  <body>
+    <form id="ChatSocket" class="window" action="javascript:void()" novalidate>
+      <h1>ChatSocket</h1>
+
+      <label>
+        Type
+        <select name="type">
+          <option>AUTH</option>
+          <option>CHAT</option>
+          <option>SAY</option>
+          <option>CMD</option>
+        </select>
+      </label>
+
+      <label>
+        Value
+        <textarea name="value" rows="3">
+/variables player set Khoeckman ChatSocket "Hello from the other side"</textarea
+        >
+      </label>
+
+      <button type="submit">Send to ChatSocketServer</button>
+    </form>
+
+    <div class="window">
+      <h2>Log</h2>
+      <div id="log"></div>
+    </div>
+  </body>
+</html>

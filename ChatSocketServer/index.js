@@ -19,7 +19,7 @@ wss.on('connection', (client, request) => {
   console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
 
   client.on('message', data => {
-    const { type, value } = wss.receive(client, data)
+    const { type, value } = wss.onmessage(client, data)
 
     if (!client.isAuth) {
       wss.send(client, 'AUTH', "Secret keys don't match")
