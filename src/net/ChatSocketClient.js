@@ -45,18 +45,9 @@ export default class ChatSocketClient {
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
 
           if (!isAuth) {
-            if (type === 'AUTH' && settings.wsErr)
-              error(
-                new Message(
-                  'WebSocket Error: ',
-                  value,
-                  `\n&e${TAB}Remote &4● &7[&cCheck .env file of WebSocketServer&7]`,
-                  `\n&e${TAB}Local &2● `,
-                  new TextComponent('&7[&aHover to view&7]').setHoverValue('&a' + localSecretKey)
-                ),
-                settings.printStackTrace,
-                settings.wsAutoconnect
-              )
+            if (type === 'AUTH' && settings.wsErr) {
+              error('WebSocket Error: ' + value, settings.printStackTrace, settings.wsAutoconnect)
+            }
             return
           }
 

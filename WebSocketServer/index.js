@@ -16,7 +16,6 @@ const wss = new ChatSocketServer(47576, process.env.SECRET_KEY)
 wss.on('connection', (client, request) => {
   client.ip = request.socket.remoteAddress
   client.isAuth = false
-  client.uuid = null
   console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
 
   client.on('message', data => {
@@ -27,9 +26,15 @@ wss.on('connection', (client, request) => {
       return
     }
 
+    if (client.uuid === undefined) {
+      client.isAuth = false
+      wss.send(client, 'AUTH', 'Unauthenticated')
+      return
+    }
+
     if (type === 'AUTH') {
       client.uuid = Utils.isUUID(value) ? value : null
-      wss.send(client, 'AUTH', 'Success')
+      wss.send(client, 'AUTH', 'Authenticated as' + (client.uuid ? 'Minecraft' : 'Controller'))
     }
 
     wss.forward(client, type, value)
