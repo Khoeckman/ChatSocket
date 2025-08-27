@@ -57,11 +57,11 @@ This hook allows your module to handle incoming messages from the ChatSocket ser
 
 **Parameters:**
 
-| Name       | Type       | Description                                                                                                               |
-| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `type`     | `string`   | The type of the message sent by the server (e.g., `'AUTH'`, `'CHAT'`, `'CMD'`).                                           |
-| `value`    | `any`      | The payload of the message.                                                                                               |
-| `settings` | `Settings` | The current ChatSocket settings instance, allowing access to user-configurable options. (see `src/vigilance/settings.js`) |
+| Name       | Type       | Description                                                                              |
+| ---------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `type`     | `string`   | The type of the message sent by the server (e.g., `'AUTH'`, `'CHAT'`, `'SAY'`, `'CMD'`). |
+| `value`    | `any`      | The payload of the message.                                                              |
+| `settings` | `Settings` | The user-configurable ChatSocket options. (see `src/vigilance/settings.js`)              |
 
 > **Note:** The default implementation of this hook can be found in [`src/utils/global.js`](src/utils/global.js).
 
@@ -69,17 +69,10 @@ This hook allows your module to handle incoming messages from the ChatSocket ser
 
 ```js
 global.ChatSocket_onWebSocketReceive = function (type, value, settings) {
-  const ws = this // Instance of `/src/net/ChatSocketClient.js`
-
-  switch (type) {
-    case 'AUTH':
-      ChatLib.chat('Authenticated with server!')
-      break
-    case 'CHAT':
-      // Only show if `wsLogChat` is false to prevent double messages
-      if (!settings.wsLogChat) ChatLib.chat('Received: ' + value)
-      break
+  if (type === 'CUSTOM') {
+    // Custom logic
   }
+  ChatLib.chat(`&cError: Unsupported type '${type}'`)
 }
 ```
 
@@ -92,7 +85,7 @@ This module contains modified code from the following modules:
 
 ## Devdependencies
 
+[CTAutocomplete - By lotymax](https://chattriggers.com/modules/v/CTAutocomplete)
+
 Run `/ct import CTAutocomplete` in Minecraft to be able to use this devdependency.
 This is only necessary if you wish to make changes to ChatSocket.
-
-[CTAutocomplete - By lotymax](https://chattriggers.com/modules/v/CTAutocomplete)
