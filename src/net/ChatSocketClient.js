@@ -36,7 +36,7 @@ export default class ChatSocketClient {
           chat(`&2&l+&a Connected to&f ${this.uri}`)
           World.playSound('random.levelup', 0.7, 1)
 
-          ws.sendEncoded('AUTH', Player.getUUID())
+          ws.sendEncoded('AUTH', Player.getName() + ' ' + Player.getUUID())
         },
         onMessage(message) {
           const { isAuth, type, value } = ChatSocketClient.decodeMessage(message)
