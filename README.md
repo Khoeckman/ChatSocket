@@ -11,6 +11,33 @@ Configure and open a WebSocket connection to send and receive ChatTrigger events
 4. Launch Minecraft or reload all ChatTriggers modules by running `/ct load` in chat.
 5. After loading it should say: `[ChatSocket] Module Loaded. Type "/cs" for help.`
 
+## Architecture
+
+ChatSocketClient (Minecraft ChatTriggers module) <-> ChatSocketServer (Node.js WebSocket server) <-> ChatSocketController (Any)
+
+The ChatSocketClient and ChatSocketController can only communicate if they both have the same `SECRET_KEY` and are pointed to the correct address (e.g. [ws://localhost:47576](ws://localhost:47576))
+
+## Setup ChatSocketServer
+
+### Environment variables
+
+Open `.\WebSocketServer\.env` file
+
+### Start the server
+
+1. Open a terminal
+2. Make sure your terminal is in the right directory: `cd WebSocketServer`
+3. Run the following commands to start the WebSocket server:
+
+```batch
+npm i
+npm run wss
+```
+
+On success the terminal will print: _ChatSocket server running on [ws://localhost:47576](ws://localhost:47576)_
+
+![ChatSocket settings GUI in Minecraft](ChatSocketSettings.png)
+
 ## How To Use
 
 The **ChatSocket** module allows you to interact with Minecraft programmatically **without modifying Minecraft’s internal code**. It achieves this using **WebSocket communication**, letting you send and receive messages between your own WebSocket server and Minecraft.

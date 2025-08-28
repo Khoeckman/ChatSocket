@@ -1,4 +1,4 @@
-import { TAB, randomInt, chat, error } from '../utils'
+import { randomInt, chat, error } from '../utils'
 import settings from '../vigilance/settings'
 
 const URI = Java.type('java.net.URI')
@@ -15,11 +15,14 @@ export default class ChatSocketClient {
     this.uri = new URI(uri)
 
     this.readyState = ChatSocketClient.CLOSED
-    this.autoconnect = false
+    this.autoconnect = true
     this.hasConnected = false
 
     this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
     this.disconnectingMessageId = this.connectingMessageId + 1
+
+    this.onmessage = null
+    this.isAuth = false
 
     const ws = this
 
@@ -37,11 +40,12 @@ export default class ChatSocketClient {
         },
         onMessage(message) {
           const { isAuth, type, value } = ChatSocketClient.decodeMessage(message)
+          ws.isAuth = isAuth
 
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
           if (!isAuth && type === 'AUTH') error('WebSocket Error: ' + value, settings.printStackTrace, true)
 
-          if (typeof global.ChatSocket_onMessage === 'function') global.ChatSocket_onMessage(type, value, settings)
+          if (typeof ws.onmessage === 'function') ws.onmessage(type, value)
         },
         onError(exception) {
           if (settings.wsPrintEx) error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
@@ -70,8 +74,8 @@ export default class ChatSocketClient {
     )
   }
 
-  static encodeMessage(secretKey, type, value) {
-    return String(secretKey || '').replaceAll(' ', '') + ' ' + type.toUpperCase() + ' ' + (value ?? '')
+  static encodeMessage(channel, type, value) {
+    return String(channel || '').replaceAll(' ', '') + ' ' + type.toUpperCase() + ' ' + (value ?? '')
   }
 
   static decodeMessage(message) {
@@ -85,16 +89,16 @@ export default class ChatSocketClient {
   }
 
   /**
-   * Sends an encoded message over the WebSocket, including the secret key and a type.
+   * Sends an encoded message over the WebSocket, including the channel and a type.
    *
-   * @param {string} type - The type/category of the message (e.g. "CHAT", "COMMAND").
+   * @param {string} type - The type/category of the message (e.g. "CHAT", "CMD").
    * @param {string} value - The message content.
    * @throws {Error} Throws if the WebSocket is not in the OPEN state.
    */
   sendEncoded(type, value) {
     if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
 
-    this.client.send(ChatSocketClient.encodeMessage(settings.wsSecret, type, value))
+    this.client.send(ChatSocketClient.encodeMessage(settings.wsChannel, type, value))
     if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${value ?? ''}`)
   }
 

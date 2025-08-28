@@ -1,5 +1,5 @@
 import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
-import { PREFIX, rng, error } from '../utils'
+import { PREFIX, rng } from '../utils'
 
 const Long = Java.type('java.lang.Long')
 
@@ -19,8 +19,8 @@ const Long = Java.type('java.lang.Long')
       'Check Latest Version',
       'URI',
       'Autoconnect',
-      'Secret Key',
-      'Regenerate Secret Key',
+      'Channel Key',
+      'Regenerate Channel Key',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
@@ -41,7 +41,7 @@ class Settings {
     placeholder: 'ws://',
     triggerActionOnInitialization: true,
   })
-  wsURI = 'ws://localhost:47576'
+  wsURI = 'wss://chatsocket-a1xp.onrender.com/'
 
   @CheckboxProperty({
     name: 'Autoconnect',
@@ -52,24 +52,24 @@ class Settings {
   wsAutoconnect = true
 
   @TextProperty({
-    name: 'Secret Key',
-    description: 'Key included in every WebSocket message from ChatSocket. The WebSocket server should use this to authenticate messages.',
+    name: 'Channel Key',
+    description: 'Every ChatSocket message starts with this key, allowing the server to route them to the controller with the same key.',
     category: 'WebSocket',
     subcategory: 'Authentication',
     protected: true,
     triggerActionOnInitialization: true,
   })
-  wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
+  wsChannel = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
 
   @ButtonProperty({
-    name: 'Regenerate Secret Key',
+    name: 'Regenerate Channel Key',
     description: 'You can also edit the field and choose your own key.',
     category: 'WebSocket',
     subcategory: 'Authentication',
     placeholder: '§cRegenerate',
   })
-  wsRegenSecret() {
-    this.wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
+  wsRegenKey() {
+    this.wsChannel = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
     this.openGUI()
   }
 
@@ -137,8 +137,8 @@ class Settings {
       }
     })
 
-    this.registerListener('Secret Key', new_wsSecret => {
-      this.wsSecret = new_wsSecret.replaceAll(' ', '')
+    this.registerListener('Channel Key', wsChannel => {
+      this.wsChannel = wsChannel.replaceAll(' ', '')
     }) */
 
     // this.addDependency('File Logger Directory', 'File Logger')
