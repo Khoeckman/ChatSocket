@@ -2,8 +2,8 @@
   --white: #fff;
   --black: #000;
 
-  --fg: var(--black);
-  --bg: var(--white);
+  --fg: var(--white);
+  --bg: var(--black);
 
   --pri: #4a85c9;
 
@@ -34,13 +34,14 @@ html {
   font-family: system-ui, sans-serif;
   font-size: 16px;
   color: var(--fg);
+  min-height: 100vh;
 }
 
 body {
   display: flex;
   flex-flow: column;
   gap: 4rem;
-  margin: 4rem;
+  margin: 4rem clamp(1rem, -0.5rem + 7.5vw, 4rem);
 }
 
 *,
@@ -71,7 +72,7 @@ img {
 
 h1,
 h2 {
-  margin: 0;
+  font-size: 2rem;
 }
 
 label {
@@ -79,9 +80,9 @@ label {
 }
 
 .window {
-  background-color: #fff9;
+  background-color: #0009;
   border-radius: 0.3rem;
-  padding: 3rem 4rem;
+  padding: 3rem clamp(2rem, 1rem + 5vw, 4rem);
 }
 
 #ChatSocket {
@@ -90,45 +91,63 @@ label {
   gap: 1.5rem;
 }
 
+#ChatSocket h1 {
+  margin: 0;
+}
+
 #ChatSocket label {
   display: flex;
   flex-flow: column;
   gap: 0.5rem;
 }
 
-#ChatSocket select {
+#ChatSocket label > *,
+#ChatSocket button {
   background-color: var(--bg);
   border: 1px solid #222;
   border-radius: 0.3rem;
   color: var(--fg);
-  width: fit-content;
+  max-width: fit-content;
+}
+
+#ChatSocket label > * {
   padding: 0.5rem;
+  height: 2.5em;
+}
+
+#ChatSocket input[type='text'] {
+  min-width: 20em;
 }
 
 #ChatSocket textarea {
-  background-color: var(--bg);
-  border-radius: 0.3em;
-  color: var(--fg);
-  width: 100%;
-  padding: 0.5rem;
+  max-width: 100%;
 }
 
 #ChatSocket button {
-  background: var(--fg);
   border: 0;
-  border-radius: 0.3em;
-  padding: 0.5rem 1rem;
-  width: fit-content;
+  font-weight: bold;
+  padding: 1em 1.5rem;
   transition: background 100ms, color 100ms;
 }
 
+#ChatSocket button:hover {
+  background: #111;
+}
+
 #ChatSocket button:active {
-  background: #ccc;
+  background: #333;
   transition: none;
+}
+
+#ChatSocket .inline {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 1.5rem;
 }
 
 #log {
   overflow-y: scroll;
   font-family: monospace;
-  max-height: 70vh;
+  padding: 1rem;
+  height: 70vh;
 }
