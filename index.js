@@ -7,6 +7,8 @@ import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
 
+const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
+
 let ws = new ChatSocketClient(settings.wsURI)
 
 try {
@@ -26,6 +28,7 @@ try {
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6s&etatus &7 Prints the status of the &fWebSocket&7.',
+            '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
           ])
@@ -62,6 +65,14 @@ try {
         case 'status':
         case 's':
           ws.printConnectionStatus()
+          break
+
+        case 'fly':
+          const player = Player.getPlayer()
+          const capabilities = player.func_71075_bZ()
+          // On except when { args[0] === 'off' }
+          capabilities.isFlying = !args.length || args[0] !== 'off'
+          Client.sendPacket(new C13PacketPlayerAbilities(capabilities))
           break
 
         case 'version':
