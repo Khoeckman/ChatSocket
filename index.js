@@ -6,10 +6,8 @@ import { chat, error, dialog } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
-import './src/utils/global'
 
 let ws = new ChatSocketClient(settings.wsURI)
-ws.autoconnect = World.isLoaded()
 
 try {
   register('command', (command, ...args) => {
@@ -95,7 +93,6 @@ try {
 
   register('worldLoad', () => {
     try {
-      if (!ws.autoconnect) ws.printConnectionStatus()
       ws.autoconnect = true
     } catch (err) {
       error(err, settings.printStackTrace)
@@ -113,13 +110,12 @@ try {
   // Autoreconnect
   register('step', () => {
     try {
-      if (
-        !ws.autoconnect ||
-        !settings.wsAutoconnect ||
-        ws.readyState === ChatSocketClient.CONNECTING ||
-        ws.readyState === ChatSocketClient.OPEN
-      )
+      if (!ws.autoconnect || !settings.wsAutoconnect || ws.readyState === ChatSocketClient.CONNECTING) return
+
+      if (ws.readyState === ChatSocketClient.OPEN) {
+        if (!ws.isAuth) ws.sendEncoded('AUTH', Player.getUUID())
         return
+      }
 
       // Close previous WebSocket before creating a new instance
       try {
@@ -127,7 +123,8 @@ try {
       } catch (err) {}
 
       ws = new ChatSocketClient(settings.wsURI)
-      ws.connect(true)
+      ws.onmessage = OnWebSocketMessage
+      ws.connect()
     } catch (err) {
       error(err, settings.printStackTrace)
     }
