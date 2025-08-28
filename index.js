@@ -49,6 +49,7 @@ try {
         case 'open':
         case 'o':
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
+          ws.onmessage = OnWebSocketMessage
           ws.connect()
           break
 
@@ -179,4 +180,27 @@ function registerWebSocketTriggers() {
       error(err, settings.printStackTrace)
     }
   })
+}
+
+function OnWebSocketMessage(type, value) {
+  switch (type) {
+    case 'AUTH':
+      break
+    case 'CONNECT':
+      Client.connect(value)
+    case 'DISCONNECT':
+      Client.disconnect()
+    case 'CHAT':
+      if (!settings.wsLogChat) ChatLib.chat(value)
+      break
+    case 'SAY':
+      ChatLib.say(value)
+      break
+    case 'CMD':
+      ChatLib.command(value)
+      break
+    default:
+      error(`WebSocket Error: Unsupported message type '${type}'`, settings.printStackTrace, true)
+      break
+  }
 }
