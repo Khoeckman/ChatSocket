@@ -1,6 +1,6 @@
 # ChatSocketServer
 
-Example project to help demonstrate ChatSocket, a ChatTriggers module.
+A Node.js WebSocket middleman between controllers (e.g. websites) and clients (e.g. Minecraft ChatTriggers).
 
 ## Usage
 
@@ -9,7 +9,7 @@ Example project to help demonstrate ChatSocket, a ChatTriggers module.
 3. Run the following commands to start the WebSocket server:
 
 ```batch
-npm install
+npm i
 npm run wss
 ```
 

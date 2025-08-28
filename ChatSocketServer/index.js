@@ -2,14 +2,6 @@ import 'dotenv/config'
 import Utils from './src/Utils.js'
 import ChatSocketServer from './src/ChatSocketServer.js'
 
-if (!process.env.PORT || !Number.isFinite(+process.env.PORT) || process.env.PORT < 0 || process.env.PORT > 2 ** 16 - 1) {
-  throw new TypeError(`Missing or invalid environment variable
-
-  -> PORT is not set in your .env file
-  -> Please follow the setup instructions in README.md
-`)
-}
-
 if (!process.env.SECRET_KEY || process.env.SECRET_KEY.length < 1) {
   throw new TypeError(`Missing or invalid environment variable
 
@@ -19,7 +11,7 @@ if (!process.env.SECRET_KEY || process.env.SECRET_KEY.length < 1) {
 }
 
 // Make sure this matches ChatSocket's setting
-const wss = new ChatSocketServer(process.env.PORT, process.env.SECRET_KEY)
+const wss = new ChatSocketServer(process.env.PORT || 47576, process.env.SECRET_KEY)
 
 wss.on('connection', (client, request) => {
   client.ip = request.socket.remoteAddress
@@ -42,7 +34,7 @@ wss.on('connection', (client, request) => {
 
     if (type === 'AUTH') {
       client.uuid = Utils.isUUID(value) ? value : null
-      wss.send(client, 'AUTH', 'Authenticated as ' + (client.uuid ? 'Minecraft' : 'Controller'))
+      wss.send(client, 'AUTH', 'Authenticated as ' + (client.uuid ? 'Client' : 'Controller'))
     }
 
     wss.forward(client, type, value)

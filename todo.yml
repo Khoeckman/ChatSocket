@@ -1,5 +1,4 @@
 todo:
-  - 'Print status on world join'
-  - 'Keep track of wether player is in world and open and close connection'
-  - 'receive CHAT: print chat message'
-  - 'receive SAY: send msg to server'
+  - 'command to send events to server manually [type] [value]'
+
+  - 'client to client comm'

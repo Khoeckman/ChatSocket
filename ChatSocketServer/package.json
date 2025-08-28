@@ -1,13 +1,15 @@
 {
   "name": "chatsocketserver",
   "version": "1.0.0",
-  "description": "Example project to help demonstrate ChatSocket, a ChatTriggers module.",
+  "description": "A Node.js WebSocket middleman between controllers (e.g. websites) and clients (e.g. Minecraft ChatTriggers).",
   "keywords": [
+    "Minecraft",
     "ChatTriggers",
     "ChatSocket",
     "WebSocket",
     "WebSocketServer",
-    "Server"
+    "Server",
+    "ws"
   ],
   "license": "MIT",
   "author": "Khoeckman",
