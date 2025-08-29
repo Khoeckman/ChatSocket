@@ -9,18 +9,17 @@ const Long = Java.type('java.lang.Long')
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
-    const subcategories = ['General', 'WebSocket', 'Authentication', 'Logger', 'Errors']
+    const subcategories = ['General', 'WebSocket', 'Logger', 'Errors']
     return (
       subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
   },
   getPropertyComparator: () => (a, b) => {
     const names = [
-      'Check Latest Version',
       'URI',
       'Autoconnect',
-      'Channel Key',
-      'Regenerate Channel Key',
+      'Secret Key',
+      'Check Latest Version',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
@@ -39,7 +38,6 @@ class Settings {
     category: 'WebSocket',
     subcategory: 'WebSocket',
     placeholder: 'ws://',
-    triggerActionOnInitialization: true,
   })
   wsURI = 'wss://chatsocket-a1xp.onrender.com/'
 
@@ -52,26 +50,29 @@ class Settings {
   wsAutoconnect = true
 
   @TextProperty({
-    name: 'Channel Key',
-    description: 'Every ChatSocket message starts with this key, allowing the server to route them to the controller with the same key.',
+    name: 'Secret Key',
+    description: 'The ChatSocket server uses this to authenticate every connection.',
     category: 'WebSocket',
-    subcategory: 'Authentication',
+    subcategory: 'WebSocket',
     protected: true,
-    triggerActionOnInitialization: true,
   })
-  wsChannel = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
+  wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
 
-  @ButtonProperty({
-    name: 'Regenerate Channel Key',
-    description: 'You can also edit the field and choose your own key.',
+  @ParagraphProperty({
+    name: 'Chat Event Filter',
+    description: 'Only send §6§lCHAT§r events that match this RegEx. Use & for color formatting.',
     category: 'WebSocket',
-    subcategory: 'Authentication',
-    placeholder: '§cRegenerate',
+    subcategory: 'WebSocket',
   })
-  wsRegenKey() {
-    this.wsChannel = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
-    this.openGUI()
-  }
+  wsEnableChatFilter = true
+
+  @ParagraphProperty({
+    name: 'Chat Event Filter RegEx',
+    description: 'Only send CHAT events that match this RegEx. Use & for color formatting.',
+    category: 'WebSocket',
+    subcategory: 'WebSocket',
+  })
+  wsChatFilterRegex = '^&8\*\s[\s\S]*'
 
   // Version
 
@@ -137,10 +138,11 @@ class Settings {
       }
     })
 
-    this.registerListener('Channel Key', wsChannel => {
-      this.wsChannel = wsChannel.replaceAll(' ', '')
+    this.registerListener('Secret Key', wsSecret => {
+      this.wsSecret = wsSecret.replaceAll(' ', '')
     }) */
 
+    this.addDependency('Chat Event Filter RegEx', 'Chat Event Filter')
     // this.addDependency('File Logger Directory', 'File Logger')
   }
 }
