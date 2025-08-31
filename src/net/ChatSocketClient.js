@@ -36,7 +36,7 @@ export default class ChatSocketClient {
           chat(`&2&l+&a Connected to&f ${this.uri}`)
           World.playSound('random.levelup', 0.7, 1)
 
-          ws.sendEncoded('AUTH', Player.getName() + ' ' + Player.getUUID())
+          ws.sendEncoded('AUTH', { key: settings.wsSecret, name: Player.getName(), uuid: Player.getUUID() })
         },
         onMessage(message) {
           const { isAuth, type, value } = ChatSocketClient.decodeMessage(message)
@@ -48,7 +48,8 @@ export default class ChatSocketClient {
           if (typeof ws.onmessage === 'function') ws.onmessage(type, value)
         },
         onError(exception) {
-          if (settings.wsPrintEx) error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
+          if (settings.wsPrintEx)
+            error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
@@ -74,13 +75,21 @@ export default class ChatSocketClient {
     )
   }
 
-  static encodeMessage(channel, type, value) {
-    return String(channel || '').replaceAll(' ', '') + ' ' + type.toUpperCase() + ' ' + (value ?? '')
+  static encodeMessage(type, data) {
+    if (typeof data !== 'object') data = {}
+    return JSON.stringify({ type: type.toUpperCase(), data })
   }
 
   static decodeMessage(message) {
-    let [, isAuth, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
-    return { isAuth, type: String(type).toUpperCase(), value }
+    let type, data
+
+    try {
+      ;({ type, data } = JSON.parse(String(message)))
+    } catch (err) {
+      // ChatSocket can't do anything with a message if it is not formatted properly
+      return { type: 'NONE', data: {} }
+    }
+    return { type: String(type || 'NONE').toUpperCase(), data: data || {} }
   }
 
   send(message) {
@@ -88,10 +97,8 @@ export default class ChatSocketClient {
     this.client.send(message)
   }
 
-  sendEncoded(data) {
-    if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
-
-    this.client.send(ChatSocketClient.encodeMessage(settings.wsSecret, type, value))
+  sendEncoded(type, data) {
+    this.send(ChatSocketClient.encodeMessage(type, data))
     if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${value ?? ''}`)
   }
 
@@ -138,7 +145,11 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    chat(`&eConnection to&f ${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
+    chat(
+      `&eConnection to&f ${this.uri}&e ● ${
+        ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]
+      }`
+    )
   }
 
   printConnectingMessage() {

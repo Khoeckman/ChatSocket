@@ -28,7 +28,7 @@ try {
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6s&etatus &7 Prints the status of the &fWebSocket&7.',
-            '&e/cs fly [on|off] &7 Change your flying state.',
+            // '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
           ])
@@ -67,13 +67,13 @@ try {
           ws.printConnectionStatus()
           break
 
-        case 'fly':
-          const player = Player.getPlayer()
-          const capabilities = player.func_71075_bZ()
+        /* case "fly":
+          const player = Player.getPlayer();
+          const capabilities = player.func_71075_bZ();
           // On except when { args[0] === 'off' }
-          capabilities.isFlying = !args.length || args[0] !== 'off'
-          Client.sendPacket(new C13PacketPlayerAbilities(capabilities))
-          break
+          capabilities.isFlying = !args.length || args[0] !== "off";
+          Client.sendPacket(new C13PacketPlayerAbilities(capabilities));
+          break; */
 
         case 'version':
         case 'ver':
@@ -170,7 +170,6 @@ function registerWebSocketTriggers() {
     try {
       // Disable Hypixel polling commands
       if (message === '/locraw') return
-
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       ws.sendEncoded('SAY', message)
@@ -184,6 +183,9 @@ function registerWebSocketTriggers() {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const message = ChatLib.getChatMessage(event, true)
+
+      if ((settings.wsChatEventFilter || /./).test(message)) return
+
       ws.sendEncoded('CHAT', message)
 
       if (settings.wsLogChat) cancel(event)

@@ -5,21 +5,23 @@ const Long = Java.type('java.lang.Long')
 
 @Vigilant('ChatSocket', PREFIX.replaceAll('&', '§') + 'Settings', {
   getCategoryComparator: () => (a, b) => {
-    const categories = ['WebSocket', 'Version', 'Debug']
+    const categories = ['General', 'WebSocket', 'Debug']
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
     const subcategories = ['General', 'WebSocket', 'Logger', 'Errors']
     return (
-      subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
+      subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) -
+      subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
   },
   getPropertyComparator: () => (a, b) => {
     const names = [
+      'Check Latest Version',
       'URI',
       'Autoconnect',
       'Secret Key',
-      'Check Latest Version',
+      'Chat Filter',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
@@ -30,6 +32,16 @@ const Long = Java.type('java.lang.Long')
   },
 })
 class Settings {
+  // General
+
+  @CheckboxProperty({
+    name: 'Check Latest Version',
+    description: 'Keep track of whether you have the latest version of ChatSocket.',
+    category: 'General',
+    subcategory: 'Version',
+  })
+  checkLatestVersion = true
+
   // WebSocket
 
   @ParagraphProperty({
@@ -53,36 +65,19 @@ class Settings {
     name: 'Secret Key',
     description: 'The ChatSocket server uses this to authenticate every connection.',
     category: 'WebSocket',
-    subcategory: 'WebSocket',
+    subcategory: 'Security',
     protected: true,
   })
   wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
 
   @ParagraphProperty({
-    name: 'Chat Event Filter',
+    name: 'Chat Filter',
     description: 'Only send §6§lCHAT§r events that match this RegEx. Use & for color formatting.',
     category: 'WebSocket',
-    subcategory: 'WebSocket',
+    subcategory: 'Security',
+    placeholder: 'RegEx',
   })
-  wsEnableChatFilter = true
-
-  @ParagraphProperty({
-    name: 'Chat Event Filter RegEx',
-    description: 'Only send CHAT events that match this RegEx. Use & for color formatting.',
-    category: 'WebSocket',
-    subcategory: 'WebSocket',
-  })
-  wsChatFilterRegex = '^&8\*\s[\s\S]*'
-
-  // Version
-
-  @CheckboxProperty({
-    name: 'Check Latest Version',
-    description: 'Keep track of whether you have the latest version of ChatSocket.',
-    category: 'Version',
-    subcategory: 'Version',
-  })
-  checkLatestVersion = true
+  wsChatEventFilter = '^&8\\*\\s'
 
   // Debug
 

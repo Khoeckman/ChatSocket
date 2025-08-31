@@ -1,4 +1,4 @@
-import { PREFIX, chat, error } from './'
+import { chat, error } from './'
 import settings from '../vigilance/settings'
 
 class Metadata {
@@ -10,7 +10,8 @@ class Metadata {
       return error(err, settings.printStackTrace)
     }
 
-    if (typeof remoteURL !== 'string') return error(new TypeError('remoteURL is not a string'), settings.printStackTrace)
+    if (typeof remoteURL !== 'string')
+      return error(new TypeError('remoteURL is not a string'), settings.printStackTrace)
     this.remoteURL = remoteURL
   }
 
@@ -31,7 +32,10 @@ class Metadata {
     if (!World.isLoaded()) return
 
     if (!this.local || typeof this.local.version !== 'string')
-      return error(new TypeError(`Cannot read properties of ${this.local} (reading 'version')`), settings.printStackTrace)
+      return error(
+        new TypeError(`Cannot read properties of ${this.local} (reading 'version')`),
+        settings.printStackTrace
+      )
 
     if (!settings.checkLatestVersion) {
       chat(
@@ -77,4 +81,8 @@ class Metadata {
   }
 }
 
-export default new Metadata('ChatSocket', 'metadata.json', 'https://raw.githubusercontent.com/Khoeckman/ChatSocket/main/metadata.json')
+export default new Metadata(
+  'ChatSocket',
+  'metadata.json',
+  'https://raw.githubusercontent.com/Khoeckman/ChatSocket/main/metadata.json'
+)
