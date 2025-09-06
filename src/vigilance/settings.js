@@ -9,10 +9,9 @@ const Long = Java.type('java.lang.Long')
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
-    const subcategories = ['General', 'WebSocket', 'Logger', 'Errors']
+    const subcategories = ['General', 'WebSocket', 'Security', 'Events', 'Logger', 'Errors']
     return (
-      subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) -
-      subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
+      subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
   },
   getPropertyComparator: () => (a, b) => {
@@ -21,7 +20,8 @@ const Long = Java.type('java.lang.Long')
       'URI',
       'Autoconnect',
       'Secret Key',
-      'Chat Filter',
+      'Chat Event Filter',
+      'Command Events',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
@@ -53,7 +53,7 @@ class Settings {
   })
   wsURI = 'wss://chatsocket-a1xp.onrender.com/'
 
-  @CheckboxProperty({
+  @SwitchProperty({
     name: 'Autoconnect',
     description: 'Connect when WebSocket is in CLOSING or CLOSED state.',
     category: 'WebSocket',
@@ -70,14 +70,32 @@ class Settings {
   })
   wsSecret = Long.toHexString(rng.nextLong()) + Long.toHexString(rng.nextLong())
 
-  @ParagraphProperty({
-    name: 'Chat Filter',
-    description: 'Only send §6§lCHAT§r events that match this RegEx. Use & for color formatting.',
+  @TextProperty({
+    name: 'Channel',
+    description: 'ChatSocket will only communicate on this channel.',
     category: 'WebSocket',
     subcategory: 'Security',
+    protected: true,
+  })
+  wsSecret = 'ChatSocket_' + Long.toHexString(rng.nextLong())
+
+  @ParagraphProperty({
+    name: 'Chat Event Filter',
+    description:
+      'Only send a CHAT event when the message matches this RegEx. Exclude the open and close slash. Use & for color formatting. &9&nhttps://regexr.com/',
+    category: 'WebSocket',
+    subcategory: 'Events',
     placeholder: 'RegEx',
   })
   wsChatEventFilter = '^&8\\*\\s'
+
+  @CheckboxProperty({
+    name: 'Command Events',
+    description: 'Send a CMD event for every command you execute.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsCmdEvent = true
 
   // Debug
 
@@ -115,7 +133,7 @@ class Settings {
 
   @CheckboxProperty({
     name: 'WebSocket Exceptions',
-    description: 'Print java exceptions thrown by the WebSocket.',
+    description: 'Print Java exceptions thrown by the WebSocket.',
     category: 'Debug',
     subcategory: 'Errors',
   })
@@ -137,7 +155,6 @@ class Settings {
       this.wsSecret = wsSecret.replaceAll(' ', '')
     }) */
 
-    this.addDependency('Chat Event Filter RegEx', 'Chat Event Filter')
     // this.addDependency('File Logger Directory', 'File Logger')
   }
 }

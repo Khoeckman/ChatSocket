@@ -13,6 +13,9 @@ export default class ChatSocketClient {
   constructor(uri) {
     if (typeof uri !== 'string') return error(new TypeError('uri is not a string'), settings.printStackTrace)
     this.uri = new URI(uri)
+    this.name = Player.getName()
+    this.uuid = Player.getUUID()
+    this.isAuth = false
 
     this.readyState = ChatSocketClient.CLOSED
     this.autoconnect = true
@@ -22,7 +25,6 @@ export default class ChatSocketClient {
     this.disconnectingMessageId = this.connectingMessageId + 1
 
     this.onmessage = null
-    this.isAuth = false
 
     const ws = this
 
@@ -36,20 +38,26 @@ export default class ChatSocketClient {
           chat(`&2&l+&a Connected to&f ${this.uri}`)
           World.playSound('random.levelup', 0.7, 1)
 
-          ws.sendEncoded('AUTH', { key: settings.wsSecret, name: Player.getName(), uuid: Player.getUUID() })
+          ws.sendEncoded('AUTH', `Authenticating as ${ws.name} (${ws.uuid})`, {
+            secret: settings.wsSecret,
+            name: ws.name,
+            uuid: ws.uuid,
+          })
         },
         onMessage(message) {
-          const { isAuth, type, value } = ChatSocketClient.decodeMessage(message)
-          ws.isAuth = isAuth
+          const { type, message, data } = ChatSocketClient.decodeMessage(message)
 
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
-          if (!isAuth && type === 'AUTH') error('WebSocket Error: ' + value, settings.printStackTrace, true)
 
-          if (typeof ws.onmessage === 'function') ws.onmessage(type, value)
+          if (type === 'AUTH') {
+            ws.isAuth = !!data.success
+            if (!ws.isAuth) error('WebSocket Error: ' + message, settings.printStackTrace, true)
+          }
+
+          if (typeof ws.onmessage === 'function') ws.onmessage(type, message, data)
         },
         onError(exception) {
-          if (settings.wsPrintEx)
-            error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
+          if (settings.wsPrintEx) error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
@@ -66,6 +74,8 @@ export default class ChatSocketClient {
           else if (code === -1) chat(`&4&l-&c Failed to connect to&f ${this.uri} &7[&e${code}&7]`)
           else chat(`&4&l-&c Disconnected from&f ${this.uri} &7[&e${code}&7]`)
 
+          if (remote && reason && typeof reason === 'string' && reason.length) chat('&cReason: &f' + reason)
+
           if (code === -1) {
             if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)
           } else World.playSound('dig.glass', 0.7, 1)
@@ -75,21 +85,27 @@ export default class ChatSocketClient {
     )
   }
 
-  static encodeMessage(type, data) {
-    if (typeof data !== 'object') data = {}
-    return JSON.stringify({ type: type.toUpperCase(), data })
+  static encodeMessage(type, message, data = {}) {
+    if (!data || data.constructor !== Object) data = {}
+    return JSON.stringify({ type: String(type).toUpperCase(), message: String(message ?? ''), data })
   }
 
   static decodeMessage(message) {
-    let type, data
-
+    // Returns `false` if the message is not valid JSON and thus unusable.
     try {
-      ;({ type, data } = JSON.parse(String(message)))
+      ;({ type, message, data } = JSON.parse(String(message)))
     } catch (err) {
-      // ChatSocket can't do anything with a message if it is not formatted properly
-      return { type: 'NONE', data: {} }
+      return false
     }
-    return { type: String(type || 'NONE').toUpperCase(), data: data || {} }
+
+    // Message must have a type
+    if (!type || typeof type !== 'string') return false
+
+    return {
+      type: type.toUpperCase(),
+      message: String(message ?? ''),
+      data: data && data.constructor === Object ? data : {},
+    }
   }
 
   send(message) {
@@ -97,9 +113,9 @@ export default class ChatSocketClient {
     this.client.send(message)
   }
 
-  sendEncoded(type, data) {
-    this.send(ChatSocketClient.encodeMessage(type, data))
-    if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${value ?? ''}`)
+  sendEncoded(type, message, data = {}) {
+    this.send(ChatSocketClient.encodeMessage(type, message, data))
+    if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${message}`)
   }
 
   connect() {
@@ -145,11 +161,7 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    chat(
-      `&eConnection to&f ${this.uri}&e ● ${
-        ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]
-      }`
-    )
+    chat(`&eConnection to&f ${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
   }
 
   printConnectingMessage() {

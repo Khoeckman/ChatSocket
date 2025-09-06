@@ -125,7 +125,14 @@ try {
       if (!ws.autoconnect || !settings.wsAutoconnect || ws.readyState === ChatSocketClient.CONNECTING) return
 
       if (ws.readyState === ChatSocketClient.OPEN) {
-        if (!ws.isAuth) ws.sendEncoded('AUTH', Player.getUUID())
+        // Attempt authentication if connection is OPEN
+        if (!ws.isAuth) {
+          const data = {
+            name: Player.getName(),
+            uuid: Player.getUUID(),
+          }
+          ws.sendEncoded('AUTH', `Authenticating as '${data.name}' (${data.uuid})`, data)
+        }
         return
       }
 
@@ -150,17 +157,17 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('CONNECT', 'Connected to ' + event.serverIP)
+      ws.sendEncoded('CONNECT', 'Connected to ' + event.serverIP, { serverIP: event.serverIP })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
   })
 
-  register('serverDisconnect', event => {
+  register('serverDisconnect', () => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('DISCONNECT', 'Disconnected from ' + event.serverIP)
+      ws.sendEncoded('DISCONNECT', 'Disconnected from server')
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -168,9 +175,7 @@ function registerWebSocketTriggers() {
 
   register('messageSent', message => {
     try {
-      // Disable Hypixel polling commands
-      if (message === '/locraw') return
-      if (ws.readyState !== ChatSocketClient.OPEN) return
+      if (!settings.wsCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
 
       ws.sendEncoded('SAY', message)
     } catch (err) {
@@ -183,11 +188,11 @@ function registerWebSocketTriggers() {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const message = ChatLib.getChatMessage(event, true)
-
-      if ((settings.wsChatEventFilter || /./).test(message)) return
+      if (new RegExp(settings.wsChatEventFilter).test(message)) return
 
       ws.sendEncoded('CHAT', message)
 
+      // Prevent printing the message twice
       if (settings.wsLogChat) cancel(event)
     } catch (err) {
       error(err, settings.printStackTrace)
@@ -195,22 +200,22 @@ function registerWebSocketTriggers() {
   })
 }
 
-function OnWebSocketMessage(type, value) {
+function OnWebSocketMessage(type, message, data) {
   switch (type) {
     case 'AUTH':
       break
     case 'CONNECT':
-      Client.connect(value)
+      Client.connect(data.serverIP)
     case 'DISCONNECT':
       Client.disconnect()
     case 'CHAT':
-      if (!settings.wsLogChat) ChatLib.chat(value)
+      if (!settings.wsLogChat) ChatLib.chat(message)
       break
     case 'SAY':
-      ChatLib.say(value)
+      ChatLib.say(message)
       break
     case 'CMD':
-      ChatLib.command(value)
+      ChatLib.command(message)
       break
     default:
       error(`WebSocket Error: Unsupported message type '${type}'`, settings.printStackTrace, true)
