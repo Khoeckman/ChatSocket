@@ -1,6 +1,6 @@
 import ChatSocketController from './ChatSocketController.js'
 
-const WEBSOCKET_URL = 'wss://chatsocket-a1xp.onrender.com/'
+const WEBSOCKET_SERVER_URL = 'wss://chatsocket-a1xp.onrender.com/'
 const WEBSOCKET_SECRET_KEY = '2721c210b42f652f56f6f95c156f2b5b'
 
 let ws = null
