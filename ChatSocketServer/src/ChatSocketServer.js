@@ -19,7 +19,7 @@ export default class ChatSocketServer extends WebSocketServer {
     console.log(
       Utils.mcToAnsi(
         `&2-> &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${
-          client.name
+          client.name ?? data.name ?? '?'
         }&7] &l\x1b[48;5;11m&l ${type} &r &a${message} &7 ${JSON.stringify(data)}`
       )
     )
