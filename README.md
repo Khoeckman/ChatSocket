@@ -1,111 +1,63 @@
 # ChatSocket
 
-**A ChatTriggers module**
-Configure and open a WebSocket connection to send and receive ChatTrigger events in real time. This can serve as a bridge between Minecraft and the World Wide Web!
+**A ChatTriggers module**\
+ChatSocket lets you quickly set up a WebSocket connection for real‑time ChatTriggers events, acting as a bridge between Minecraft and the web.
+
+It enables you to interact with Minecraft programmatically **without modifying its internal code**, using **WebSocket communication** to exchange messages with external programs.
 
 ## Installation
 
 1. Install [ChatTriggers](https://github.com/ChatTriggers/ChatTriggers/releases)
 2. Download `ChatSocket.zip` from [Releases](https://github.com/Khoeckman/ChatSocket/releases/latest)
 3. Extract `ChatSocket.zip` to `%appdata%/.minecraft/config/ChatTriggers/modules/`
-4. Launch Minecraft or reload all ChatTriggers modules by running `/ct load` in chat.
-5. After loading it should say: `[ChatSocket] Module Loaded. Type "/cs" for help.`
+4. Launch Minecraft or reload all ChatTriggers modules with `/ct load`.
+5. You should see: `[ChatSocket] Module Loaded. Type "/cs" for help.`
 
 ## Architecture
 
-ChatSocketClient (Minecraft ChatTriggers module) <-> ChatSocketServer (Node.js WebSocket server) <-> ChatSocketController (Any)
+**Client** (Minecraft + ChatSocket) ↔ **Server** (WebSocket server) ↔ **Controller** (Any program that connects to the WebSocket server)
 
-The ChatSocketClient and ChatSocketController can only communicate if they both have the same `SECRET_KEY` and are pointed to the correct address (e.g. [ws://localhost:47576](ws://localhost:47576))
+Clients and controllers can only communicate if they connect to the same server and use the same channel.
 
-## Setup ChatSocketServer
+## Setup Server
 
-### Environment variables
+### Environment Variables
 
-Open `.\WebSocketServer\.env` file
+Configure the WebSocket server with the `.env` file located in `./WebSocketServer/.env`:
 
-### Start the server
+| Variable | Type   | Default | Description                                                                                     |
+| -------- | ------ | ------- | ----------------------------------------------------------------------------------------------- |
+| `PORT`   | Number | `47576` | The port on which the WebSocket server listens.                                                 |
+| `SECRET` | String | _None_  | Secret key for authenticating incoming connections. Throws a `TypeError` if missing or invalid. |
 
-1. Open a terminal
-2. Make sure your terminal is in the right directory: `cd WebSocketServer`
-3. Run the following commands to start the WebSocket server:
+### Start the Server
 
-```batch
-npm i
+1. Open a terminal.
+2. Navigate to the server directory: `cd WebSocketServer`
+3. Install dependencies and run:
+
+```bash
+npm install
 npm run wss
 ```
 
 On success the terminal will print: _ChatSocket server running on [ws://localhost:47576](ws://localhost:47576)_
 
-![ChatSocket settings GUI in Minecraft](ChatSocketSettings.png)
+### Minecraft Setup
 
-## How To Use
+In Minecraft, run `/cs settings` to open the ChatSocket settings GUI. Make sure the `URI` is set to your WebSocket server address.
 
-The **ChatSocket** module allows you to interact with Minecraft programmatically **without modifying Minecraft’s internal code**. It achieves this using **WebSocket communication**, letting you send and receive messages between your own WebSocket server and Minecraft.
+You must also select a **Channel**. Think of a channel like a radio frequency: your Minecraft client can only be tuned to one channel at a time. To communicate, every controller or external client you want to interact with must connect to the same server and use the exact same channel. If they are on different channels, they will not receive each other's messages.
 
-### Setting Up Your Server
+![ChatSocket settings GUI in Minecraft](img/ChatSocketSettings.png)
 
-1. You can start from the template in `WebSocketServer/`, or build your server in any language you prefer.
-2. The only requirement is that messages follow the **ChatSocket encoding format**.
+### Connecting External Clients
 
-### Message Encoding
-
-Each message sent between the server and client must follow this syntax:
-
-```
-SECRET_KEY TYPE VALUE
-```
-
-- `SECRET_KEY` — Your authentication key. **Must not contain spaces.**
-- `TYPE` — The message type (e.g., `AUTH`, `CHAT`, or custom types).
-- `VALUE` — The payload of the message. Can contain spaces and does not need to be trimmed.
-
-**Example:**
-
-```
-3b9e06e2db0ba8327d6584e5c2cd1f2e CHAT Hello Minecraft!
-```
-
-### Notes
-
-- The module handles message encoding and decoding automatically; you only need to follow the syntax.
-- You can extend the module by overriding hooks like `ChatSocket_onReceive` to implement custom behavior for different message types.
-- Keep your `SECRET_KEY` secure if your WebSocket server is public.
-
-## Hooks
-
-### `ChatSocket_onMessage(type, value, settings)`
-
-This hook allows your module to handle incoming messages from the ChatSocket server. You can override it to implement custom logic for different message types.
-
-**Usage:**
-
-1. Add `'ChatSocket'` to the `requires` array in your module.
-2. Override this function in your module.
-
-**Parameters:**
-
-| Name       | Type       | Description                                                                              |
-| ---------- | ---------- | ---------------------------------------------------------------------------------------- |
-| `type`     | `string`   | The type of the message sent by the server (e.g., `'AUTH'`, `'CHAT'`, `'SAY'`, `'CMD'`). |
-| `value`    | `any`      | The payload of the message.                                                              |
-| `settings` | `Settings` | The user-configurable ChatSocket options. (see `src/vigilance/settings.js`)              |
-
-> **Note:** The default implementation of this hook can be found in [`src/utils/global.js`](src/utils/global.js).
-
-**Example Override:**
-
-```js
-global.ChatSocket_onMessage = function (type, value, settings) {
-  if (type === 'CUSTOM') {
-    // Custom logic
-  }
-  ChatLib.chat(`&cError: Unsupported type '${type}'`)
-}
-```
+Refer to the `./ChatSocketController` directory for a example implementation. You can use this as a starting point to build your own external programs that connect to the ChatSocket server. That way it can communicate with Minecraft clients in real time.
 
 ## Credits
 
-This module contains modified code from the following modules:
+This module contains modified code from:
 
 1. [Vigilance - By FalseHonesty](https://chattriggers.com/modules/v/Vigilance)
 2. [WebSocket - By Debug](https://chattriggers.com/modules/v/WebSocket)
@@ -114,5 +66,4 @@ This module contains modified code from the following modules:
 
 [CTAutocomplete - By lotymax](https://chattriggers.com/modules/v/CTAutocomplete)
 
-Run `/ct import CTAutocomplete` in Minecraft to be able to use this devdependency.
-This is only necessary if you wish to make changes to ChatSocket.
+Run `/ct import CTAutocomplete` in Minecraft to enable this dependency. Only required if you plan to play around with the ChatTriggers code.

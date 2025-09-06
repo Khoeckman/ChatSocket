@@ -9,7 +9,7 @@ const Long = Java.type('java.lang.Long')
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
-    const subcategories = ['General', 'WebSocket', 'Security', 'Events', 'Logger', 'Errors']
+    const subcategories = ['General', 'Connection', 'Security', 'Events', 'Logger', 'Errors']
     return (
       subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
@@ -20,6 +20,7 @@ const Long = Java.type('java.lang.Long')
       'URI',
       'Autoconnect',
       'Secret Key',
+      'Channel',
       'Chat Event Filter',
       'Command Events',
       'Chat Logger',
@@ -48,16 +49,17 @@ class Settings {
     name: 'URI',
     description: 'Where the WebSocket server is hosted.',
     category: 'WebSocket',
-    subcategory: 'WebSocket',
+    subcategory: 'Connection',
     placeholder: 'ws://',
   })
-  wsURI = 'wss://chatsocket-a1xp.onrender.com/'
+  wsURI = 'ws://localhost:47576'
+  // wss://chatsocket-a1xp.onrender.com/
 
   @SwitchProperty({
     name: 'Autoconnect',
     description: 'Connect when WebSocket is in CLOSING or CLOSED state.',
     category: 'WebSocket',
-    subcategory: 'WebSocket',
+    subcategory: 'Connection',
   })
   wsAutoconnect = true
 
@@ -72,12 +74,12 @@ class Settings {
 
   @TextProperty({
     name: 'Channel',
-    description: 'ChatSocket will only communicate on this channel.',
+    description: 'ChatSocket will only communicate to clients on this channel.',
     category: 'WebSocket',
     subcategory: 'Security',
     protected: true,
   })
-  wsSecret = 'ChatSocket_' + Long.toHexString(rng.nextLong())
+  wsChannel = 'Project_' + rng.nextInt().toString(36)
 
   @ParagraphProperty({
     name: 'Chat Event Filter',
@@ -95,7 +97,7 @@ class Settings {
     category: 'WebSocket',
     subcategory: 'Events',
   })
-  wsCmdEvent = true
+  wsCmdEvent = false
 
   // Debug
 

@@ -1,7 +1,7 @@
 import ChatSocketController from './ChatSocketController.js'
 
-const WEBSOCKET_SERVER_URL = 'wss://chatsocket-a1xp.onrender.com/'
-const WEBSOCKET_SECRET_KEY = '2721c210b42f652f56f6f95c156f2b5b'
+const WEBSOCKET_SERVER_URL = 'ws://localhost:47576' //'wss://chatsocket-a1xp.onrender.com/'
+const WEBSOCKET_SECRET_KEY = '15f5ccd5987f59418bbc534a02a6e36'
 
 let ws = null
 const secretKeyInput = document.getElementById('secretKey')

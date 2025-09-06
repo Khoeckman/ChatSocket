@@ -23,14 +23,10 @@ export default class Utils {
       o: '\x1b[3m', // italic
       r: '\x1b[0m', // reset
     }
-    return str.replace(/[&§]([0-9a-fklmnor])/g, (_, code) => codes[code] || '') + '\x1b[0m'
+    return str.replace(/[&§]([0-9a-fk-or])/g, (_, code) => codes[code] || '') + '\x1b[0m'
   }
 
   static removeMcFormatting(str) {
-    return String(str).replace(/[&§][0-9a-fklmnor]/g, '')
-  }
-
-  static isUUID(str) {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(str)
+    return String(str).replace(/[&§][0-9a-fk-or]/g, '')
   }
 }

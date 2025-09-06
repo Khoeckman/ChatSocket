@@ -14,6 +14,19 @@ class Metadata {
     this.remoteURL = remoteURL
   }
 
+  static compareVersions(v1, v2) {
+    const a = v1.split('.').map(n => Number(n))
+    const b = v2.split('.').map(n => Number(n))
+
+    for (let i = 0, len = Math.max(a.length, b.length); i < len; i++) {
+      const x = a[i] || 0
+      const y = b[i] || 0
+      if (x > y) return 1 // v1 > v2
+      if (x < y) return -1 // v1 < v2
+    }
+    return 0 // equal
+  }
+
   getRemote(onFinally = () => {}) {
     new Thread(() => {
       try {
@@ -54,9 +67,9 @@ class Metadata {
 
     const latestVersion =
       this.remote && typeof this.remote.version === 'string'
-        ? this.remote.version > this.local.version
-          ? '&c✖ Latest ' + this.remote.version
-          : '&2✔ Latest'
+        ? Metadata.compareVersions(this.local.version, this.remote.version) >= 0
+          ? '&2✔ Latest'
+          : '&c✖ Latest ' + this.remote.version
         : '&c✖ Latest unknown'
 
     try {

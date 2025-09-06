@@ -1,4 +1,5 @@
-import { randomInt, chat, error } from '../utils'
+import ChatSocketProtocol from './ChatSocketProtocol'
+import { randomInt, chat, error, dialog } from '../utils'
 import settings from '../vigilance/settings'
 
 const URI = Java.type('java.net.URI')
@@ -11,11 +12,16 @@ export default class ChatSocketClient {
   static CLOSED = 3
 
   constructor(uri) {
-    if (typeof uri !== 'string') return error(new TypeError('uri is not a string'), settings.printStackTrace)
+    if (typeof uri !== 'string') {
+      error(new TypeError('uri is not a string'), settings.printStackTrace)
+      return
+    }
     this.uri = new URI(uri)
+
+    this.isAuth = false
+    this.channel = 'default'
     this.name = Player.getName()
     this.uuid = Player.getUUID()
-    this.isAuth = false
 
     this.readyState = ChatSocketClient.CLOSED
     this.autoconnect = true
@@ -36,22 +42,26 @@ export default class ChatSocketClient {
           ws.deleteConnectingMessage()
 
           chat(`&2&l+&a Connected to&f ${this.uri}`)
-          World.playSound('random.levelup', 0.7, 1)
+          if (!settings.wsAutoconnect) World.playSound('random.levelup', 0.7, 1)
 
-          ws.sendEncoded('AUTH', `Authenticating as ${ws.name} (${ws.uuid})`, {
-            secret: settings.wsSecret,
-            name: ws.name,
-            uuid: ws.uuid,
-          })
+          ws.authenticate()
         },
-        onMessage(message) {
-          const { type, message, data } = ChatSocketClient.decodeMessage(message)
+        onMessage(rawData) {
+          const { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
 
-          if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${value}`)
+          if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${message}`)
 
           if (type === 'AUTH') {
-            ws.isAuth = !!data.success
-            if (!ws.isAuth) error('WebSocket Error: ' + message, settings.printStackTrace, true)
+            if ((ws.isAuth = !!data.success)) {
+              if (data.channel) ws.channel = data.channel
+              if (data.name) ws.name = data.name
+              if (data.uuid) ws.uuid = data.uuid
+            } else {
+              error('WebSocket Error: ' + message, settings.printStackTrace, true)
+            }
+          } else if (type === 'CHANNEL' && data.success) {
+            if (data.channel) ws.channel = data.channel
+            else error('WebSocket Error: Missing channel', settings.printStackTrace, true)
           }
 
           if (typeof ws.onmessage === 'function') ws.onmessage(type, message, data)
@@ -70,62 +80,59 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.CLOSED
           ws.deleteDisconnectingMessage()
 
-          if (remote) chat(`&4&l-&c Connection closed by&f ${this.uri} &7[&e${code}&7]`)
-          else if (code === -1) chat(`&4&l-&c Failed to connect to&f ${this.uri} &7[&e${code}&7]`)
-          else chat(`&4&l-&c Disconnected from&f ${this.uri} &7[&e${code}&7]`)
+          if (remote) {
+            chat(`&4&l-&c Connection closed by&f ${this.uri} &7[&e${code}&7]`)
+            if (!settings.wsAutoconnect) World.playSound('dig.glass', 0.7, 1)
+          } else if (code === -1) {
+            chat(`&4&l-&c Failed to connect to&f ${this.uri} &7[&e${code}&7]`)
+            if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)
+          } else {
+            chat(`&4&l-&c Disconnected from&f ${this.uri} &7[&e${code}&7]`)
+            if (!settings.wsAutoconnect) World.playSound('dig.glass', 0.7, 1)
+          }
 
           if (remote && reason && typeof reason === 'string' && reason.length) chat('&cReason: &f' + reason)
-
-          if (code === -1) {
-            if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)
-          } else World.playSound('dig.glass', 0.7, 1)
         },
       },
       this.uri
     )
   }
 
-  static encodeMessage(type, message, data = {}) {
-    if (!data || data.constructor !== Object) data = {}
-    return JSON.stringify({ type: String(type).toUpperCase(), message: String(message ?? ''), data })
-  }
-
-  static decodeMessage(message) {
-    // Returns `false` if the message is not valid JSON and thus unusable.
-    try {
-      ;({ type, message, data } = JSON.parse(String(message)))
-    } catch (err) {
-      return false
-    }
-
-    // Message must have a type
-    if (!type || typeof type !== 'string') return false
-
-    return {
-      type: type.toUpperCase(),
-      message: String(message ?? ''),
-      data: data && data.constructor === Object ? data : {},
-    }
-  }
-
   send(message) {
-    if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state.')
+    if (this.readyState !== ChatSocketClient.OPEN) throw new Error('WebSocket is not in OPEN state')
     this.client.send(message)
   }
 
   sendEncoded(type, message, data = {}) {
-    this.send(ChatSocketClient.encodeMessage(type, message, data))
+    this.send(ChatSocketProtocol.encodeMessage(type, message, data))
     if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${message}`)
+  }
+
+  authenticate() {
+    this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
+      secret: settings.wsSecret,
+      channel: settings.wsChannel,
+      name: this.name,
+      uuid: this.uuid,
+    })
+  }
+
+  selectChannel(channel) {
+    if (!this.isAuth) throw new Error('WebSocket is not authenticated')
+    if (channel === this.channel) return
+
+    this.sendEncoded('CHANNEL', `Selecting channel ${channel}`, { channel })
+    if (!settings.wsLogChat) chat(`&e● Selecting channel ${channel}`)
   }
 
   connect() {
     if (this.readyState === ChatSocketClient.CONNECTING || this.readyState === ChatSocketClient.OPEN) {
       this.deleteConnectingMessage()
-      throw new Error('WebSocket is already in CONNECTING or OPEN state.')
+      throw new Error('WebSocket is already in CONNECTING or OPEN state')
     }
     if (this.readyState === ChatSocketClient.CLOSING) {
       this.deleteConnectingMessage()
-      throw new Error('WebSocket is still in CLOSING state.')
+      throw new Error('WebSocket is still in CLOSING state')
     }
 
     this.printConnectingMessage()
@@ -136,7 +143,7 @@ export default class ChatSocketClient {
   close() {
     if (this.readyState === ChatSocketClient.CLOSING || this.readyState === ChatSocketClient.CLOSED) {
       this.deleteDisconnectingMessage()
-      throw new Error('WebSocket is already in CLOSING or CLOSED state.')
+      throw new Error('WebSocket is already in CLOSING or CLOSED state')
     }
 
     this.printDisconnectingMessage()
@@ -148,11 +155,11 @@ export default class ChatSocketClient {
   reconnect() {
     if (this.readyState === ChatSocketClient.CONNECTING || this.readyState === ChatSocketClient.OPEN) {
       this.deleteConnectingMessage()
-      throw new Error('WebSocket is already in CONNECTING or OPEN state.')
+      throw new Error('WebSocket is already in CONNECTING or OPEN state')
     }
     if (this.readyState === ChatSocketClient.CLOSING) {
       this.deleteConnectingMessage()
-      throw new Error('WebSocket is still in CLOSING state.')
+      throw new Error('WebSocket is still in CLOSING state')
     }
 
     this.readyState = ChatSocketClient.CONNECTING
@@ -161,7 +168,13 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    chat(`&eConnection to&f ${this.uri}&e ● ${['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3]}`)
+    dialog('&eConnection to&r ' + this.uri, [
+      '&eStatus &7 ' + ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3],
+      '&eAuthenticated &7 ' + (this.isAuth ? '&a&lYES' : '&c&lNO'),
+      '&eChannel &7 ' + this.channel,
+      '&eName &7 ' + this.name,
+      '&eUUID &7 ' + this.uuid,
+    ])
   }
 
   printConnectingMessage() {

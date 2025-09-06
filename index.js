@@ -122,17 +122,14 @@ try {
   // Autoreconnect
   register('step', () => {
     try {
+      // Keep the channel in sync with settings
+      if (ws.readyState === ChatSocketClient.OPEN && ws.isAuth && ws.channel !== settings.wsChannel) ws.selectChannel(settings.wsChannel)
+
       if (!ws.autoconnect || !settings.wsAutoconnect || ws.readyState === ChatSocketClient.CONNECTING) return
 
       if (ws.readyState === ChatSocketClient.OPEN) {
-        // Attempt authentication if connection is OPEN
-        if (!ws.isAuth) {
-          const data = {
-            name: Player.getName(),
-            uuid: Player.getUUID(),
-          }
-          ws.sendEncoded('AUTH', `Authenticating as '${data.name}' (${data.uuid})`, data)
-        }
+        // Attempt AUTH if connection is OPEN
+        if (!ws.isAuth) ws.authenticate()
         return
       }
 
@@ -147,7 +144,7 @@ try {
     } catch (err) {
       error(err, settings.printStackTrace)
     }
-  }).setDelay(1)
+  }).setDelay(2)
 } catch (err) {
   error(err, settings.printStackTrace)
 }
@@ -203,6 +200,7 @@ function registerWebSocketTriggers() {
 function OnWebSocketMessage(type, message, data) {
   switch (type) {
     case 'AUTH':
+    case 'CHANNEL':
       break
     case 'CONNECT':
       Client.connect(data.serverIP)

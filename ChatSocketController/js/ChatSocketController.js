@@ -1,36 +1,27 @@
+import ChatSocketProtocol from './ChatSocketProtocol'
+
 export default class ChatSocketController extends WebSocket {
-  constructor(url, secretKey, logElement) {
+  constructor(url, secret, logElement) {
     try {
       super(url)
     } catch (err) {
       this.onerror(err)
     }
 
-    if (typeof secretKey !== 'string' && !secretKey.length) throw new TypeError('secretKey is not a string')
-    this.secretKey = secretKey.replaceAll(' ', '')
+    if (typeof secret !== 'string' && !secret.length) throw new TypeError('secret is not a string')
+    this.secret = secret.replaceAll(' ', '')
 
-    this.log = secretKey instanceof HTMLElement ? logElement : {}
-  }
-
-  // Prepare to send to ChatSocket
-  static encodeMessage(secretKey, type, value) {
-    return secretKey + ' ' + type.toUpperCase() + ' ' + (value ?? '')
-  }
-
-  // Parse message from ChatSocket
-  static decodeMessage(message) {
-    let [, secretKey, type, value] = String(message).split(/^(\S+)\s+(\S+)\s+([\s\S]*)$/) || []
-    return { secretKey, type: String(type).toUpperCase(), value }
+    this.log = secret instanceof HTMLElement ? logElement : {}
   }
 
   onopen(ev) {
     log(`<p style="color: lime">+ Connected to ${ev.target.url}</p`)
-    this.send(this.secretKey + ' AUTH')
+    this.send(this.secret + ' AUTH')
   }
 
   onmessage(ev) {
-    let { secretKey, type, value } = ChatSocketController.decodeMessage(ev.data)
-    const isAuth = this.secretKey === secretKey
+    let { secret, type, value } = ChatSocketProtocol.decodeMessage(ev.data)
+    const isAuth = this.secret === secret
 
     log(`<p><b style="color: lime">-&#x3E;</b> ${ev.data}</p>`)
 
@@ -46,8 +37,8 @@ export default class ChatSocketController extends WebSocket {
   send(type, value) {
     if (this.readyState !== WebSocket.OPEN) return
 
-    const secretKey = this.isAuth ? this.secretKey : '*'
-    const message = ChatSocketController.encodeMessage(secretKey, type, value)
+    const secret = this.isAuth ? this.secret : '*'
+    const message = ChatSocketProtocol.encodeMessage(secret, type, value)
     super.send(message)
     log(`<p><b style="color: red">&#x3C;-</b> ${value}</p>`)
   }
