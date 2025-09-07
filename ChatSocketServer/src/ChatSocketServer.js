@@ -1,20 +1,102 @@
 import { WebSocketServer } from 'ws'
+import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import ChatSocketProtocol from './ChatSocketProtocol.js'
 import Utils from './Utils.js'
 
 export default class ChatSocketServer extends WebSocketServer {
-  constructor({ port, secret, dataByteLimit } = {}) {
+  constructor({ port, secret, dataByteLimit }) {
     // Initialize WebSocketServer
     super({ port })
 
+    port = +port
+    if (!Number.isInteger(port) || port < 80 || port >= 65536)
+      throw new TypeError('Invalid port: expected an integer between 80 and 65535, got "${port}".')
     this.port = port
-    this.secret = secret.replaceAll(' ', '')
+
+    if (typeof secret !== 'string' || !secret.trim().length) throw new TypeError('Invalid secret: expected a non-empty string.')
+    this.secret = secret.trim()
 
     // Options
     this.dataByteLimit = dataByteLimit
+
+    this.on('connection', (client, request) => {
+      client.ip = request.socket.remoteAddress
+      client.isAuth = false
+      console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
+
+      client.on('message', rawData => {
+        // Close the connection if the client sends a message that is too large
+        if (rawData.byteLength > this.dataByteLimit) client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes`)
+
+        const { type, message, data } = this.#onmessage(client, rawData)
+
+        if (type === 'AUTH') {
+          if (data.secret !== this.secret) {
+            this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
+            return
+          }
+
+          const fromChannel = client.channel
+
+          // Leave the previous channel if client selected a new one
+          if (data.channel && data.channel !== fromChannel)
+            this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
+
+          client.isAuth = true
+          client.channel = data.channel ?? client.channel ?? 'Default'
+          client.name = data.name ?? 'Client_' + (~~(Math.random() * 2 ** 31)).toString(36)
+          client.uuid = uuidValidate(data.uuid) ? data.uuid : uuidv4()
+
+          this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
+            success: true,
+            channel: client.channel,
+            name: client.name,
+            uuid: client.uuid,
+          })
+
+          if (data.channel) this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, { success: true, channel: client.channel })
+          if (client.channel !== fromChannel)
+            this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel.`, { name: client.name, uuid: client.uuid })
+
+          return
+        }
+
+        if (!client.isAuth) {
+          this.send(client, 'AUTH', 'Unauthenticated', { success: false })
+          return
+        }
+
+        if (type === 'CHANNEL') {
+          if (data.channel) {
+            // Leave the previous channel if client selected a new one
+            if (data.channel !== client.channel)
+              this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
+
+            client.channel = data.channel
+            this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, { success: true, channel: client.channel })
+          } else {
+            this.send(client, 'CHANNEL', 'Missing channel', { success: false })
+          }
+          return
+        }
+
+        if (typeof this.onmessage === 'function') this.onmessage.call(this, client, type, message, data)
+        // Default behavior
+        else this.sendChannel(client, type, message, data)
+      })
+
+      client.on('error', console.error)
+
+      client.on('close', () => {
+        console.log(Utils.mcToAnsi(`&4&l-&r &e${client.ip}&c disconnected`))
+        this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
+      })
+    })
+
+    console.log(Utils.mcToAnsi(`&6ChatSocket&r server is running on port ${this.port}`))
   }
 
-  onmessage(client, rawData) {
+  #onmessage(client, rawData) {
     let { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
     console.log(
       Utils.mcToAnsi(
@@ -50,6 +132,6 @@ export default class ChatSocketServer extends WebSocketServer {
     if ((channel ?? 'default') !== client.channel)
       this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
 
-    client.channel = channel ?? 'default'
+    client.channel = channel ?? 'Default'
   }
 }
