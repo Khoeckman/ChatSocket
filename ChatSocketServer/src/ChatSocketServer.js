@@ -22,7 +22,7 @@ export default class ChatSocketServer extends WebSocketServer {
     this.on('connection', (client, request) => {
       client.ip = request.socket.remoteAddress
       client.isAuth = false
-      console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip}&a connected`))
+      console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c?&7]&a connected`))
 
       client.on('message', rawData => {
         // Close the connection if the client sends a message that is too large
@@ -80,6 +80,7 @@ export default class ChatSocketServer extends WebSocketServer {
           return
         }
 
+        // Allows developers to implement their own logic
         if (typeof this.onmessage === 'function') this.onmessage.call(this, client, type, message, data)
         // Default behavior
         else this.sendChannel(client, type, message, data)
@@ -88,7 +89,7 @@ export default class ChatSocketServer extends WebSocketServer {
       client.on('error', console.error)
 
       client.on('close', () => {
-        console.log(Utils.mcToAnsi(`&4&l-&r &e${client.ip}&c disconnected`))
+        console.log(Utils.mcToAnsi(`&4&l-&r &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${client.name || '?'}&7]&c disconnected`))
         this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
       })
     })

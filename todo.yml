@@ -1,4 +1,4 @@
 todo:
-  - 'command to send events to server manually [type] [value]'
-
-  - 'client to client comm'
+  - 'CHAT regex filter'
+  - 'CMD from server is executed?'
+  - 'Setting to limit command execution rate + queue system (seperate module?)'
