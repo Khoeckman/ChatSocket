@@ -25,7 +25,7 @@ export const chat = (message, id = null) => {
   } else {
     message = new Message(PREFIX, String(message))
   }
-  if (Number.isFinite(id)) message = message.setChatLineId(id)
+  if (Number.isInteger(id)) message = message.setChatLineId(id)
   message.chat()
 }
 

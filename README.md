@@ -45,7 +45,7 @@ On success the terminal will print: _ChatSocket server running on [ws://localhos
 
 ### Minecraft Setup
 
-In Minecraft, run `/cs settings` to open the ChatSocket settings GUI. Make sure the `URI` is set to your WebSocket server address.
+In Minecraft, run `/cs settings` to open the ChatSocket settings GUI. Make sure the `URL` is set to your WebSocket server address.
 
 You must also select a **Channel**. Think of a channel like a radio frequency: your Minecraft client can only be tuned to one channel at a time. To communicate, every controller or external client you want to interact with must connect to the same server and use the exact same channel. If they are on different channels, they will not receive each other's messages.
 

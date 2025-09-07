@@ -11,15 +11,15 @@ export default class ChatSocketClient {
   static CLOSING = 2
   static CLOSED = 3
 
-  constructor(uri) {
-    if (typeof uri !== 'string') {
-      error(new TypeError('uri is not a string'), settings.printStackTrace)
+  constructor(url) {
+    if (typeof url !== 'string') {
+      error(new TypeError('url is not a string'), settings.printStackTrace)
       return
     }
-    this.uri = new URI(uri)
+    this.url = new URI(url)
 
     this.isAuth = false
-    this.channel = 'default'
+    this.channel = 'Default'
     this.name = Player.getName()
     this.uuid = Player.getUUID()
 
@@ -41,7 +41,7 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.OPEN
           ws.deleteConnectingMessage()
 
-          chat(`&2&l+&a Connected to&f ${this.uri}`)
+          chat(`&2&l+&a Connected to&f ${ws.url}`)
           if (!settings.wsAutoconnect) World.playSound('random.levelup', 0.7, 1)
 
           ws.authenticate()
@@ -80,21 +80,24 @@ export default class ChatSocketClient {
           ws.readyState = ChatSocketClient.CLOSED
           ws.deleteDisconnectingMessage()
 
+          ws.isAuth = false
+          ws.channel = 'Default'
+
           if (remote) {
-            chat(`&4&l-&c Connection closed by&f ${this.uri} &7[&e${code}&7]`)
+            chat(`&4&l-&c Connection closed by&f ${ws.url} &7[&e${code}&7]`)
             if (!settings.wsAutoconnect) World.playSound('dig.glass', 0.7, 1)
           } else if (code === -1) {
-            chat(`&4&l-&c Failed to connect to&f ${this.uri} &7[&e${code}&7]`)
+            chat(`&4&l-&c Failed to connect to&f ${ws.url} &7[&e${code}&7]`)
             if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)
           } else {
-            chat(`&4&l-&c Disconnected from&f ${this.uri} &7[&e${code}&7]`)
+            chat(`&4&l-&c Disconnected from&f ${ws.url} &7[&e${code}&7]`)
             if (!settings.wsAutoconnect) World.playSound('dig.glass', 0.7, 1)
           }
 
           if (remote && reason && typeof reason === 'string' && reason.length) chat('&cReason: &f' + reason)
         },
       },
-      this.uri
+      this.url
     )
   }
 
@@ -141,6 +144,8 @@ export default class ChatSocketClient {
   }
 
   close() {
+    this.autoconnect = false
+
     if (this.readyState === ChatSocketClient.CLOSING || this.readyState === ChatSocketClient.CLOSED) {
       this.deleteDisconnectingMessage()
       throw new Error('WebSocket is already in CLOSING or CLOSED state')
@@ -148,7 +153,6 @@ export default class ChatSocketClient {
 
     this.printDisconnectingMessage()
     this.readyState = ChatSocketClient.CLOSING
-    this.autoconnect = false
     this.client.close()
   }
 
@@ -168,7 +172,8 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    dialog('&eConnection to&r ' + this.uri, [
+    dialog('&eWebSocket status', [
+      '&eURL &7 ' + this.url,
       '&eStatus &7 ' + ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3],
       '&eAuthenticated &7 ' + (this.isAuth ? '&a&lYES' : '&c&lNO'),
       '&eChannel &7 ' + this.channel,
@@ -178,11 +183,11 @@ export default class ChatSocketClient {
   }
 
   printConnectingMessage() {
-    chat(`&2&l+&a Connecting to&f ${settings.wsURI}&a...`, this.connectingMessageId)
+    chat(`&2&l+&a Connecting to&f ${settings.wsURL}&a...`, this.connectingMessageId)
   }
 
   printDisconnectingMessage() {
-    chat(`&4&l-&c Disconnecting from&f ${this.uri}&c...`, this.disconnectingMessageId)
+    chat(`&4&l-&c Disconnecting from&f ${this.url}&c...`, this.disconnectingMessageId)
   }
 
   deleteConnectingMessage() {

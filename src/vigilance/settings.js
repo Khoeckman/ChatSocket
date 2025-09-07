@@ -17,7 +17,7 @@ const Long = Java.type('java.lang.Long')
   getPropertyComparator: () => (a, b) => {
     const names = [
       'Check Latest Version',
-      'URI',
+      'URL',
       'Autoconnect',
       'Secret Key',
       'Channel',
@@ -46,14 +46,14 @@ class Settings {
   // WebSocket
 
   @ParagraphProperty({
-    name: 'URI',
+    name: 'URL',
     description: 'Where the WebSocket server is hosted.',
     category: 'WebSocket',
     subcategory: 'Connection',
-    placeholder: 'ws://',
+    placeholder: 'ws://address:port',
   })
-  wsURI = 'ws://localhost:47576'
-  // wss://chatsocket-a1xp.onrender.com/
+  wsURL = 'ws://localhost:47576'
+  // wss://chatsocket-a1xp.onrender.com
 
   @SwitchProperty({
     name: 'Autoconnect',
@@ -89,7 +89,7 @@ class Settings {
     subcategory: 'Events',
     placeholder: 'RegEx',
   })
-  wsChatEventFilter = '^&8\\*\\s'
+  wsChatEventFilter = '^&r&7\\*\\s&r'
 
   @CheckboxProperty({
     name: 'Command Events',
@@ -144,12 +144,12 @@ class Settings {
   constructor() {
     this.initialize(this)
 
-    /* this.registerListener('URI', new_wsURI => {
-      new_wsURI = new_wsURI.trim()
+    /* this.registerListener('URL', new_wsURL => {
+      new_wsURL = new_wsURL.trim()
 
-      if (!new_wsURI.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
-        // this.wsURI = 'ws://localhost:47576'
-        return error(new Error(`&f${new_wsURI}&c is an invalid WebSocket URI`), this.printStackTrace)
+      if (!new_wsURL.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
+        // this.wsURL = 'ws://localhost:47576'
+        return error(new Error(`&f${new_wsURL}&c is an invalid WebSocket URL`), this.printStackTrace)
       }
     })
 

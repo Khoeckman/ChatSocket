@@ -9,7 +9,8 @@ import ChatSocketClient from './src/net/ChatSocketClient'
 
 const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
 
-let ws = new ChatSocketClient(settings.wsURI)
+let ws = new ChatSocketClient(settings.wsURL)
+ws.autoconnect = true
 
 try {
   register('command', (command, ...args) => {
@@ -24,7 +25,7 @@ try {
         case 'help':
           dialog('&eCommands', [
             '&e/cs &6sett&eings &7 Opens the settings GUI.',
-            '&e/cs &6sett&eings load &7 Loads the config.toml&7 into settings.',
+            '&e/cs &6sett&eings sync &7 Syncs the config.toml&7 with the settings GUI.',
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6s&etatus &7 Prints the status of the &fWebSocket&7.',
@@ -36,11 +37,7 @@ try {
 
         case 'settings':
         case 'sett':
-          if (args.length) {
-            if (args[0] !== 'load') {
-              error(`Unknown command. Type "/cs" for help. `)
-              break
-            }
+          if (args.length && args[0] === 'sync') {
             settings.config.loadData()
             chat('&eLoaded config.toml&e into settings.')
             World.playSound('note.pling', 0.7, 1)
@@ -51,7 +48,7 @@ try {
 
         case 'open':
         case 'o':
-          if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURI)
+          if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
           ws.onmessage = OnWebSocketMessage
           ws.connect()
           break
@@ -103,20 +100,6 @@ try {
     } catch (err) {}
   })
 
-  register('worldLoad', () => {
-    try {
-      ws.autoconnect = true
-    } catch (err) {
-      error(err, settings.printStackTrace)
-    }
-  })
-
-  register('worldUnload', () => {
-    try {
-      ws.close()
-    } catch (err) {}
-  })
-
   registerWebSocketTriggers()
 
   // Autoreconnect
@@ -138,7 +121,7 @@ try {
         ws.close()
       } catch (err) {}
 
-      ws = new ChatSocketClient(settings.wsURI)
+      ws = new ChatSocketClient(settings.wsURL)
       ws.onmessage = OnWebSocketMessage
       ws.connect()
     } catch (err) {
@@ -185,7 +168,8 @@ function registerWebSocketTriggers() {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const message = ChatLib.getChatMessage(event, true)
-      if (new RegExp(settings.wsChatEventFilter).test(message)) return
+      // TODO: filter not working
+      // if (!new RegExp(settings.wsChatEventFilter.replaceAll('\\', '\\\\')).test(message)) return
 
       ws.sendEncoded('CHAT', message)
 
