@@ -49,7 +49,7 @@ try {
         case 'open':
         case 'o':
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
-          ws.onmessage = OnWebSocketMessage
+          if (typeof onmessage === 'function') ws.onmessage = onmessage
           ws.connect()
           break
 
@@ -100,7 +100,7 @@ try {
     } catch (err) {}
   })
 
-  registerWebSocketTriggers()
+  registerWebSocketTriggers(ws)
 
   // Autoreconnect
   register('step', () => {
@@ -122,7 +122,7 @@ try {
       } catch (err) {}
 
       ws = new ChatSocketClient(settings.wsURL)
-      ws.onmessage = OnWebSocketMessage
+      if (typeof onmessage === 'function') ws.onmessage = onmessage
       ws.connect()
     } catch (err) {
       error(err, settings.printStackTrace)
@@ -132,12 +132,12 @@ try {
   error(err, settings.printStackTrace)
 }
 
-function registerWebSocketTriggers() {
+function registerWebSocketTriggers(ws) {
   register('serverConnect', event => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('CONNECT', 'Connected to ' + event.serverIP, { serverIP: event.serverIP })
+      ws.sendEncoded('SERVER_CONNECT', 'Connected to ' + event.serverIP, { serverIP: event.serverIP })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -147,7 +147,7 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('DISCONNECT', 'Disconnected from server')
+      ws.sendEncoded('SERVER_DISCONNECT', 'Disconnected from server')
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -181,15 +181,60 @@ function registerWebSocketTriggers() {
   })
 }
 
-function OnWebSocketMessage(type, message, data) {
+/**
+ * Handles incoming messages from the ChatSocket WebSocket server.
+ *
+ * This function is called for every message the client receives from the
+ * server after authentication. It interprets the message type and performs
+ * client-side actions (such as sending chat messages, executing commands,
+ * or connecting/disconnecting from a server).
+ *
+ * Developers can override this callback to implement custom behavior for
+ * handling specific message types. By default, it performs the following:
+ *
+ * - Ignores AUTH/CHANNEL messages (these are handled internally).
+ * - Connects/disconnects the Minecraft client when instructed.
+ * - Displays or suppresses incoming chat messages depending on settings.
+ * - Sends chat messages or executes commands on behalf of the user.
+ *
+ * @this {ChatSocketClient}
+ *
+ * @param {string} type
+ *   Uppercase message type (e.g., "CHAT", "CMD", "SAY", "CONNECT").
+ *
+ * @param {string} message
+ *   The main payload of the message. Often a chat message, server IP, or command.
+ *
+ * @param {Object} data
+ *   Structured data object sent with the message. Contents depend on `type`.
+ *   For example, "CONNECT" may include `{ serverIP: string }`.
+ *
+ * @example
+ * ws.onmessage = function (type, message, data) {
+ *   if (type === "CHAT") {
+ *     ChatLib.chat("[Server] " + message)
+ *   }
+ * }
+ */
+function onmessage(type, message, data) {
   switch (type) {
     case 'AUTH':
     case 'CHANNEL':
       break
-    case 'CONNECT':
+    case 'SERVER':
+      const server = {
+        name: Server.getName(),
+        motd: Server.getMOTD(),
+        ip: Server.getIP(),
+      }
+      this.sendEncoded('SERVER', this.name + ' is connected to ' + this.server.ip, server)
+      break
+    case 'SERVER_CONNECT':
       Client.connect(data.serverIP)
-    case 'DISCONNECT':
+      break
+    case 'SERVER_DISCONNECT':
       Client.disconnect()
+      break
     case 'CHAT':
       if (!settings.wsLogChat) ChatLib.chat(message)
       break

@@ -64,7 +64,7 @@ export default class ChatSocketClient {
             else error('WebSocket Error: Missing channel', settings.printStackTrace, true)
           }
 
-          if (typeof ws.onmessage === 'function') ws.onmessage(type, message, data)
+          if (typeof ws.onmessage === 'function') ws.onmessage.call(ws, type, message, data)
         },
         onError(exception) {
           if (settings.wsPrintEx) error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
