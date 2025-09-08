@@ -1,4 +1,4 @@
-import { WebSocketServer } from 'ws'
+import { WebSocket, WebSocketServer } from 'ws'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 import ChatSocketProtocol from './ChatSocketProtocol.js'
 import Utils from './Utils.js'
@@ -110,7 +110,8 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   send(client, type, message, data = {}) {
-    if (client.readyState !== client.OPEN) return
+    if (!(client instanceof WebSocket)) throw TypeError('client is not an instance of WebSocket')
+    if (client.readyState !== client.OPEN) throw new Error('WebSocket is not in OPEN state')
 
     client.send(ChatSocketProtocol.encodeMessage(type, message, data))
     console.log(
@@ -123,12 +124,15 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   sendChannel(fromClient, type, message, data = {}) {
+    if (!(fromClient instanceof WebSocket)) throw TypeError('fromClient is not an instance of WebSocket')
     ;[...this.clients]
       .filter(client => client.isAuth && client.channel === fromClient.channel && client.uuid !== fromClient.uuid)
       .forEach(client => this.send(client, type, message, data))
   }
 
   selectChannel(client, channel) {
+    if (!(client instanceof WebSocket)) throw TypeError('client is not an instance of WebSocket')
+
     // Leave the previous channel if client selected a new one
     if ((channel ?? 'default') !== client.channel)
       this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
