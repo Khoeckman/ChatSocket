@@ -10,13 +10,14 @@ class Metadata {
       return error(err, settings.printStackTrace)
     }
 
-    if (typeof remoteURL !== 'string') return error(new TypeError('remoteURL is not a string'), settings.printStackTrace)
+    if (typeof remoteURL !== 'string')
+      return error(new TypeError('remoteURL is not a string'), settings.printStackTrace)
     this.remoteURL = remoteURL
   }
 
   static compareVersions(v1, v2) {
-    const a = v1.split('.').map(n => Number(n))
-    const b = v2.split('.').map(n => Number(n))
+    const a = v1.split('.').map((n) => Number(n))
+    const b = v2.split('.').map((n) => Number(n))
 
     for (let i = 0, len = Math.max(a.length, b.length); i < len; i++) {
       const x = a[i] || 0
@@ -43,7 +44,10 @@ class Metadata {
     if (!World.isLoaded()) return
 
     if (!this.local || typeof this.local.version !== 'string')
-      return error(new TypeError(`Cannot read properties of ${this.local} (reading 'version')`), settings.printStackTrace)
+      return error(
+        new TypeError(`Cannot read properties of ${this.local} (reading 'version')`),
+        settings.printStackTrace
+      )
 
     if (!settings.checkLatestVersion) {
       chat(
@@ -62,7 +66,7 @@ class Metadata {
     this.getRemote(() => this.updateVersionStatus(47576000))
   }
 
-  updateVersionStatus = messageId => {
+  updateVersionStatus = (messageId) => {
     if (!World.isLoaded()) return
 
     const latestVersion =
@@ -89,4 +93,8 @@ class Metadata {
   }
 }
 
-export default new Metadata('ChatSocket', 'metadata.json', 'https://raw.githubusercontent.com/Khoeckman/ChatSocket/main/metadata.json')
+export default new Metadata(
+  'ChatSocket',
+  'metadata.json',
+  'https://raw.githubusercontent.com/Khoeckman/ChatSocket/main/metadata.json'
+)

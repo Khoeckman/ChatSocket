@@ -100,18 +100,19 @@ try {
     } catch (err) {}
   })
 
-  registerWebSocketTriggers(ws)
+  registerWebSocketTriggers()
 
   // Autoreconnect
   register('step', () => {
     try {
       // Keep the channel in sync with settings
-      if (ws.readyState === ChatSocketClient.OPEN && ws.isAuth && ws.channel !== settings.wsChannel) ws.selectChannel(settings.wsChannel)
+      if (ws.readyState === ChatSocketClient.OPEN && ws.isAuth && ws.channel !== settings.wsChannel)
+        ws.selectChannel(settings.wsChannel)
 
       if (!ws.autoconnect || !settings.wsAutoconnect || ws.readyState === ChatSocketClient.CONNECTING) return
 
       if (ws.readyState === ChatSocketClient.OPEN) {
-        // Attempt AUTH if connection is OPEN
+        // Attempt AUTH if the connection is OPEN but the client is not yet authenticated
         if (!ws.isAuth) ws.authenticate()
         return
       }
@@ -132,8 +133,8 @@ try {
   error(err, settings.printStackTrace)
 }
 
-function registerWebSocketTriggers(ws) {
-  register('serverConnect', event => {
+function registerWebSocketTriggers() {
+  register('serverConnect', (event) => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
@@ -153,7 +154,7 @@ function registerWebSocketTriggers(ws) {
     }
   })
 
-  register('messageSent', message => {
+  register('messageSent', (message) => {
     try {
       if (!settings.wsCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
 
@@ -163,7 +164,7 @@ function registerWebSocketTriggers(ws) {
     }
   })
 
-  register('chat', event => {
+  register('chat', (event) => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 

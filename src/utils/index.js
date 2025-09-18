@@ -58,7 +58,7 @@ export const error = (message, printStackTrace = false, silent = false) => {
       err.stack
         .replace(/\t/g, TAB)
         .split(/\r?\n/)
-        .forEach(line => ChatLib.chat('&c' + line))
+        .forEach((line) => ChatLib.chat('&c' + line))
     }
   }
   if (!silent) World.playSound('random.anvil_land', 0.3, 1)

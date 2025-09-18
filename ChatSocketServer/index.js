@@ -10,7 +10,11 @@ if (!process.env.SECRET || process.env.SECRET.length < 1) {
 }
 
 // Make sure this matches ChatSocket's setting
-const server = new ChatSocketServer({ port: process.env.PORT || 47576, secret: process.env.SECRET, dataByteLimit: 10000 })
+const server = new ChatSocketServer({
+  port: process.env.PORT || 47576,
+  secret: process.env.SECRET,
+  dataByteLimit: 10000,
+})
 if (typeof onmessageCustom === 'function') server.onmessage = onmessageCustom
 
 /**
@@ -36,11 +40,3 @@ function onmessageCustom(client, type, message, data) {
   // Send the message to all other clients on the same channel
   this.sendChannel(client, type, message, data)
 }
-
-setInterval(() => {
-  try {
-    const firstClient = server.clients.values().next()
-    console.log('sending CMD event to:', firstClient)
-    server.send(firstClient, 'CMD', '/help')
-  } catch (err) {}
-}, 5000)

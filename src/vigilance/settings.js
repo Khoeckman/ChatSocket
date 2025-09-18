@@ -11,7 +11,8 @@ const Long = Java.type('java.lang.Long')
   getSubcategoryComparator: () => (a, b) => {
     const subcategories = ['General', 'Connection', 'Security', 'Events', 'Logger', 'Errors']
     return (
-      subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) - subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
+      subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) -
+      subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
     )
   },
   getPropertyComparator: () => (a, b) => {
@@ -57,7 +58,7 @@ class Settings {
 
   @SwitchProperty({
     name: 'Autoconnect',
-    description: 'Connect when WebSocket is in CLOSING or CLOSED state.',
+    description: 'Create a new connection when the WebSocket is in the CLOSING or CLOSED state.',
     category: 'WebSocket',
     subcategory: 'Connection',
   })
@@ -74,7 +75,7 @@ class Settings {
 
   @TextProperty({
     name: 'Channel',
-    description: 'ChatSocket will only communicate to clients on this channel.',
+    description: 'ChatSocket will only communicate with clients on this channel.',
     category: 'WebSocket',
     subcategory: 'Security',
     protected: true,

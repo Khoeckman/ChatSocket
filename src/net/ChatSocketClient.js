@@ -67,7 +67,8 @@ export default class ChatSocketClient {
           if (typeof ws.onmessage === 'function') ws.onmessage.call(ws, type, message, data)
         },
         onError(exception) {
-          if (settings.wsPrintEx) error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
+          if (settings.wsPrintEx)
+            error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
@@ -108,7 +109,7 @@ export default class ChatSocketClient {
 
   sendEncoded(type, message, data = {}) {
     this.send(ChatSocketProtocol.encodeMessage(type, message, data))
-    if (settings.wsLogChat) ChatLib.chat(`&4<- &6&l${type.toUpperCase()}&c ${message}`)
+    if (settings.wsLogChat) ChatLib.chat(`&3<- &6&l${type.toUpperCase()}&b ${message}`)
   }
 
   authenticate() {
@@ -173,7 +174,7 @@ export default class ChatSocketClient {
 
   printConnectionStatus() {
     dialog('&eWebSocket status', [
-      '&eURL &7 ' + this.url,
+      '&eURL &f ' + this.url,
       '&eStatus &7 ' + ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3],
       '&eAuthenticated &7 ' + (this.isAuth ? '&a&lYES' : '&c&lNO'),
       '&eChannel &7 ' + this.channel,
