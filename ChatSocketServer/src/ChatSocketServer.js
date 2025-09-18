@@ -22,7 +22,8 @@ export default class ChatSocketServer extends WebSocketServer {
     this.on('connection', (client, request) => {
       client.ip = request.socket.remoteAddress
       client.isAuth = false
-      console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c?&7]&a connected`))
+      client.name = 'client_' + ~~(Math.random() * 2 ** 31)
+      console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
 
       client.on('message', rawData => {
         // Close the connection if the client sends a message that is too large
@@ -44,7 +45,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
           client.isAuth = true
           client.channel = data.channel ?? client.channel ?? 'Default'
-          client.name = data.name ?? 'Client_' + (~~(Math.random() * 2 ** 31)).toString(36)
+          client.name = data.name ?? client.name
           client.uuid = uuidValidate(data.uuid) ? data.uuid : uuidv4()
 
           this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
