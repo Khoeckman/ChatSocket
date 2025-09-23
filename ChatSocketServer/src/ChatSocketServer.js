@@ -17,18 +17,20 @@ export default class ChatSocketServer extends WebSocketServer {
       throw new TypeError('Invalid secret: expected a non-empty string.')
     this.secret = secret.trim()
 
-    // Options
-    this.dataByteLimit = dataByteLimit
+    // Optional
+    this.dataByteLimit = +(dataByteLimit || Infinity)
+    if (!Number.isInteger(dataByteLimit) || this.dataByteLimit < 0)
+      throw new TypeError('Invalid dataByteLimit: expected a positive integer.')
 
     this.on('connection', (client, request) => {
-      client.ip = request.socket.remoteAddress
+      client.ip = request.socket.remoteAddress || 'unknown'
       client.isAuth = false
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
       console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
 
       client.on('message', (rawData) => {
         // Close the connection if the client sends a message that is too large
-        if (rawData.byteLength > this.dataByteLimit)
+        if (new TextEncoder().encode(rawData).byteLength > this.dataByteLimit)
           client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes`)
 
         const { type, message, data } = this.#onmessage(client, rawData)
@@ -47,6 +49,10 @@ export default class ChatSocketServer extends WebSocketServer {
               name: client.name,
               uuid: client.uuid,
             })
+
+          if (typeof data.channel !== 'string') data.channel = ''
+          if (typeof data.name !== 'string') data.name = ''
+          if (typeof data.uuid !== 'string') data.uuid = ''
 
           client.isAuth = true
           client.channel = data.channel ?? client.channel ?? 'Default'
@@ -81,7 +87,7 @@ export default class ChatSocketServer extends WebSocketServer {
         }
 
         if (type === 'CHANNEL') {
-          if (data.channel) {
+          if (data.channel && typeof data.channel === 'string') {
             // Leave the previous channel if client selected a new one
             if (data.channel !== client.channel)
               this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
@@ -97,6 +103,13 @@ export default class ChatSocketServer extends WebSocketServer {
           } else {
             this.send(client, 'CHANNEL', 'Missing channel', { success: false })
           }
+          return
+        }
+
+        if (type === 'CHANNELS') {
+          this.send(client, 'CHANNELS', 'Channels: ' + this.listChannels().join(', '), {
+            channels: this.listChannels(),
+          })
           return
         }
 
@@ -125,7 +138,7 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   #onmessage(client, rawData) {
-    let { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
+    const { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
     console.log(
       Utils.mcToAnsi(
         `&2-> &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${
@@ -150,9 +163,20 @@ export default class ChatSocketServer extends WebSocketServer {
     )
   }
 
+  listChannels() {
+    const channels = new Set(['Default'])
+
+    Array.from(this.clients)
+      .filter((client) => client.isAuth)
+      .forEach((client) => channels.add(client.channel))
+
+    return Array.from(channels)
+  }
+
   sendChannel(fromClient, type, message, data = {}) {
     if (!(fromClient instanceof WebSocket)) throw TypeError('fromClient is not an instance of WebSocket')
-    ;[...this.clients]
+
+    Array.from(this.clients)
       .filter((client) => client.isAuth && client.channel === fromClient.channel && client.uuid !== fromClient.uuid)
       .forEach((client) => this.send(client, type, message, data))
   }
