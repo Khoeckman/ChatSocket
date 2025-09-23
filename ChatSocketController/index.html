@@ -1,62 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <meta name="description" content="" />
 
-    <!-- Browser Tab -->
-    <title>ChatSocket</title>
-    <link rel="icon" href="./img/favicon.webp" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="" />
 
-    <!-- Google Fonts: Montserrat -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap" rel="stylesheet" />
+  <!-- Browser Tab -->
+  <title>ChatSocket</title>
+  <link rel="icon" href="./img/favicon.webp" />
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="./css/normalize.css" />
-    <link rel="stylesheet" href="./css/style.css" />
+  <!-- Google Fonts: Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap" rel="stylesheet" />
 
-    <!-- JS -->
-    <script src="./js/main.js" type="module"></script>
-  </head>
+  <!-- Styles -->
+  <link rel="stylesheet" href="./css/normalize.css" />
+  <link rel="stylesheet" href="./css/style.css" />
 
-  <body>
-    <form id="ChatSocket" class="window" action="javascript:void()" novalidate>
-      <h1>ChatSocket</h1>
+  <!-- JS -->
+  <script src="./js/main.js" type="module"></script>
+</head>
 
-      <div class="inline">
-        <label>
-          Secret Key
-          <input id="secret" name="secret" type="text" />
-        </label>
+<body>
+  <form id="ChatSocket" class="window" action="javascript:void()" novalidate>
+    <h1>ChatSocket</h1>
 
-        <label>
-          Type
-          <select name="type">
-            <option>AUTH</option>
-            <option>CHAT</option>
-            <option>SAY</option>
-            <option selected>CMD</option>
-          </select>
-        </label>
-      </div>
-
+    <div class="inline">
       <label>
-        Value
-        <textarea name="value" rows="3" cols="120">
-/variables player set Khoeckman ChatSocket "Hello from the other side"</textarea
-        >
+        Secret Key
+        <input id="secret" name="secret" type="text" />
       </label>
 
-      <button type="submit">Send to ChatSocketServer</button>
-    </form>
-
-    <div class="window">
-      <h2>Log</h2>
-      <div id="log" class="window"></div>
+      <label>
+        Type
+        <select name="type">
+          <option>AUTH</option>
+          <option>CHAT</option>
+          <option>SAY</option>
+          <option selected>CMD</option>
+        </select>
+      </label>
     </div>
-  </body>
+
+    <label>
+      Value
+      <textarea name="value" rows="3" cols="120">
+/variables player set Khoeckman ChatSocket "Hello from the other side"
+</textarea>
+    </label>
+
+    <button type="submit">Send to ChatSocketServer</button>
+  </form>
+
+  <div class="window">
+    <h2>Log</h2>
+    <div id="log" class="window"></div>
+  </div>
+</body>
+
 </html>
