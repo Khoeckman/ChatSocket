@@ -1,18 +1,18 @@
 import 'dotenv/config'
 import ChatSocketServer from './src/ChatSocketServer.js'
 
-if (!process.env.SECRET || process.env.SECRET.length < 1) {
+if (!process.env.WSS_SECRET || process.env.WSS_SECRET.length < 1) {
   throw new TypeError(`Missing or invalid environment variable
 
-  -> SECRET is not set in your .env file
+  -> WSS_SECRET is not set in your .env file
   -> Please follow the setup instructions in README.md
   `)
 }
 
 // Make sure this matches ChatSocket's setting
 const server = new ChatSocketServer({
-  port: process.env.PORT || 47576,
-  secret: process.env.SECRET,
+  port: +(process.env.WSS_PORT || 47576),
+  secret: process.env.WSS_SECRET,
   dataByteLimit: 10000,
 })
 if (typeof onmessageCustom === 'function') server.onmessage = onmessageCustom
@@ -35,7 +35,7 @@ if (typeof onmessageCustom === 'function') server.onmessage = onmessageCustom
  *   this.sendChannel(client, type, message, data);
  * }
  */
-function onmessageCustom(client, type, message, data) {
+function onmessageCustom(client, type, message, data = {}) {
   // Default behaviour:
   // Send the message to all other clients on the same channel
   this.sendChannel(client, type, message, data)
