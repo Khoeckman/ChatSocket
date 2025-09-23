@@ -120,7 +120,7 @@ try {
       // Close previous WebSocket before creating a new instance
       try {
         ws.close()
-      } catch (err) {}
+      } catch {}
 
       ws = new ChatSocketClient(settings.wsURL)
       if (typeof onmessage === 'function') ws.onmessage = onmessage

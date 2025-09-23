@@ -59,7 +59,7 @@ export default class ChatSocketProtocol {
 
     try {
       ;({ type, message, data } = JSON.parse(String(rawData)))
-    } catch (err) {
+    } catch {
       throw new SyntaxError('Invalid JSON: ' + rawData)
     }
 
