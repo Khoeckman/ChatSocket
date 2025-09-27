@@ -28,95 +28,101 @@ export default class ChatSocketServer extends WebSocketServer {
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
       console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
 
+      this.send(client, 'DEBUG', 'Hello')
+
       client.on('message', (rawData) => {
-        // Close the connection if the client sends a message that is too large
-        if (new TextEncoder().encode(rawData).byteLength > this.dataByteLimit)
-          client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes`)
+        try {
+          // Close the connection if the client sends a message that is too large
+          if (new TextEncoder().encode(rawData).byteLength > this.dataByteLimit)
+            client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes`)
 
-        const { type, message, data } = this.#onmessage(client, rawData)
+          const { type, message, data } = this.#onmessage(client, rawData)
 
-        if (type === 'AUTH') {
-          if (data.secret !== this.secret) {
-            this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
-            return
-          }
+          if (type === 'AUTH') {
+            if (data.secret !== this.secret) {
+              this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
+              return
+            }
 
-          const fromChannel = client.channel
+            const fromChannel = client.channel
 
-          // Leave the previous channel if client selected a new one
-          if (data.channel && data.channel !== fromChannel)
-            this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
-              name: client.name,
-              uuid: client.uuid,
-            })
-
-          if (typeof data.channel !== 'string') data.channel = ''
-          if (typeof data.name !== 'string') data.name = ''
-          if (typeof data.uuid !== 'string') data.uuid = ''
-
-          client.isAuth = true
-          client.channel = data.channel ?? client.channel ?? 'Default'
-          client.name = data.name ?? client.name
-          client.uuid = uuidValidate(data.uuid) ? data.uuid : uuidv4()
-
-          this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
-            success: true,
-            channel: client.channel,
-            name: client.name,
-            uuid: client.uuid,
-          })
-
-          if (data.channel)
-            this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
-              success: true,
-              channel: client.channel,
-            })
-
-          if (client.channel !== fromChannel)
-            this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel.`, {
-              name: client.name,
-              uuid: client.uuid,
-            })
-
-          return
-        }
-
-        if (!client.isAuth) {
-          this.send(client, 'AUTH', 'Unauthenticated', { success: false })
-          return
-        }
-
-        if (type === 'CHANNEL') {
-          if (data.channel && typeof data.channel === 'string') {
             // Leave the previous channel if client selected a new one
-            if (data.channel !== client.channel)
+            if (data.channel && data.channel !== fromChannel)
               this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
                 name: client.name,
                 uuid: client.uuid,
               })
 
-            client.channel = data.channel
-            this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
+            if (typeof data.channel !== 'string') data.channel = ''
+            if (typeof data.name !== 'string') data.name = ''
+            if (typeof data.uuid !== 'string') data.uuid = ''
+
+            client.isAuth = true
+            client.channel = data.channel ?? client.channel ?? 'Default'
+            client.name = data.name ?? client.name
+            client.uuid = uuidValidate(data.uuid) ? data.uuid : uuidv4()
+
+            this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
               success: true,
               channel: client.channel,
+              name: client.name,
+              uuid: client.uuid,
             })
-          } else {
-            this.send(client, 'CHANNEL', 'Missing channel', { success: false })
+
+            if (data.channel)
+              this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
+                success: true,
+                channel: client.channel,
+              })
+
+            if (client.channel !== fromChannel)
+              this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel.`, {
+                name: client.name,
+                uuid: client.uuid,
+              })
+
+            return
           }
-          return
-        }
 
-        if (type === 'CHANNELS') {
-          this.send(client, 'CHANNELS', 'Channels: ' + this.listChannels().join(', '), {
-            channels: this.listChannels(),
-          })
-          return
-        }
+          if (!client.isAuth) {
+            this.send(client, 'AUTH', 'Unauthenticated', { success: false })
+            return
+          }
 
-        // Allows developers to implement their own logic
-        if (typeof this.onmessage === 'function') this.onmessage.call(this, client, type, message, data)
-        // Default behavior
-        else this.sendChannel(client, type, message, data)
+          if (type === 'CHANNEL') {
+            if (data.channel && typeof data.channel === 'string') {
+              // Leave the previous channel if client selected a new one
+              if (data.channel !== client.channel)
+                this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
+                  name: client.name,
+                  uuid: client.uuid,
+                })
+
+              client.channel = data.channel
+              this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
+                success: true,
+                channel: client.channel,
+              })
+            } else {
+              this.send(client, 'CHANNEL', 'Missing channel', { success: false })
+            }
+            return
+          }
+
+          if (type === 'CHANNELS') {
+            this.send(client, 'CHANNELS', 'Channels: ' + this.listChannels().join(', '), {
+              channels: this.listChannels(),
+            })
+            return
+          }
+
+          // Allows developers to implement their own logic
+          if (typeof this.onmessage === 'function') this.onmessage.call(this, client, type, message, data)
+          // Default behavior
+          else this.sendChannel(client, type, message, data)
+        } catch (err) {
+          console.error(err)
+        }
       })
 
       client.on('error', console.error)
