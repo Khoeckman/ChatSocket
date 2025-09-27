@@ -1,0 +1,53 @@
+#ChatSocket {
+  display: flex;
+  flex-flow: column;
+  gap: 2rem;
+}
+
+#ChatSocket button[type='submit'] {
+  width: fit-content;
+}
+
+#ChatSocket .message {
+  flex: 1 0 16rem;
+}
+
+#ChatSocket .data {
+  flex: 1 0 8rem;
+}
+
+#ChatSocket .inline {
+  gap: 1rem;
+}
+
+#ChatSocket .inline button {
+  margin-top: 2rem;
+}
+
+#log {
+  overflow: auto;
+  flex: 1;
+  background-color: #000;
+  /* border: 1px solid var(--c24); */
+  border-radius: 0.5rem;
+  font-family: monospace, sans-serif;
+  color: #fff;
+  padding: 1rem;
+  width: 100%;
+  min-height: 20rem;
+  transition: border-color 125ms;
+}
+
+/* #log:hover {
+  border: 1px solid var(--c48);
+} */
+
+#log p {
+  white-space: pre;
+  margin: 0;
+  width: max-content;
+}
+
+#log a {
+  color: #fff;
+}

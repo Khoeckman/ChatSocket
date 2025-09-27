@@ -1,0 +1,50 @@
+#falling-chars {
+  list-style-type: none;
+  font-size: 2rem;
+  color: var(--pri); /* Is overwritten by JS */
+  position: absolute;
+  opacity: 0.75;
+  z-index: -1;
+
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none; /* Safari, Chrome, iOS */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* old IE/Edge */
+
+  /* Prevent pointer/mouse/touch interactions */
+  pointer-events: none;
+
+  /* Optional: prevent long-press callouts on mobile */
+  -webkit-touch-callout: none; /* iOS Safari */
+}
+
+#falling-chars li {
+  --x: 0px;
+  --y: 0px;
+  --scale: 1;
+  --dir: 0deg;
+  --rot: 0deg;
+
+  display: inline-block;
+  font-size: calc(1em * var(--scale));
+  position: fixed;
+  top: 0;
+  left: 0;
+  user-select: none;
+  pointer-events: none;
+  filter: brightness(calc(0.25 + var(--scale)));
+  animation: fall-out calc(2s * 1 / var(--scale)) 1 forwards cubic-bezier(0.333, 0, 0.667, 0.333);
+}
+
+@keyframes fall-out {
+  from {
+    transform: translate(var(--x), var(--y)) rotate(var(--dir));
+    opacity: 1;
+  }
+
+  to {
+    transform: translate(var(--x), calc(var(--y) + 100vh)) rotate(calc(var(--dir) + var(--rot)));
+    opacity: 0;
+  }
+}

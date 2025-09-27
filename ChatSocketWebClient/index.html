@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="description" content="ChatSocket WebClient Interface" />
+
+  <!-- Browser Tab -->
+  <title>ChatSocket WebClient</title>
+  <link rel="icon" href="./img/favicon.webp" sizes="192x192" />
+
+  <!-- Google Fonts: Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./css/normalize.css" />
+  <link rel="stylesheet" href="./css/default.css" />
+  <link rel="stylesheet" href="./css/style.css" />
+
+  <!-- JS -->
+  <script src="./js/index.js" type="module"></script>
+  <script src="./js/FallingChars.js" type="module"></script>
+</head>
+
+<body>
+  <header>
+    <div class="credits right">
+      <a href="https://kylecv.be">Kyle Hoeckman</a>
+      <div class="project">
+        <span class="name">Kyle Hoeckman</span>
+        <span class="date">September 2025</span>
+      </div>
+      <div class="logo" aria-hidden="true">
+        <img class="shadow" src="./img/KHKH.webp" alt="Shadow effect" />
+        <img src="./img/KHKH.webp" alt="Kyle Hoeckman Logo" />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <ul id="falling-chars" aria-hidden="true"></ul>
+
+    <form id="ChatSocket" action="javascript:void(0)" novalidate>
+      <h1>ChatSocket</h1>
+
+      <div class="inline">
+        <label class="type">
+          Type
+          <select name="type">
+            <option>AUTH</option>
+            <option>SERVER</option>
+            <option>CONNECT</option>
+            <option>DISCONNECT</option>
+            <option>CHAT</option>
+            <option>SAY</option>
+            <option selected>CMD</option>
+          </select>
+        </label>
+
+        <label class="message">
+          Message
+          <input name="message" />
+        </label>
+
+        <label class="data">
+          Data
+          <input name="data" value="{}" />
+        </label>
+
+        <button type="submit">Send</button>
+      </div>
+    </form>
+
+    <div id="log" aria-live="polite">
+    </div>
+  </main>
+
+  <footer>
+    <p>Copyright © 2025 Kyle Hoeckman, All rights reserved.</p>
+  </footer>
+</body>
+
+</html>
