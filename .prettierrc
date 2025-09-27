@@ -8,5 +8,6 @@
   "arrowParens": "always",
   "htmlWhitespaceSensitivity": "css",
   "singleAttributePerLine": false,
-  "bracketSameLine": true
+  "bracketSameLine": true,
+  "endOfLine": "lf"
 }

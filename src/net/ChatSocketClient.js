@@ -86,7 +86,7 @@ export default class ChatSocketClient {
 
           if (remote) {
             chat(`&4&l-&c Connection closed by&f ${ws.url} &7[&e${code}&7]`)
-            if (!settings.wsAutoconnect) World.playSound('dig.glass', 0.7, 1)
+            World.playSound('dig.glass', 0.7, 1)
           } else if (code === -1) {
             chat(`&4&l-&c Failed to connect to&f ${ws.url} &7[&e${code}&7]`)
             if (!settings.wsAutoconnect) World.playSound('random.anvil_land', 0.3, 1)

@@ -75,3 +75,53 @@ export const dialog = (title, lines) => {
 
   World.playSound('random.click', 0.7, 1)
 }
+
+/**
+ * Reflects over a Java object to extract its fields and getter values,
+ * returning a plain JavaScript object that can be serialized to JSON.
+ *
+ * @param {JavaObject} obj - The Java object to inspect.
+ * @returns {{ fields: Array<{name: string, value: string}>, getters: Array<{name: string, value: string}> }}
+ *
+ * @example
+ * register('serverConnect', (event) => {
+ *   const info = reflectJavaObject(event)
+ *   ws.sendEncoded('DEBUG', JSON.stringify(info))
+ * })
+ */
+export const reflectJavaObject = (obj) => {
+  const javaClass = obj.getClass()
+
+  const result = {
+    fields: [],
+    getters: [],
+  }
+
+  // Collect fields
+  for (const field of javaClass.getDeclaredFields()) {
+    try {
+      field.setAccessible(true)
+      const name = field.getName()
+      const value = String(field.get(obj))
+      result.fields.push({ name, value })
+    } catch (err) {
+      result.fields.push({ name: 'FieldError', value: String(err) })
+    }
+  }
+
+  // Collect no-arg getters
+  for (const method of javaClass.getMethods()) {
+    const name = method.getName()
+
+    if (name.startsWith('get') && method.getParameterCount() === 0) {
+      try {
+        const value = String(method.invoke(obj))
+        result.getters.push({ name, value })
+      } catch (err) {
+        result.getters.push({ name, value: 'MethodError: ' + err })
+      }
+    }
+  }
+
+  return result
+}

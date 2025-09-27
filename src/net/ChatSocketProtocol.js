@@ -12,7 +12,6 @@
  *
  * // Decode a received message
  * const {type, message, data} = ChatSocketProtocol.decodeMessage(json);
- * if (msg) console.log(msg.type, msg.message, msg.data);
  */
 export default class ChatSocketProtocol {
   /**
@@ -59,7 +58,7 @@ export default class ChatSocketProtocol {
 
     try {
       ;({ type, message, data } = JSON.parse(String(rawData)))
-    } catch {
+    } catch (err) {
       throw new SyntaxError('Invalid JSON: ' + rawData)
     }
 

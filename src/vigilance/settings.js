@@ -88,17 +88,17 @@ class Settings {
       'Only send a CHAT event when the message matches this RegEx. Exclude the open and close slash. Use & for color formatting. &9&nhttps://regexr.com/',
     category: 'WebSocket',
     subcategory: 'Events',
-    placeholder: 'RegEx',
+    placeholder: '^&r&7\\*\\s&r',
   })
   wsChatEventFilter = '^&r&7\\*\\s&r'
 
   @CheckboxProperty({
     name: 'Command Events',
-    description: 'Send a CMD event for every command you execute.',
+    description: 'Send a SENT event for every chat or command you send.',
     category: 'WebSocket',
     subcategory: 'Events',
   })
-  wsCmdEvent = false
+  wsSentEvent = false
 
   // Debug
 

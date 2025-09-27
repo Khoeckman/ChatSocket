@@ -2,7 +2,7 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-import { chat, error, dialog } from './src/utils'
+import { chat, error, dialog, reflectJavaObject } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
@@ -48,6 +48,8 @@ try {
 
         case 'open':
         case 'o':
+          if (!ws.autoconnect && settings.wsAutoconnect) chat('&eAutoconnect resumed')
+
           if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
           if (typeof onmessage === 'function') ws.onmessage = onmessage
           ws.connect()
@@ -56,6 +58,7 @@ try {
         case 'close':
         case 'c':
         case 'x':
+          if (ws.autoconnect && settings.wsAutoconnect) chat('&eAutoconnect paused')
           ws.close()
           break
 
@@ -120,7 +123,7 @@ try {
       // Close previous WebSocket before creating a new instance
       try {
         ws.close()
-      } catch {}
+      } catch (err) {}
 
       ws = new ChatSocketClient(settings.wsURL)
       if (typeof onmessage === 'function') ws.onmessage = onmessage
@@ -138,7 +141,10 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('SERVER_CONNECT', 'Connected to ' + event.serverIP, { serverIP: event.serverIP })
+      ws.sendEncoded('CONNECT', 'Connected to server', {
+        isLocal: event.isLocal,
+        connectionType: event.connectionType,
+      })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -148,7 +154,7 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('SERVER_DISCONNECT', 'Disconnected from server')
+      ws.sendEncoded('DISCONNECT', 'Disconnected from server')
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -156,9 +162,12 @@ function registerWebSocketTriggers() {
 
   register('messageSent', (message) => {
     try {
-      if (!settings.wsCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
+      if (!settings.wsSentEvent || ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('SAY', message)
+      // Hypixel polls this command
+      if (message === '/locraw') return
+
+      ws.sendEncoded('SENT', message)
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -169,10 +178,15 @@ function registerWebSocketTriggers() {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const message = ChatLib.getChatMessage(event, true)
-      // TODO: filter not working
-      // if (!new RegExp(settings.wsChatEventFilter.replaceAll('\\', '\\\\')).test(message)) return
+      let json
 
-      ws.sendEncoded('CHAT', message)
+      try {
+        json = JSON.parse(message)
+      } catch (err) {}
+
+      if (!new RegExp(settings.wsChatEventFilter).test(message) && !json) return
+
+      ws.sendEncoded('CHAT', message, json || {})
 
       // Prevent printing the message twice
       if (settings.wsLogChat) cancel(event)
@@ -228,12 +242,12 @@ function onmessage(type, message, data) {
         motd: Server.getMOTD(),
         ip: Server.getIP(),
       }
-      this.sendEncoded('SERVER', this.name + ' is connected to ' + this.server.ip, server)
+      this.sendEncoded('SERVER', this.name + ' is connected to ' + server.ip, server)
       break
-    case 'SERVER_CONNECT':
-      Client.connect(data.serverIP)
+    case 'CONNECT':
+      Client.connect(data.serverAddress)
       break
-    case 'SERVER_DISCONNECT':
+    case 'DISCONNECT':
       Client.disconnect()
       break
     case 'CHAT':
