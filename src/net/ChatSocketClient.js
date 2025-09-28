@@ -118,6 +118,7 @@ export default class ChatSocketClient {
       channel: settings.wsChannel,
       name: this.name,
       uuid: this.uuid,
+      userAgent: 'Minecraft ' + Client.getVersion(),
     })
   }
 

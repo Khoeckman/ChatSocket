@@ -233,6 +233,7 @@ function registerWebSocketTriggers() {
  */
 function onmessage(type, message, data) {
   switch (type) {
+    case 'DEBUG':
     case 'AUTH':
     case 'CHANNEL':
       break
