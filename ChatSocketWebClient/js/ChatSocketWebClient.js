@@ -112,7 +112,8 @@ export default class ChatSocketWebClient extends WebSocket {
   }
 
   logClear() {
-    if (this.logElement !== null) this.logElement.innerHTML = ''
+    if (this.logElement !== null)
+      this.logElement.innerHTML = '<button id="logClear" aria-label="Clear log">Clear</button>'
   }
 
   authenticate() {
