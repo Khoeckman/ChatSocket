@@ -28,8 +28,6 @@ export default class ChatSocketServer extends WebSocketServer {
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
       console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
 
-      this.send(client, 'DEBUG', 'Hello')
-
       client.on('message', (rawData) => {
         try {
           // Close the connection if the client sends a message that is too large
@@ -56,17 +54,20 @@ export default class ChatSocketServer extends WebSocketServer {
             if (typeof data.channel !== 'string') data.channel = ''
             if (typeof data.name !== 'string') data.name = ''
             if (typeof data.uuid !== 'string') data.uuid = ''
+            if (typeof data.userAgent !== 'string') data.userAgent = ''
 
             client.isAuth = true
             client.channel = data.channel ?? client.channel ?? 'Default'
             client.name = data.name ?? client.name
             client.uuid = uuidValidate(data.uuid) ? data.uuid : uuidv4()
+            client.userAgent = data.userAgent ?? 'Unknown'
 
             this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
               success: true,
               channel: client.channel,
               name: client.name,
               uuid: client.uuid,
+              userAgent: client.userAgent,
             })
 
             if (data.channel)
@@ -79,6 +80,7 @@ export default class ChatSocketServer extends WebSocketServer {
               this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel.`, {
                 name: client.name,
                 uuid: client.uuid,
+                userAgent: client.userAgent,
               })
 
             return
@@ -96,6 +98,7 @@ export default class ChatSocketServer extends WebSocketServer {
                 this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
                   name: client.name,
                   uuid: client.uuid,
+                  userAgent: client.userAgent,
                 })
 
               client.channel = data.channel
@@ -136,6 +139,7 @@ export default class ChatSocketServer extends WebSocketServer {
         this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
           name: client.name,
           uuid: client.uuid,
+          userAgent: client.userAgent,
         })
       })
     })
