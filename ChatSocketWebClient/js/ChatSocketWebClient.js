@@ -1,4 +1,5 @@
 import ChatSocketProtocol from './ChatSocketProtocol.js'
+import Utils from './Utils.js'
 
 export default class ChatSocketWebClient extends WebSocket {
   #name
@@ -21,7 +22,7 @@ export default class ChatSocketWebClient extends WebSocket {
     this.channel = channel
     this.logElement = logElement
 
-    this.log(`<p style="color: orange">+ Connecting to <a href="javascript:void(0)">${this.url}</a>…</p>`)
+    this.log(`&6+ Connecting to &f&n${this.url}…\n`)
   }
 
   set name(name) {
@@ -66,46 +67,48 @@ export default class ChatSocketWebClient extends WebSocket {
   }
 
   onopen(event) {
-    this.log(`<p style="color: lime">+ Connected to <a href="javascript:void()">${this.url}</a></p>`)
+    this.log(`&a+ Connected to &f&n${this.url}`)
 
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
       secret: this.#secret,
       channel: this.channel,
       name: this.name,
+      userAgent: window.navigator.userAgent,
     })
   }
 
-  // onmessage(event) {
-  //   const { type, message, data } = ChatSocketProtocol.decodeMessage(event.data)
-  //   this.log(`<p style="color: aqua"><strong>-&#x3E;</strong> ${type} ${message} ${JSON.stringify(data)}</p>`)
-  // }
+  onmessage(event) {
+    const { type, message, data } = ChatSocketProtocol.decodeMessage(event.data)
+    this.log(`&3-&#x3E; &6&l${type}&b ${message} &8${JSON.stringify(data)}`)
+  }
 
-  // send(message) {
-  //   super.send(message)
-  // }
+  send(message) {
+    super.send(message)
+  }
 
   sendEncoded(type, message, data = {}) {
     this.send(ChatSocketProtocol.encodeMessage(type, message, data))
-    this.log(`<p style="color: lime"><strong>&#x3C;-</strong> ${type} ${message} ${JSON.stringify(data)}</p>`)
+    this.log(`&a&#x3C;- &6&l${type}&b ${message} &8${JSON.stringify(data)}`)
   }
 
-  // onerror(event) {
-  //   console.error('WebSocket Error:', event)
-  //   this.log(`<p style="color: red">WebSocket Error: ${event}</p>`)
-  // }
+  onerror(event) {
+    console.error('WebSocket error:', event)
+  }
 
-  // onclose({ code, reason, wasClean }) {
-  //   this.log(`<p style="color: red">- Disconnected from ${this.url} [${code}]</p>`)
-  // }
+  onclose({ code, reason, wasClean }) {
+    this.log(`&c- Disconnected from &f&n${this.url}&c &7[&e${code}&7]`)
+  }
 
-  log(html) {
-    // Create a wrapper element for `html` so it is always an HTMLElement
-    const el = document.createElement('div')
-    el.title = new Date().toLocaleString()
-    el.innerHTML = html
+  log(message) {
+    if (this.logElement === null) console.log(Utils.removeMcFormatting(message))
+    else {
+      const line = Utils.mcToHTML(message)
+      line.title = new Date().toLocaleString()
+      this.logElement.prepend(document.createElement('br'))
+      this.logElement.prepend(line)
 
-    if (this.logElement === null) console.log(el.textContent)
-    else this.logElement.innerHTML += el.innerHTML
+      if (this.logElement.children.length > 256) this.logElement.removeChild(this.logElement.lastChild)
+    }
   }
 
   logClear() {
