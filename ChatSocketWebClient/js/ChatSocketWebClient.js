@@ -22,7 +22,8 @@ export default class ChatSocketWebClient extends WebSocket {
     this.channel = channel
     this.logElement = logElement
 
-    this.log(`&6+ Connecting to &f&n${this.url}…\n`)
+    this.logClear()
+    this.log(`&6+ Connecting to &f&n${this.url}…`)
   }
 
   set name(name) {
@@ -112,8 +113,10 @@ export default class ChatSocketWebClient extends WebSocket {
   }
 
   logClear() {
-    if (this.logElement !== null)
-      this.logElement.innerHTML = '<button id="logClear" aria-label="Clear log">Clear</button>'
+    if (this.logElement === null) return
+
+    this.logElement.innerHTML = '<button id="logClear" aria-label="Clear log">Clear</button>'
+    document.getElementById('logClear').addEventListener('click', () => this.logClear())
   }
 
   authenticate() {

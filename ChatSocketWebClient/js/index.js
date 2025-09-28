@@ -2,7 +2,6 @@ import ChatSocketWebClient from './ChatSocketWebClient.js'
 
 const chatSocketStatus = document.getElementById('chatSocketStatus')
 const chatSocketForm = document.getElementById('chatSocket')
-const clearLogButton = document.getElementById('logClear')
 
 let ws = null
 let retryCount = 0
@@ -56,5 +55,3 @@ chatSocketForm.addEventListener('submit', (e) => {
 
   ws.sendEncoded(type, message, data)
 })
-
-clearLogButton.addEventListener('click', () => ws?.logClear?.())
