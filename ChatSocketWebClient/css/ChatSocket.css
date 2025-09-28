@@ -1,41 +1,41 @@
-#ChatSocket {
+#chatSocket {
   display: flex;
   flex-flow: column;
   gap: 2rem;
 }
 
-#ChatSocket button[type='submit'] {
+#chatSocket button[type='submit'] {
   width: fit-content;
 }
 
-#ChatSocket .message {
+#chatSocket .message {
   flex: 4 1 16rem;
 }
 
-#ChatSocket .data {
+#chatSocket .data {
   flex: 1 1 8rem;
 }
 
-#ChatSocket .inline {
+#chatSocket .inline {
   gap: 1rem;
 }
 
-#ChatSocket .inline button {
+#chatSocket .inline button {
   color: var(--pri);
   margin-top: 2rem;
 }
 
-#ChatSocket .inline button:hover {
+#chatSocket .inline button:hover {
   color: var(--bg);
 }
 
-#ChatSocket:not([data-readystate='1']) .inline button {
+#chatSocket:not([data-readystate='1']) .inline button {
   cursor: not-allowed;
   background-color: var(--c12);
   border-color: var(--c24);
 }
 
-#ChatSocket:not([data-readystate='1']) .inline button:hover {
+#chatSocket:not([data-readystate='1']) .inline button:hover {
   color: var(--fg);
 }
 
@@ -47,6 +47,7 @@
   border-radius: 0.5rem;
   font-family: monospace, sans-serif;
   color: #fff;
+  position: relative;
   padding: 1rem;
   width: 100%;
   transition: border-color 125ms;
@@ -73,4 +74,10 @@
 
 #log > span {
   white-space: pre;
+}
+
+#logClear {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
 }

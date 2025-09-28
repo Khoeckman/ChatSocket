@@ -1,6 +1,6 @@
 import ChatSocketWebClient from './ChatSocketWebClient.js'
 
-const ChatSocketForm = document.getElementById('ChatSocket')
+const chatSocketForm = document.getElementById('chatSocket')
 
 let ws = null
 let retryCount = 0
@@ -15,12 +15,12 @@ function connect() {
   )
 
   ws.addEventListener('open', () => {
-    ChatSocketForm.dataset.readystate = ws.readyState
+    chatSocketForm.dataset.readystate = ws.readyState
     retryCount = 0
   })
 
   ws.addEventListener('close', () => {
-    ChatSocketForm.dataset.readystate = ws.readyState
+    chatSocketForm.dataset.readystate = ws.readyState
     retryCount++
     const delay = Math.min(32000, 1000 * Math.pow(2, retryCount))
     setTimeout(connect, delay)
@@ -33,7 +33,7 @@ connect()
 
 // Outgoing
 
-ChatSocketForm.addEventListener('submit', (e) => {
+chatSocketForm.addEventListener('submit', (e) => {
   e.preventDefault()
 
   if (!ws || ws.readyState !== ChatSocketWebClient.OPEN) return
