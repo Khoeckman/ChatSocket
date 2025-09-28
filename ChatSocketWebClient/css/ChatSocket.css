@@ -21,7 +21,12 @@
 }
 
 #ChatSocket .inline button {
+  color: var(--pri);
   margin-top: 2rem;
+}
+
+#ChatSocket .inline button:hover {
+  color: var(--bg);
 }
 
 #ChatSocket:not([data-readystate='1']) .inline button {
