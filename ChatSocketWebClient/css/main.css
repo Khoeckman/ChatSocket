@@ -57,7 +57,8 @@ main button {
   background-color: var(--bg);
   border: 1px solid var(--pri);
   border-radius: 0.3rem;
-  color: var(--fg);
+  font-weight: bold;
+  color: var(--pri);
   padding: 0.5rem 1rem;
   transition: background-color 125ms, color 125ms, border-color 250ms;
 }

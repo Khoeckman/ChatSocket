@@ -4,6 +4,13 @@
   gap: 2rem;
 }
 
+#chatSocket h1 {
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
 #chatSocket button[type='submit'] {
   width: fit-content;
 }
@@ -21,7 +28,6 @@
 }
 
 #chatSocket .inline button {
-  color: var(--pri);
   margin-top: 2rem;
 }
 
@@ -38,19 +44,20 @@
 
 #chatSocketStatus {
   content: attr(data-ready-state);
+  display: flex;
+  align-items: center;
   background-color: var(--c12);
   border: 1px solid var(--c48);
   border-radius: 1rem;
   font-size: 1rem;
   color: var(--fg);
-  vertical-align: middle;
   padding: 0.25rem 0.75rem;
   transition: border-color 250ms, color 250ms;
 }
 
 #chatSocketStatus::before {
   content: '';
-  display: inline-block;
+  display: block;
   background-color: var(--fg);
   border-radius: 1rem;
   width: 0.75rem;
@@ -60,32 +67,32 @@
 }
 
 #chatSocketStatus[data-ready-state='0'] {
-  border-color: orange;
-  color: orange;
+  border-color: #ffaa00;
+  color: #ffaa00;
 }
 
 #chatSocketStatus[data-ready-state='1'] {
-  border-color: lime;
-  color: lime;
+  border-color: #55ff55;
+  color: #55ff55;
 }
 
 #chatSocketStatus[data-ready-state='2'],
 #chatSocketStatus[data-ready-state='3'] {
-  border-color: red;
-  color: red;
+  border-color: #ff5555;
+  color: #ff5555;
 }
 
 #chatSocketStatus[data-ready-state='0']::before {
-  background-color: orange;
+  background-color: #ffaa00;
 }
 
 #chatSocketStatus[data-ready-state='1']::before {
-  background-color: lime;
+  background-color: #55ff55;
 }
 
 #chatSocketStatus[data-ready-state='2']::before,
 #chatSocketStatus[data-ready-state='3']::before {
-  background-color: red;
+  background-color: #ff5555;
 }
 
 #log {
