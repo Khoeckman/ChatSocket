@@ -1,5 +1,6 @@
 import ChatSocketWebClient from './ChatSocketWebClient.js'
 
+const chatSocketStatus = document.getElementById('chatSocketStatus')
 const chatSocketForm = document.getElementById('chatSocket')
 const clearLogButton = document.getElementById('logClear')
 
@@ -15,13 +16,15 @@ function connect() {
     document.getElementById('log')
   )
 
+  updateReadyState(ws.readyState)
+
   ws.addEventListener('open', () => {
-    chatSocketForm.dataset.readystate = ws.readyState
+    updateReadyState(ws.readyState)
     retryCount = 0
   })
 
   ws.addEventListener('close', () => {
-    chatSocketForm.dataset.readystate = ws.readyState
+    updateReadyState(ws.readyState)
     retryCount++
     const delay = Math.min(32000, 1000 * Math.pow(2, retryCount))
     setTimeout(connect, delay)
@@ -31,6 +34,13 @@ function connect() {
 }
 
 connect()
+
+function updateReadyState(readyState) {
+  const name = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][+readyState ?? 3]
+  chatSocketStatus.innerText = name
+  chatSocketStatus.dataset.readyState = +readyState ?? 3
+  chatSocketForm.dataset.readyState = +readyState ?? 3
+}
 
 // Outgoing
 
