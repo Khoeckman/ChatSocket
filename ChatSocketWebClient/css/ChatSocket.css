@@ -29,14 +29,63 @@
   color: var(--bg);
 }
 
-#chatSocket:not([data-readystate='1']) .inline button {
+#chatSocket:not([data-ready-state='1']) .inline button {
   cursor: not-allowed;
   background-color: var(--c12);
   border-color: var(--c24);
+  color: var(--c72);
 }
 
-#chatSocket:not([data-readystate='1']) .inline button:hover {
+#chatSocketStatus {
+  content: attr(data-ready-state);
+  background-color: var(--c12);
+  border: 1px solid var(--c48);
+  border-radius: 1rem;
+  font-size: 1rem;
   color: var(--fg);
+  vertical-align: middle;
+  padding: 0.25rem 0.75rem;
+  transition: border-color 250ms, color 250ms;
+}
+
+#chatSocketStatus::before {
+  content: '';
+  display: inline-block;
+  background-color: var(--fg);
+  border-radius: 1rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.5rem;
+  transition: background-color 250ms;
+}
+
+#chatSocketStatus[data-ready-state='0'] {
+  border-color: orange;
+  color: orange;
+}
+
+#chatSocketStatus[data-ready-state='1'] {
+  border-color: lime;
+  color: lime;
+}
+
+#chatSocketStatus[data-ready-state='2'],
+#chatSocketStatus[data-ready-state='3'] {
+  border-color: red;
+  color: red;
+}
+
+#chatSocketStatus[data-ready-state='0']::before {
+  background-color: orange;
+}
+
+#chatSocketStatus[data-ready-state='1']::before {
+  background-color: lime;
+}
+
+#chatSocketStatus[data-ready-state='2']::before,
+#chatSocketStatus[data-ready-state='3']::before {
+  background-color: red;
 }
 
 #log {
@@ -46,7 +95,7 @@
   /* border: 1px solid var(--c24); */
   border-radius: 0.5rem;
   font-family: monospace, sans-serif;
-  color: #fff;
+  color: var(--fg);
   position: relative;
   padding: 1rem;
   width: 100%;
