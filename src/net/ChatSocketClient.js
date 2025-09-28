@@ -113,6 +113,9 @@ export default class ChatSocketClient {
   }
 
   authenticate() {
+    chat(`&e● Authenticating as ${this.name}`)
+    chat(`&e● Selecting channel ${channel}`)
+
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
       secret: settings.wsSecret,
       channel: settings.wsChannel,
@@ -126,8 +129,8 @@ export default class ChatSocketClient {
     if (!this.isAuth) throw new Error('WebSocket is not authenticated')
     if (channel === this.channel) return
 
+    chat(`&e● Selecting channel ${channel}`)
     this.sendEncoded('CHANNEL', `Selecting channel ${channel}`, { channel })
-    if (!settings.wsLogChat) chat(`&e● Selecting channel ${channel}`)
   }
 
   connect() {

@@ -37,6 +37,9 @@ export default class Utils {
       const match = part.match(/[&§]([0-9a-fk-or])/)
 
       if (match) {
+        // Remove empty elements
+        if (!current.innerHTML.length) container.lastChild.remove()
+
         const code = match[1]
 
         if (code === 'r') {

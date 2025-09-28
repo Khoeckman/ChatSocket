@@ -44,10 +44,10 @@
   <main>
     <ul id="falling-chars" aria-hidden="true"></ul>
 
-    <form id="chatSocket" novalidate>
+    <form id="chatSocket" action="javascript:void(0)" novalidate>
       <h1>
         <span>ChatSocket</span>
-        <span id="chatSocketStatus"></span>
+        <span id="chatSocketStatus" data-ready-state="3">CLOSED</span>
       </h1>
 
       <div class="inline">
@@ -55,6 +55,7 @@
           Type
           <select name="type">
             <option>AUTH</option>
+            <option>CHANNEL</option>
             <option>SERVER</option>
             <option>CONNECT</option>
             <option>DISCONNECT</option>

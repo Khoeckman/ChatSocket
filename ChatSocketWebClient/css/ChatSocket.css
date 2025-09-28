@@ -98,7 +98,7 @@
 #log {
   overflow: auto;
   flex: 1 0 20rem;
-  background-color: #000;
+  background-color: #000c;
   /* border: 1px solid var(--c24); */
   border-radius: 0.5rem;
   font-family: monospace, sans-serif;
@@ -127,6 +127,10 @@
 /* #log:hover {
   border: 1px solid var(--c48);
 } */
+
+#log span {
+  display: inline-block;
+}
 
 #log > span {
   white-space: pre;

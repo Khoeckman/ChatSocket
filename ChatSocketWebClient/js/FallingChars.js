@@ -80,7 +80,7 @@ export default class FallingChars {
   startSpawning() {
     const delay = 1e6 / (this.#spawnDensityPerSecond * window.innerWidth)
     this.#spawnIntervalId = setInterval(() => {
-      for (let i = 0; i < this.#spawnsPerInterval; i++) this.summonEntity(this.spawnFn.apply(this))
+      for (let i = 0; i < this.#spawnsPerInterval; i++) this.summonEntity(this.spawnFn.call(this))
     }, delay)
   }
 

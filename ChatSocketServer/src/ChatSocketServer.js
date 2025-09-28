@@ -59,7 +59,7 @@ export default class ChatSocketServer extends WebSocketServer {
             client.isAuth = true
             client.channel = data.channel ?? client.channel ?? 'Default'
             client.name = data.name ?? client.name
-            client.uuid = uuidValidate(data.uuid) ? data.uuid : uuidv4()
+            client.uuid = uuidValidate(data.uuid) ? data.uuid : client.uuid ?? uuidv4()
             client.userAgent = data.userAgent ?? 'Unknown'
 
             this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
