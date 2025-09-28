@@ -24,6 +24,16 @@
   margin-top: 2rem;
 }
 
+#ChatSocket:not([data-readystate='1']) .inline button {
+  cursor: not-allowed;
+  background-color: var(--c12);
+  border-color: var(--c24);
+}
+
+#ChatSocket:not([data-readystate='1']) .inline button:hover {
+  color: var(--fg);
+}
+
 #log {
   overflow: auto;
   flex: 1 0 20rem;

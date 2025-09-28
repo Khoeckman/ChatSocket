@@ -1,10 +1,11 @@
 import ChatSocketWebClient from './ChatSocketWebClient.js'
 
-// WebSocket
-let ws = null
+const ChatSocketForm = document.getElementById('ChatSocket')
 
-// Autoconnect
-setInterval(() => {
+let ws = null
+let retryCount = 0
+
+function connect() {
   if (ws && (ws.readyState === ChatSocketWebClient.CONNECTING || ws.readyState === ChatSocketWebClient.OPEN)) return
 
   ws = new ChatSocketWebClient(
@@ -12,10 +13,25 @@ setInterval(() => {
     { name: 'WebClient', secret: atob('ZjM3N2RjNDZmZmFlZWRjMGU4NTZlZGM3NDg1NTFkYQ'), channel: 'Hypixel' },
     document.getElementById('log')
   )
-}, 2000)
+
+  ws.addEventListener('open', () => {
+    ChatSocketForm.dataset.readystate = ws.readyState
+    retryCount = 0
+  })
+
+  ws.addEventListener('close', () => {
+    ChatSocketForm.dataset.readystate = ws.readyState
+    retryCount++
+    const delay = Math.min(32000, 1000 * Math.pow(2, retryCount))
+    setTimeout(connect, delay)
+  })
+
+  ws.addEventListener('error', () => ws.close())
+}
+
+connect()
 
 // Outgoing
-const ChatSocketForm = document.getElementById('ChatSocket')
 
 ChatSocketForm.addEventListener('submit', (e) => {
   e.preventDefault()
