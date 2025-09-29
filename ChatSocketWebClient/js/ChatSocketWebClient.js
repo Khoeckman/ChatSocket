@@ -37,8 +37,8 @@ export default class ChatSocketWebClient extends WebSocket {
   }
 
   set secret(secret) {
-    if (typeof secret !== 'string' || !secret.replaceAll(/\s/, '').length) throw new TypeError('secret is not a string')
-    this.#secret = secret.replaceAll(/\s/, '')
+    if (typeof secret !== 'string' || !secret.trim().length) throw new TypeError('secret is not a string')
+    this.#secret = secret.trim()
     if (this.readyState === this.OPEN) this.authenticate(this.channel)
   }
 
@@ -72,18 +72,16 @@ export default class ChatSocketWebClient extends WebSocket {
 
     if (type === 'AUTH') {
       if ((this.isAuth = !!data.success)) {
-        if (data.channel) this.channel = data.channel
+        if (data.channel) this.#channel = data.channel
         if (data.name) this.name = data.name
         if (data.uuid) this.uuid = data.uuid
       } else {
         throw new Error('WebSocket Error: ' + message)
       }
     } else if (type === 'CHANNEL' && data.success) {
-      if (data.channel) this.channel = data.channel
+      if (data.channel) this.#channel = data.channel
       else throw new Error('WebSocket Error: Missing channel')
     }
-
-    // if (typeof this.onmessage === 'function') this.onmessage.call(this, type, message, data)
   }
 
   send(message) {
@@ -92,6 +90,10 @@ export default class ChatSocketWebClient extends WebSocket {
 
   sendEncoded(type, message, data = {}) {
     this.send(ChatSocketProtocol.encodeMessage(type, message, data))
+    if (!data || data.constructor !== Object) data = {}
+
+    // Do not log the secret
+    if (data.secret) data.secret = '*'
     this.log(`&a<span style="transform: rotate(180deg);">➔</span> &6&l${type}&b ${message} &8${JSON.stringify(data)}`)
   }
 

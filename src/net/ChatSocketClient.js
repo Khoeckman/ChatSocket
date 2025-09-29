@@ -16,7 +16,7 @@ export default class ChatSocketClient {
       error(new TypeError('url is not a string'), settings.printStackTrace)
       return
     }
-    this.url = new URI(url)
+    this.url = new URI(url.trim())
 
     this.isAuth = false
     this.channel = 'Default'
@@ -117,8 +117,8 @@ export default class ChatSocketClient {
     chat(`&e● Selecting channel ${channel}`)
 
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
-      secret: settings.wsSecret,
-      channel: settings.wsChannel,
+      secret: settings.wsSecret.trim(),
+      channel: settings.wsChannel.trim(),
       name: this.name,
       uuid: this.uuid,
       userAgent: 'Minecraft ' + Client.getVersion(),

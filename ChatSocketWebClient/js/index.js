@@ -18,7 +18,7 @@ function connect() {
     document.getElementById('log')
   )
 
-  ws.onmessage = onmessage
+  ws.addEventListener('message', onmessage)
 
   updateReadyState(ws.readyState)
 
@@ -43,13 +43,38 @@ function connect() {
   ws.addEventListener('error', () => {
     if (ws.readyState === ChatSocketWebClient.CONNECTING || ws.readyState === ChatSocketWebClient.OPEN) ws.close()
   })
+
+  document.getElementById('logClear').addEventListener('click', () => ws.logClear())
 }
 
 connect()
 
-// @this ws
+/**
+ * Handles incoming WebSocket messages from {@link ChatSocketWebClient}.
+ *
+ * When registered with `ws.addEventListener("message", onmessage)`,
+ * this function is invoked with `this` bound to the active WebSocket
+ * client instance.
+ *
+ * @this {ChatSocketWebClient} The WebSocket client that received the message.
+ * @param {string} type - The high-level message type (e.g. "AUTH", "CHAT", "CMD").
+ * @param {string} message - The human-readable message string from the server.
+ * @param {Object<string, any>} [data={}] - Structured message data payload.
+ *
+ * @example
+ * ws.addEventListener("message", onmessage)
+ *
+ * function onmessage(type, message, data) {
+ *   console.log(this.url, type, message, data)
+ * }
+ */
 function onmessage(type, message, data = {}) {
-  console.log(this, type, message, data)
+  switch (type) {
+    case 'DEBUG':
+    case 'AUTH':
+    case 'CHANNEL':
+      break
+  }
 }
 
 function updateReadyState(readyState) {
@@ -72,14 +97,30 @@ chatSocketForm.addEventListener('submit', (e) => {
   let data = {}
 
   try {
-    data = JSON.parse(form.elements['data'].value)
+    data = JSON.parse(form.elements['data'].value || '{}')
+    if (!data || data.constructor !== Object) data = {}
+
+    ws.sendEncoded(type, message, data)
+
     form.elements['data'].classList.remove('error')
+    form.elements['data'].value = JSON.stringify(data)
   } catch (err) {
     console.error(err)
     form.elements['data'].classList.add('error')
   }
-
-  ws.sendEncoded(type, message, data)
 })
 
 chatSocketForm.elements['data'].addEventListener('input', (e) => e.target.classList.remove('error'))
+
+// Hue rotation effect
+let hue = 0
+let frame = 0
+
+function loop() {
+  if (++frame % 5 === 0) {
+    document.documentElement.style.setProperty('--hue', hue)
+    hue = (hue + 1) % 360
+  }
+  requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
