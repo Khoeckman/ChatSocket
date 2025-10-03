@@ -23,8 +23,8 @@ const Long = Java.type('java.lang.Long')
       'Secret Key',
       'Channel',
       'Print CHANNEL Events',
-      'Enable CHAT Event Filter',
-      'CHAT Event Filter',
+      'Enable CHAT Event RegEx Capture',
+      'CHAT Event RegEx Capture',
       'Send SAY Events',
       'Send CMD Events',
       'Execute EXEC Events',
@@ -103,20 +103,20 @@ class Settings {
   wsPrintChannelEvent = true
 
   @SwitchProperty({
-    name: 'Enable CHAT Event Filter',
-    description: 'Only send a CHAT event when the message matches a RegEx.',
+    name: 'Enable CHAT Event RegEx Capture',
+    description: 'Only send a CHAT event when the message matches a RegEx pattern.',
     category: 'WebSocket',
     subcategory: 'Events',
   })
   wsEnableChatEventFilter = true
 
   @ParagraphProperty({
-    name: 'CHAT Event Filter',
+    name: 'CHAT Event RegEx Capture',
     description:
       'Only send a CHAT event when the message matches this RegEx. Exclude the open and close slash. Use & for color formatting. &9&nhttps://regexr.com/',
     category: 'WebSocket',
     subcategory: 'Events',
-    placeholder: '^&r&7\\*\\s&r',
+    placeholder: '^&r&7\\*\\s&r([sS]*)',
   })
   wsChatEventFilter = '^&r&7*s&r&f[ChatSocket]'
 
@@ -199,7 +199,7 @@ class Settings {
     //   // }
     // })
 
-    this.addDependency('CHAT Event Filter', 'Enable CHAT Event Filter')
+    this.addDependency('CHAT Event RegEx Capture', 'Enable CHAT Event RegEx Capture')
     // this.addDependency('File Logger Directory', 'File Logger')
   }
 }

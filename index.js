@@ -207,16 +207,16 @@ function registerWebSocketTriggers() {
         data = JSON.parse(message)
       } catch (err) {}
 
-      if (
-        settings.wsEnableChatEventFilter &&
-        !new RegExp(settings.wsChatEventFilter).test(message) &&
-        new RegExp(settings.wsChatEventFilter).test(rawMessage)
-      ) {
+      const regex = new RegExp(settings.wsChatEventFilter)
+
+      if (settings.wsEnableChatEventFilter && !regex.test(message) && !regex.test(rawMessage)) {
         return
       }
 
       if (!data || data.constructor !== Object) data = {}
-      ws.sendEncoded('CHAT', message, data)
+
+      const match = regex.exec(message)
+      ws.sendEncoded('CHAT', match[1] ?? match[0], data)
 
       // `ws.sendEncoded` already prints the message if `settings.wsLogChat` is true, so prevent double printing it
       if (settings.wsLogChat) cancel(event)

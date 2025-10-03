@@ -4,7 +4,6 @@ todo:
   - 'CLIENTS dont work'
   - 'add INV event to click on a slot'
   - 'click on log to put in form'
-  - 'test sending message through raw filter'
 
 security: 'solution to message duping in WS:
   include message ID (MID) in each message which contains: random part + Date.now()

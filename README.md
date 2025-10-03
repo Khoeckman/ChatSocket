@@ -25,10 +25,10 @@ Clients and controllers can only communicate if they connect to the same server 
 
 Configure the WebSocket server with the `.env` file located in `./WebSocketServer/.env`:
 
-| Variable | Type   | Default | Description                                                                                     |
-| -------- | ------ | ------- | ----------------------------------------------------------------------------------------------- |
-| `PORT`   | Number | `47576` | The port on which the WebSocket server listens.                                                 |
-| `SECRET` | String | _None_  | Secret key for authenticating incoming connections. Throws a `TypeError` if missing or invalid. |
+| Variable     | Type   | Default | Description                                                                                     |
+| ------------ | ------ | ------- | ----------------------------------------------------------------------------------------------- |
+| `WSS_PORT`   | Number | `47576` | The port on which the WebSocket server listens.                                                 |
+| `WSS_SECRET` | String | _None_  | Secret key for authenticating incoming connections. Throws a `TypeError` if missing or invalid. |
 
 ### Start the Server
 
