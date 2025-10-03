@@ -109,7 +109,7 @@ function onlog({ detail: { message } }) {
   logEl.prepend(document.createElement('br'))
   logEl.prepend(line)
 
-  if (logEl.children.length > 256) logEl.removeChild(logEl.lastChild)
+  if (logEl.children.length > 1024) logEl.removeChild(logEl.lastChild)
 }
 
 // Form
