@@ -22,8 +22,12 @@ const Long = Java.type('java.lang.Long')
       'Autoconnect',
       'Secret Key',
       'Channel',
-      'Chat Event Filter',
-      'Command Events',
+      'Print CHANNEL Events',
+      'Enable CHAT Event Filter',
+      'CHAT Event Filter',
+      'Send SAY Events',
+      'Send CMD Events',
+      'Execute EXEC Events',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
@@ -65,6 +69,14 @@ class Settings {
   wsAutoconnect = true
 
   @TextProperty({
+    name: 'Name',
+    description: `The name for this ChatSocket client. Defaults to: ${Player.getName()}.`,
+    category: 'WebSocket',
+    subcategory: 'Security',
+  })
+  wsName = ''
+
+  @TextProperty({
     name: 'Secret Key',
     description: 'The ChatSocket server uses this to authenticate every connection.',
     category: 'WebSocket',
@@ -82,23 +94,55 @@ class Settings {
   })
   wsChannel = 'Project_' + rng.nextInt().toString(36)
 
+  @CheckboxProperty({
+    name: 'Print CHANNEL Events',
+    description: 'Print when someone join/leaves your channel.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsPrintChannelEvent = true
+
+  @SwitchProperty({
+    name: 'Enable CHAT Event Filter',
+    description: 'Only send a CHAT event when the message matches a RegEx.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsEnableChatEventFilter = true
+
   @ParagraphProperty({
-    name: 'Chat Event Filter',
+    name: 'CHAT Event Filter',
     description:
       'Only send a CHAT event when the message matches this RegEx. Exclude the open and close slash. Use & for color formatting. &9&nhttps://regexr.com/',
     category: 'WebSocket',
     subcategory: 'Events',
     placeholder: '^&r&7\\*\\s&r',
   })
-  wsChatEventFilter = '^&r&7\\*\\s&r'
+  wsChatEventFilter = '^&r&7*s&r&f[ChatSocket]'
 
   @CheckboxProperty({
-    name: 'Command Events',
-    description: 'Send a SENT event for every chat or command you send.',
+    name: 'Send SAY Events',
+    description: 'Send a SAY event for every chat you send.',
     category: 'WebSocket',
     subcategory: 'Events',
   })
-  wsSentEvent = false
+  wsDoSayEvent = true
+
+  @CheckboxProperty({
+    name: 'Send CMD Events',
+    description: 'Send a CMD event for every command you execute.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsDoCmdEvent = true
+
+  @CheckboxProperty({
+    name: 'Execute EXEC Events',
+    description: 'EXEC events allow other clients to invoke methods on your Minecraft instance.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsDoExecEvent = false
 
   // Debug
 
@@ -145,19 +189,17 @@ class Settings {
   constructor() {
     this.initialize(this)
 
-    /* this.registerListener('URL', new_wsURL => {
-      new_wsURL = new_wsURL.trim()
+    // this.registerListener('URL', (wsURL) => {
+    //   this.wsURL = wsURL.trim()
+    //   this.save()
 
-      if (!new_wsURL.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
-        // this.wsURL = 'ws://localhost:47576'
-        return error(new Error(`&f${new_wsURL}&c is an invalid WebSocket URL`), this.printStackTrace)
-      }
-    })
+    //   // if (!new_wsURL.match(/^(ws|wss):\/\/([a-zA-Z0-9.-]+|\[[0-9a-fA-F:]+\])(:\d{1,5})?(\/.*)?$/)) {
+    //   //   this.wsURL = 'ws://localhost:47576'
+    //   //   return error(new Error(`&f${new_wsURL}&c is an invalid WebSocket URL`), this.printStackTrace)
+    //   // }
+    // })
 
-    this.registerListener('Secret Key', wsSecret => {
-      this.wsSecret = wsSecret.replaceAll(' ', '')
-    }) */
-
+    this.addDependency('CHAT Event Filter', 'Enable CHAT Event Filter')
     // this.addDependency('File Logger Directory', 'File Logger')
   }
 }

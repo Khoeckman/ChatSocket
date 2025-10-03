@@ -1,30 +1,38 @@
 import ChatSocketWebClient from './ChatSocketWebClient.js'
+import Utils from './Utils.js'
+import FallingChars from './FallingChars.js'
 
 const chatSocketStatus = document.getElementById('chatSocketStatus')
 const chatSocketForm = document.getElementById('chatSocket')
 
+function updateReadyState(readyState) {
+  const name = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][+readyState ?? 3]
+  chatSocketStatus.innerText = name
+  chatSocketStatus.dataset.readyState = +readyState ?? 3
+  chatSocketForm.dataset.readyState = +readyState ?? 3
+}
+
+// WebSocket
 let ws = null
 let retryCount = 0
 
 function connect() {
-  ws = new ChatSocketWebClient(
-    false ? 'ws://legendarygames.dev:47576' : 'ws://localhost:47576',
-    {
-      name: 'WebClient',
-      secret: atob('ZjM3N2RjNDZmZmFlZWRjMGU4NTZlZGM3NDg1NTFkYQ'),
-      userAgent: window.navigator.userAgent,
-      channel: 'Hypixel',
-    },
-    document.getElementById('log')
-  )
+  ws = new ChatSocketWebClient(false ? 'ws://legendarygames.dev:47576' : 'ws://localhost:47576', {
+    name: 'WebClient',
+    secret: atob('ZjM3N2RjNDZmZmFlZWRjMGU4NTZlZGM3NDg1NTFkYQ'),
+    userAgent: window.navigator.userAgent,
+    channel: 'Hypixel',
+    onmessage,
+    onlog,
+  })
 
-  ws.addEventListener('message', onmessage)
+  // {"secret":"f377dc46ffaeedc0e856edc748551da","_from":{"name":"WebClient","uuid":null,"userAgent":"Khoeckman"},"channel":"Hypixel"}
 
   updateReadyState(ws.readyState)
 
   const timeout = setTimeout(() => {
     if (ws.readyState === ChatSocketWebClient.CONNECTING) ws.close()
-  }, 500 * Math.pow(1.25, retryCount))
+  }, 2000)
 
   ws.addEventListener('open', () => {
     clearTimeout(timeout)
@@ -35,16 +43,8 @@ function connect() {
   ws.addEventListener('close', () => {
     clearTimeout(timeout)
     updateReadyState(ws.readyState)
-
-    const delay = Math.min(30000, 500 * Math.pow(1.25, retryCount++))
-    setTimeout(connect, delay)
+    setTimeout(connect, Math.min(30000, 2000 * Math.pow(1.25, retryCount++)))
   })
-
-  ws.addEventListener('error', () => {
-    if (ws.readyState === ChatSocketWebClient.CONNECTING || ws.readyState === ChatSocketWebClient.OPEN) ws.close()
-  })
-
-  document.getElementById('logClear').addEventListener('click', () => ws.logClear())
 }
 
 connect()
@@ -57,7 +57,7 @@ connect()
  * client instance.
  *
  * @this {ChatSocketWebClient} The WebSocket client that received the message.
- * @param {string} type - The high-level message type (e.g. "AUTH", "CHAT", "CMD").
+ * @param {string} type - The high-level message type (e.g. "AUTH", "CHAT", "EXEC").
  * @param {string} message - The human-readable message string from the server.
  * @param {Object<string, any>} [data={}] - Structured message data payload.
  *
@@ -65,26 +65,70 @@ connect()
  * ws.addEventListener("message", onmessage)
  *
  * function onmessage(type, message, data) {
- *   console.log(this.url, type, message, data)
+ *   this.log(this.url, type, message, data)
  * }
  */
 function onmessage(type, message, data = {}) {
   switch (type) {
     case 'DEBUG':
     case 'AUTH':
+    case 'CLIENTS':
     case 'CHANNEL':
+      break
+    case 'CHANNELS':
+    case 'CONN':
+    case 'CONNECT':
+    case 'DISCONNECT':
+    case 'CHAT':
+      ws.sendEncoded('CMD', `tp ${from.x} ${from.y} ${from.z}`)
+      ws.sendEncoded('CMD', 'posa')
+      ws.sendEncoded('CMD', `tp ${to.x} ${to.y} ${to.z}`)
+      ws.sendEncoded('CMD', 'posb')
+      ws.sendEncoded('CMD', `${cmd} ${pattern}`)
+      break
+    case 'SAY':
+    case 'CMD':
+    case 'EXEC':
+      break
+    default:
+      ws.log(`&cWebSocketError: &fUnsupported message type '${type}'`)
       break
   }
 }
 
-function updateReadyState(readyState) {
-  const name = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][+readyState ?? 3]
-  chatSocketStatus.innerText = name
-  chatSocketStatus.dataset.readyState = +readyState ?? 3
-  chatSocketForm.dataset.readyState = +readyState ?? 3
+// Log
+function onlog({ detail: { message } }) {
+  const logEl = document.getElementById('log')
+
+  if (logEl === null) {
+    console.log(Utils.removeMcFormatting(message))
+    return
+  }
+  const line = Utils.mcToHTML(message)
+  line.title = new Date().toLocaleString('nl-BE')
+  logEl.prepend(document.createElement('br'))
+  logEl.prepend(line)
+
+  if (logEl.children.length > 256) logEl.removeChild(logEl.lastChild)
 }
 
-// Outgoing
+// Form
+const messageBytes = document.querySelector('.message .bytes')
+const dataBytes = document.querySelector('.data .bytes')
+
+const updateBytes = (el, value) => (el.innerText = `(${new TextEncoder().encode(value).byteLength} B)`)
+
+updateBytes(messageBytes, chatSocketForm.elements['message'].value)
+updateBytes(dataBytes, chatSocketForm.elements['data'].value)
+
+chatSocketForm.elements['message'].addEventListener('input', (e) => {
+  updateBytes(messageBytes, e.target.value)
+})
+
+chatSocketForm.elements['data'].addEventListener('input', (e) => {
+  e.target.classList.remove('error')
+  updateBytes(dataBytes, e.target.value)
+})
 
 chatSocketForm.addEventListener('submit', (e) => {
   e.preventDefault()
@@ -100,27 +144,33 @@ chatSocketForm.addEventListener('submit', (e) => {
     data = JSON.parse(form.elements['data'].value || '{}')
     if (!data || data.constructor !== Object) data = {}
 
-    ws.sendEncoded(type, message, data)
-
     form.elements['data'].classList.remove('error')
     form.elements['data'].value = JSON.stringify(data)
+
+    ws.sendEncoded(type, message, data)
   } catch (err) {
     console.error(err)
     form.elements['data'].classList.add('error')
   }
 })
 
-chatSocketForm.elements['data'].addEventListener('input', (e) => e.target.classList.remove('error'))
+// Falling chars animation
+// prettier-ignore
+const chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+new FallingChars(document.getElementById('falling-chars'), chars, '', {
+  spawnDensityPerSecond: 15,
+})
 
 // Hue rotation effect
-let hue = 0
+/* let hue = 40
 let frame = 0
 
 function loop() {
-  if (++frame % 5 === 0) {
+  if (++frame % 8 === 0) {
     document.documentElement.style.setProperty('--hue', hue)
     hue = (hue + 1) % 360
   }
   requestAnimationFrame(loop)
 }
-requestAnimationFrame(loop)
+requestAnimationFrame(loop) */

@@ -1,7 +1,6 @@
-@import './helper.css';
 @import './credits.css';
 @import './main.css';
-@import './chatSocket.css';
+@import './chat-socket.css';
 @import './falling-chars.css';
 
 :root {
@@ -45,6 +44,17 @@ footer p {
   color: var(--c72);
   margin: 0;
   max-width: unset;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  transition: background-color 0s 999999999s, color 0s 999999999s !important;
+}
+
+@media (max-width: 60em) {
+  footer {
+    padding: 2rem;
+  }
 }
 
 @media (max-width: 40em) {

@@ -6,17 +6,17 @@
 
 #chatSocket h1 {
   display: inline-flex;
-  justify-content: space-between;
+  flex-flow: row wrap;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem 2rem;
 }
 
-#chatSocket button[type='submit'] {
+#chatSocket button {
   width: fit-content;
 }
 
 #chatSocket .message {
-  flex: 4 1 16rem;
+  flex: 2 1 16rem;
 }
 
 #chatSocket .data {
@@ -25,10 +25,6 @@
 
 #chatSocket .inline {
   gap: 1rem;
-}
-
-#chatSocket .inline button {
-  margin-top: 2rem;
 }
 
 #chatSocket .inline button:hover {
@@ -46,24 +42,20 @@
   content: attr(data-ready-state);
   display: flex;
   align-items: center;
-  background-color: var(--c12);
+  background-color: #0003;
   border: 1px solid var(--c48);
   border-radius: 1rem;
   font-size: 1rem;
+  line-height: 1.5;
   color: var(--fg);
-  padding: 0.25rem 0.75rem;
+  padding: 0 0.75rem;
   transition: border-color 250ms, color 250ms;
 }
 
 #chatSocketStatus::before {
-  content: '';
-  display: block;
-  background-color: var(--fg);
-  border-radius: 1rem;
-  width: 0.75rem;
-  height: 0.75rem;
+  content: '⬤';
   margin-right: 0.5rem;
-  transition: background-color 250ms;
+  transition: color 250ms;
 }
 
 #chatSocketStatus[data-ready-state='0'] {
@@ -83,25 +75,28 @@
 }
 
 #chatSocketStatus[data-ready-state='0']::before {
-  background-color: #ffaa00;
+  color: #ffaa00;
 }
 
 #chatSocketStatus[data-ready-state='1']::before {
-  background-color: #55ff55;
+  color: #55ff55;
 }
 
 #chatSocketStatus[data-ready-state='2']::before,
 #chatSocketStatus[data-ready-state='3']::before {
-  background-color: #ff5555;
+  color: #ff5555;
 }
 
 #log {
+  scrollbar-color: var(--c48) var(--c12);
+  cursor: default;
   overflow: auto;
   flex: 1 0 20rem;
-  background-color: #000c;
+  background-color: #0009;
   /* border: 1px solid var(--c24); */
   border-radius: 0.5rem;
-  font-family: monospace, sans-serif;
+  font-family: monospace, Montserrat, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
   color: var(--fg);
   position: relative;
   padding: 1rem;
@@ -119,25 +114,16 @@
   border: 1em solid var(--c12);
 }
 
-/* Chrome, Firefox */
-#log {
-  scrollbar-color: var(--c48) var(--c12);
-}
-
 /* #log:hover {
   border: 1px solid var(--c48);
 } */
 
-#log span {
-  display: inline-block;
-}
-
 #log > span {
-  white-space: pre;
+  border-radius: 0.3rem;
+  white-space: preserve nowrap;
+  padding: 0 0.25rem;
 }
 
-#logClear {
-  position: absolute;
-  right: 1rem;
-  bottom: 1rem;
+#log > span:hover {
+  background-color: var(--c12);
 }

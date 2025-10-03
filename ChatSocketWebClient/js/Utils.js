@@ -1,5 +1,7 @@
 export default class Utils {
   static mcToHTML(str) {
+    if (typeof str !== 'string') throw new TypeError('str is not a string')
+
     const colors = {
       0: '#000000', // black
       1: '#0000aa', // dark blue
@@ -66,6 +68,13 @@ export default class Utils {
   }
 
   static removeMcFormatting(str) {
+    if (typeof str !== 'string') throw new TypeError('str is not a string')
     return String(str).replace(/[&§][0-9a-fk-or]/g, '')
+  }
+
+  static shortenInnerHTML(str, maxLength) {
+    if (typeof str !== 'string') throw new TypeError('str is not a string')
+    if (!(Number.isInteger(maxLength) && maxLength > 0)) throw new TypeError('maxLength is not a number greater than 0')
+    return str.length > maxLength ? `<span title="${str}">${str.slice(0, maxLength - 1)}…</span>` : str
   }
 }

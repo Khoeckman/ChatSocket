@@ -2,12 +2,12 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-import { chat, error, dialog, reflectJavaObject } from './src/utils'
+import { chat, error, dialog, runCall } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
 
-const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
+// const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
 
 let ws = new ChatSocketClient(settings.wsURL)
 ws.autoconnect = true
@@ -24,11 +24,12 @@ try {
         case '':
         case 'help':
           dialog('&eCommands', [
-            '&e/cs &6sett&eings &7 Opens the settings GUI.',
-            '&e/cs &6sett&eings sync &7 Syncs the config.toml&7 with the settings GUI.',
+            '&e/cs &6s&eettings &7 Opens the settings GUI.',
+            '&e/cs &6s&eettings sync &7 Syncs the config.toml&7 with the settings GUI.',
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
-            '&e/cs &6s&etatus &7 Prints the status of the &fWebSocket&7.',
+            '&e/cs &6r&eeconnect &7 Reconnects to the &fWebSocket&7.',
+            '&e/cs &6st&eatus &7 Prints the status of the &fWebSocket&7.',
             // '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
             '&e/cs &7 Prints this dialog.',
@@ -36,7 +37,7 @@ try {
           break
 
         case 'settings':
-        case 'sett':
+        case 's':
           if (args.length && args[0] === 'sync') {
             settings.config.loadData()
             chat('&eLoaded config.toml&e into settings.')
@@ -62,8 +63,16 @@ try {
           ws.close()
           break
 
+        case 'reconnect':
+        case 'r':
+          ws.close()
+          ws = new ChatSocketClient(settings.wsURL)
+          if (typeof onmessage === 'function') ws.onmessage = onmessage
+          ws.connect()
+          break
+
         case 'status':
-        case 's':
+        case 'st':
           ws.printConnectionStatus()
           break
 
@@ -81,7 +90,7 @@ try {
           break
 
         default:
-          error(`Unknown command. Type "/cs" for help. `)
+          error('Unknown command. Type "/cs" for help.')
           break
       }
     } catch (err) {
@@ -108,16 +117,20 @@ try {
   // Autoreconnect
   register('step', () => {
     try {
-      // Keep the channel in sync with settings
-      if (ws.readyState === ChatSocketClient.OPEN && ws.isAuth && ws.channel !== settings.wsChannel)
-        ws.selectChannel(settings.wsChannel)
+      // Reconnect if settings don't match
+      if (String(ws.url).trim() === settings.wsURL.trim() && ws.name === (settings.wsName.trim() || Player.getName())) {
+        // Keep the channel in sync with settings
+        if (ws.readyState === ChatSocketClient.OPEN && ws.isAuth && ws.channel !== settings.wsChannel.trim())
+          ws.selectChannel(settings.wsChannel)
 
-      if (!ws.autoconnect || !settings.wsAutoconnect || ws.readyState === ChatSocketClient.CONNECTING) return
+        // Should not reconnect
+        if (!ws.autoconnect || !settings.wsAutoconnect || ws.readyState === ChatSocketClient.CONNECTING) return
 
-      if (ws.readyState === ChatSocketClient.OPEN) {
         // Attempt AUTH if the connection is OPEN but the client is not yet authenticated
-        if (!ws.isAuth) ws.authenticate()
-        return
+        if (ws.readyState === ChatSocketClient.OPEN) {
+          if (!ws.isAuth) ws.authenticate()
+          return
+        }
       }
 
       // Close previous WebSocket before creating a new instance
@@ -141,7 +154,7 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('CONNECT', 'Connected to server', {
+      ws.sendEncoded('CONNECT', ws.name + ' connected to ' + Server.getIP(), {
         isLocal: event.isLocal,
         connectionType: event.connectionType,
       })
@@ -154,7 +167,7 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('DISCONNECT', 'Disconnected from server')
+      ws.sendEncoded('DISCONNECT', ws.name + ' disconnected from server')
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -162,12 +175,20 @@ function registerWebSocketTriggers() {
 
   register('messageSent', (message) => {
     try {
-      if (!settings.wsSentEvent || ws.readyState !== ChatSocketClient.OPEN) return
-
       // Hypixel polls this command
       if (message === '/locraw') return
 
-      ws.sendEncoded('SENT', message)
+      const type = message.startsWith('/') ? 'CMD' : 'SAY'
+
+      if (
+        (!settings.wsDoSayEvent && type === 'SAY') ||
+        (!settings.wsDoCmdEvent && type === 'CMD') ||
+        ws.readyState !== ChatSocketClient.OPEN
+      ) {
+        return
+      }
+
+      ws.sendEncoded(type, message)
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -177,18 +198,27 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
+      const rawMessage = ChatLib.getChatMessage(event)
       const message = ChatLib.getChatMessage(event, true)
-      let json
+
+      let data
 
       try {
-        json = JSON.parse(message)
+        data = JSON.parse(message)
       } catch (err) {}
 
-      if (!new RegExp(settings.wsChatEventFilter).test(message) && !json) return
+      if (
+        settings.wsEnableChatEventFilter &&
+        !new RegExp(settings.wsChatEventFilter).test(message) &&
+        new RegExp(settings.wsChatEventFilter).test(rawMessage)
+      ) {
+        return
+      }
 
-      ws.sendEncoded('CHAT', message, json || {})
+      if (!data || data.constructor !== Object) data = {}
+      ws.sendEncoded('CHAT', message, data)
 
-      // Prevent printing the message twice
+      // `ws.sendEncoded` already prints the message if `settings.wsLogChat` is true, so prevent double printing it
       if (settings.wsLogChat) cancel(event)
     } catch (err) {
       error(err, settings.printStackTrace)
@@ -232,21 +262,32 @@ function registerWebSocketTriggers() {
  * }
  */
 function onmessage(type, message, data) {
+  // Prevent executing events from another Minecraft client
+  const from = data._from
+
+  if (type !== 'CHANNEl' && typeof from?.userAgent === 'string' && from.userAgent.split(' ')[0] === 'Minecraft') return
+
   switch (type) {
     case 'DEBUG':
     case 'AUTH':
-    case 'CHANNEL':
+    case 'CLIENTS':
       break
-    case 'SERVER':
+    case 'CHANNEL':
+      if (!settings.wsLogChat && settings.wsPrintChannelEvent) {
+        if (data.action === 'join') chat(`&e● &f${from.name}&e joined the channel.`)
+        else if (data.action === 'leave') chat(`&e● &f${from.name}&e left the channel.`)
+      }
+      break
+    case 'CONN':
       const server = {
         name: Server.getName(),
         motd: Server.getMOTD(),
         ip: Server.getIP(),
       }
-      this.sendEncoded('SERVER', this.name + ' is connected to ' + server.ip, server)
+      this.sendEncoded('CONN', this.name + ' is ' + (server.ip ? 'connected to ' + server.ip : 'disconnected'), server)
       break
     case 'CONNECT':
-      Client.connect(data.serverAddress)
+      Client.connect(message)
       break
     case 'DISCONNECT':
       Client.disconnect()
@@ -258,10 +299,22 @@ function onmessage(type, message, data) {
       ChatLib.say(message)
       break
     case 'CMD':
-      ChatLib.command(message)
+      ChatLib.command(message, data.clientSide === true || data.clientSide === 'true')
+      break
+    case 'EXEC':
+      if (!settings.wsDoExecEvent) break
+
+      try {
+        const result = runCall(message)
+        this.sendEncoded('EXEC', result ?? 'Success', { success: true, result })
+      } catch (err) {
+        error('Error while executing &6&lEXEC&c event.')
+        if (settings.wsPrintEx) error(`WebSocket Exception:&f ${err}`, settings.printStackTrace, true)
+        this.sendEncoded('EXEC', err, { success: false })
+      }
       break
     default:
-      error(`WebSocket Error: Unsupported message type '${type}'`, settings.printStackTrace, true)
+      error(`WebSocketError: Unsupported message type '${type}'`, settings.printStackTrace, true)
       break
   }
 }

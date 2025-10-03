@@ -47,7 +47,7 @@
     <form id="chatSocket" action="javascript:void(0)" novalidate>
       <h1>
         <span>ChatSocket</span>
-        <span id="chatSocketStatus" data-ready-state="3">CLOSED</span>
+        <span id="chatSocketStatus" data-ready-state="3" title="Ready state" aria-live="polite">CLOSED</span>
       </h1>
 
       <div class="inline">
@@ -55,23 +55,28 @@
           Type
           <select name="type">
             <option>AUTH</option>
+            <option>CLIENTS</option>
             <option>CHANNEL</option>
-            <option>SERVER</option>
+            <option>CHANNELS</option>
+            <option>CONN</option>
             <option>CONNECT</option>
             <option>DISCONNECT</option>
             <option>CHAT</option>
             <option>SAY</option>
             <option selected>CMD</option>
+            <option>EXEC</option>
           </select>
         </label>
 
         <label class="message">
           Message
+          <span class="bytes" aria-hidden="true">(0 B)</span>
           <input name="message" />
         </label>
 
         <label class="data">
           Data
+          <span class="bytes" aria-hidden="true">(0 B)</span>
           <input name="data" value="{}" />
         </label>
 
@@ -79,9 +84,7 @@
       </div>
     </form>
 
-    <div id="log" aria-live="polite">
-      <button id="logClear" aria-label="Clear log">Clear</button>
-    </div>
+    <div id="log" aria-live="polite"></div>
   </main>
 
   <footer>

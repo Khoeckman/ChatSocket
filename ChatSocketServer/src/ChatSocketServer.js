@@ -26,15 +26,23 @@ export default class ChatSocketServer extends WebSocketServer {
       client.ip = request.socket.remoteAddress || 'unknown'
       client.isAuth = false
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
+
       console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
 
       client.on('message', (rawData) => {
         try {
           // Close the connection if the client sends a message that is too large
           if (new TextEncoder().encode(rawData).byteLength > this.dataByteLimit)
-            client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes`)
+            client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes.`)
 
           const { type, message, data } = this.#onmessage(client, rawData)
+
+          let from = data?._from
+
+          if (!from || from.constructor !== Object) {
+            this.send(client, 'AUTH', 'Missing data._from', { success: false })
+            return
+          }
 
           if (type === 'AUTH') {
             if (data.secret !== this.secret) {
@@ -44,44 +52,40 @@ export default class ChatSocketServer extends WebSocketServer {
 
             const fromChannel = client.channel
 
+            if (typeof data.channel !== 'string') data.channel = ''
+
             // Leave the previous channel if client selected a new one
             if (data.channel && data.channel !== fromChannel)
-              this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
-                name: client.name,
-                uuid: client.uuid,
-              })
+              this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
 
-            if (typeof data.channel !== 'string') data.channel = ''
-            if (typeof data.name !== 'string') data.name = ''
-            if (typeof data.uuid !== 'string') data.uuid = ''
-            if (typeof data.userAgent !== 'string') data.userAgent = ''
+            if (typeof from.name !== 'string') from.name = ''
+            if (typeof from.uuid !== 'string') from.uuid = ''
+            if (typeof from.userAgent !== 'string') from.userAgent = ''
 
             client.isAuth = true
-            client.channel = data.channel ?? client.channel ?? 'Default'
-            client.name = data.name ?? client.name
-            client.uuid = uuidValidate(data.uuid) ? data.uuid : client.uuid ?? uuidv4()
-            client.userAgent = data.userAgent ?? 'Unknown'
+            client.channel = data.channel.trim() ?? client.channel ?? 'Default'
+            client.name = from.name.trim() ?? client.name
+            client.uuid = uuidValidate(from.uuid) ? from.uuid.trim() : client.uuid ?? uuidv4()
+            client.userAgent = from.userAgent.trim() ?? 'Unknown'
+
+            const { name, uuid, userAgent } = client
+            from = { name, uuid, userAgent }
 
             this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
               success: true,
               channel: client.channel,
-              name: client.name,
-              uuid: client.uuid,
-              userAgent: client.userAgent,
+              _to: from,
             })
 
-            if (data.channel)
+            if (data.channel) {
               this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
                 success: true,
                 channel: client.channel,
               })
+            }
 
             if (client.channel !== fromChannel)
-              this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel.`, {
-                name: client.name,
-                uuid: client.uuid,
-                userAgent: client.userAgent,
-              })
+              this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel`, { action: 'join' })
 
             return
           }
@@ -95,11 +99,7 @@ export default class ChatSocketServer extends WebSocketServer {
             if (data.channel && typeof data.channel === 'string') {
               // Leave the previous channel if client selected a new one
               if (data.channel !== client.channel)
-                this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
-                  name: client.name,
-                  uuid: client.uuid,
-                  userAgent: client.userAgent,
-                })
+                this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
 
               client.channel = data.channel
               this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
@@ -107,15 +107,20 @@ export default class ChatSocketServer extends WebSocketServer {
                 channel: client.channel,
               })
             } else {
-              this.send(client, 'CHANNEL', 'Missing channel', { success: false })
+              this.send(client, 'CHANNEL', 'Missing data.channel', { success: false })
             }
             return
           }
 
           if (type === 'CHANNELS') {
-            this.send(client, 'CHANNELS', 'Channels: ' + this.listChannels().join(', '), {
-              channels: this.listChannels(),
-            })
+            const channels = this.listChannels()
+            this.send(client, 'CHANNELS', channels.join(', '), { channels })
+            return
+          }
+
+          if (type === 'CLIENTS') {
+            const clients = this.listClients(data?.channel)
+            this.send(client, 'CLIENTS', clients.join(','), { clients })
             return
           }
 
@@ -128,7 +133,10 @@ export default class ChatSocketServer extends WebSocketServer {
         }
       })
 
-      client.on('error', console.error)
+      client.on('error', (err) => {
+        console.error(err)
+        this.close()
+      })
 
       client.on('close', () => {
         console.log(
@@ -136,24 +144,27 @@ export default class ChatSocketServer extends WebSocketServer {
             `&4&l-&r &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${client.name || '?'}&7]&c disconnected`
           )
         )
-        this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, {
-          name: client.name,
-          uuid: client.uuid,
-          userAgent: client.userAgent,
-        })
+        this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
       })
     })
 
-    console.log(Utils.mcToAnsi(`&6ChatSocket&r server is running on port ${this.port}`))
+    console.log(Utils.mcToAnsi(`&6ChatSocket&r server is running on port &f${this.port}`))
   }
 
   #onmessage(client, rawData) {
     const { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
+
+    // Mask secret
+    const maskedData = {
+      ...data,
+      secret: data.secret !== undefined ? '*' : undefined,
+    }
+
     console.log(
       Utils.mcToAnsi(
         `&2-> &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${
           client.name ?? data.name ?? '?'
-        }&7] &l\x1b[48;5;11m&l ${type} &r &a${message} &7 ${JSON.stringify(data)}`
+        }&7] &l\x1b[48;5;11m&l ${type} &r &a${message} &7 ${JSON.stringify(maskedData)}`
       )
     )
     return { type, message, data }
@@ -161,7 +172,9 @@ export default class ChatSocketServer extends WebSocketServer {
 
   send(client, type, message, data = {}) {
     if (!(client instanceof WebSocket)) throw TypeError('client is not an instance of WebSocket')
-    if (client.readyState !== client.OPEN) throw new Error('WebSocket is not in OPEN state')
+    if (client.readyState !== client.OPEN) console.error('WebSocket is not in OPEN state')
+
+    if (!data?._from) data._from = 'server'
 
     client.send(ChatSocketProtocol.encodeMessage(type, message, data))
     console.log(
@@ -177,17 +190,42 @@ export default class ChatSocketServer extends WebSocketServer {
     const channels = new Set(['Default'])
 
     Array.from(this.clients)
-      .filter((client) => client.isAuth)
+      .filter((client) => client.isAuth && client.readyState === client.OPEN)
       .forEach((client) => channels.add(client.channel))
 
     return Array.from(channels)
   }
 
+  listClients(channel = null) {
+    const clients = []
+
+    Array.from(this.clients)
+      .filter((client) => client.isAuth && client.readyState === client.OPEN)
+      .forEach((client) => {
+        const { name, uuid, userAgent } = client
+        if (!channel || channel === client.channel) clients[channel] = { name, uuid, userAgent }
+      })
+
+    return clients
+  }
+
   sendChannel(fromClient, type, message, data = {}) {
     if (!(fromClient instanceof WebSocket)) throw TypeError('fromClient is not an instance of WebSocket')
 
+    data._from = {
+      name: fromClient.name,
+      uuid: fromClient.uuid,
+      userAgent: fromClient.userAgent,
+    }
+
     Array.from(this.clients)
-      .filter((client) => client.isAuth && client.channel === fromClient.channel && client.uuid !== fromClient.uuid)
+      .filter(
+        (client) =>
+          client.isAuth &&
+          client.readyState === client.OPEN &&
+          client.channel === fromClient.channel &&
+          client.uuid !== fromClient.uuid
+      )
       .forEach((client) => this.send(client, type, message, data))
   }
 
@@ -195,9 +233,9 @@ export default class ChatSocketServer extends WebSocketServer {
     if (!(client instanceof WebSocket)) throw TypeError('client is not an instance of WebSocket')
 
     // Leave the previous channel if client selected a new one
-    if ((channel ?? 'default') !== client.channel)
-      this.sendChannel(client, 'CHANNEL', `${client.name} left the channel.`, { name: client.name, uuid: client.uuid })
-
+    if ((channel ?? 'default') !== client.channel) {
+      this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
+    }
     client.channel = channel ?? 'Default'
   }
 }

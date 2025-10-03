@@ -1,4 +1,20 @@
 todo:
-  - 'CHAT regex filter'
-  - 'CMD from server is executed?'
   - 'Setting to limit command execution rate + queue system (seperate module?)'
+  - 'fix flying'
+  - 'CLIENTS dont work'
+  - 'add INV event to click on a slot'
+  - 'click on log to put in form'
+  - 'test sending message through raw filter'
+
+security: 'solution to message duping in WS:
+  include message ID (MID) in each message which contains: random part + Date.now()
+
+  Server validates:
+  1. Date.now() must be younger than 2 seconds!
+  2. random part does not exist yet in memory (of last 2 seconds)
+
+  Problem:
+  attacker might forge MID with newer time
+
+  Solution: encrypt whole message including MID
+  '

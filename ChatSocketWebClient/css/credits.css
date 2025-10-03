@@ -84,7 +84,7 @@
   color: var(--c72);
 }
 
-@media (width < 40em) {
+@media (width < 30em) {
   .credits {
     display: none;
   }

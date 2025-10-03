@@ -76,6 +76,29 @@ export const dialog = (title, lines) => {
   World.playSound('random.click', 0.7, 1)
 }
 
+export const runCall = (expr) => {
+  // Match "a.b.c(d, e)"
+  let match = expr.match(/^([^(]+)\((.*)\)$/)
+  if (!match) throw new Error('Invalid expression: ' + expr)
+
+  // Split path on "."
+  let path = match[1].split('.')
+
+  // Extract arguments (very naive split, assumes no nested stuff)
+  let args = match[2].trim()
+  args = args ? args.split(/\s*,\s*/).map(eval) : []
+
+  // Walk down the global object
+  let ctx = global
+  for (let i = 0; i < path.length - 1; i++) ctx = ctx[path[i]]
+
+  // Final function
+  let fn = ctx[path[path.length - 1]]
+  if (typeof fn !== 'function') throw new Error('Target is not a function: ' + path.join('.'))
+
+  return fn.apply(ctx, args)
+}
+
 /**
  * Reflects over a Java object to extract its fields and getter values,
  * returning a plain JavaScript object that can be serialized to JSON.

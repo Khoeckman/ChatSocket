@@ -15,7 +15,7 @@ const server = new ChatSocketServer({
   secret: process.env.WSS_SECRET,
   dataByteLimit: 10000,
 })
-if (typeof onmessageCustom === 'function') server.onmessage = onmessageCustom
+if (typeof onmessage === 'function') server.onmessage = onmessage
 
 /**
  * Handles incoming messages from connected WebSocket clients.
@@ -35,8 +35,7 @@ if (typeof onmessageCustom === 'function') server.onmessage = onmessageCustom
  *   this.sendChannel(client, type, message, data);
  * }
  */
-function onmessageCustom(client, type, message, data = {}) {
-  // Default behaviour:
-  // Send the message to all other clients on the same channel
+function onmessage(client, type, message, data) {
+  // Include client data
   this.sendChannel(client, type, message, data)
 }

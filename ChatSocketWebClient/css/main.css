@@ -74,11 +74,32 @@ main button:active {
   transition: none;
 }
 
+main label:has(.bytes) {
+  flex-flow: row wrap;
+}
+
+main label .bytes {
+  font-size: 0.8em;
+  font-weight: initial;
+  white-space: preserve nowrap;
+  color: var(--c72);
+}
+
 main .inline {
   display: flex;
   flex-flow: row wrap;
   gap: 2rem;
   width: 100%;
+}
+
+main .inline button {
+  align-self: flex-end;
+}
+
+@media (max-width: 60em) {
+  main {
+    margin: 2rem;
+  }
 }
 
 @media (max-width: 40em) {

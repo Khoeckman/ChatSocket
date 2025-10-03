@@ -20,8 +20,9 @@ export default class ChatSocketClient {
 
     this.isAuth = false
     this.channel = 'Default'
-    this.name = Player.getName()
+    this.name = settings.wsName.trim() ? settings.wsName.trim() : Player.getName()
     this.uuid = Player.getUUID()
+    this.userAgent = 'Minecraft ' + Client.getVersion()
 
     this.readyState = ChatSocketClient.CLOSED
     this.autoconnect = true
@@ -48,27 +49,35 @@ export default class ChatSocketClient {
         },
         onMessage(rawData) {
           const { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
-
           if (settings.wsLogChat) ChatLib.chat(`&2-> &6&l${type}&a ${message}`)
 
-          if (type === 'AUTH') {
-            if ((ws.isAuth = !!data.success)) {
-              if (data.channel) ws.channel = data.channel
-              if (data.name) ws.name = data.name
-              if (data.uuid) ws.uuid = data.uuid
+          const { name, uuid, userAgent } = data?._from
+
+          if (data?._from !== 'server' && (!name || !uuid || !userAgent)) {
+            error('WebSocketError:&f Invalid data._from', settings.printStackTrace, settings.wsAutoconnect)
+            return
+          }
+
+          if (type === 'AUTH' && data?._from === 'server') {
+            if ((ws.isAuth = !!data.success) && typeof data.channel === 'string') {
+              const to = data?._to ?? {}
+
+              ws.channel = data.channel.trim()
+              ws.name = to.name
+              ws.uuid = to.uuid
+              ws.userAgent = to.userAgent
             } else {
-              error('WebSocket Error: ' + message, settings.printStackTrace, true)
+              error('WebSocketError:&f ' + message, settings.printStackTrace, settings.wsAutoconnect)
             }
-          } else if (type === 'CHANNEL' && data.success) {
-            if (data.channel) ws.channel = data.channel
-            else error('WebSocket Error: Missing channel', settings.printStackTrace, true)
+          } else if (type === 'CHANNEL' && data.success && typeof data.channel === 'string') {
+            ws.channel = data.channel.trim()
           }
 
           if (typeof ws.onmessage === 'function') ws.onmessage.call(ws, type, message, data)
         },
         onError(exception) {
           if (settings.wsPrintEx)
-            error('WebSocket Exception: ' + exception, settings.printStackTrace, settings.wsAutoconnect)
+            error('WebSocket Exception:&f ' + exception, settings.printStackTrace, settings.wsAutoconnect)
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
@@ -108,28 +117,35 @@ export default class ChatSocketClient {
   }
 
   sendEncoded(type, message, data = {}) {
+    if (!data || data.constructor !== Object) data = {}
+
+    data._from = {
+      name: this.name,
+      uuid: this.uuid,
+      userAgent: this.userAgent,
+    }
     this.send(ChatSocketProtocol.encodeMessage(type, message, data))
     if (settings.wsLogChat) ChatLib.chat(`&3<- &6&l${type.toUpperCase()}&b ${message}`)
   }
 
   authenticate() {
-    chat(`&e● Authenticating as ${this.name}`)
-    chat(`&e● Selecting channel ${channel}`)
+    chat(`&e● Authenticating as &f${this.name}`)
+    chat(`&e● Selecting channel &f${settings.wsChannel}`)
 
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
       secret: settings.wsSecret.trim(),
       channel: settings.wsChannel.trim(),
-      name: this.name,
-      uuid: this.uuid,
-      userAgent: 'Minecraft ' + Client.getVersion(),
     })
   }
 
   selectChannel(channel) {
+    if (typeof channel !== 'string') throw new TypeError('channel is not a string')
     if (!this.isAuth) throw new Error('WebSocket is not authenticated')
+
+    channel = channel.trim()
     if (channel === this.channel) return
 
-    chat(`&e● Selecting channel ${channel}`)
+    chat(`&e● Selecting channel &f${channel}`)
     this.sendEncoded('CHANNEL', `Selecting channel ${channel}`, { channel })
   }
 

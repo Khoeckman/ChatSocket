@@ -4,14 +4,16 @@ import Utils from './Utils.js'
 export default class ChatSocketWebClient extends WebSocket {
   #secret
   #channel
-  #logElement
 
-  constructor(url, { name, uuid, secret, userAgent = 'WebClient', channel = 'Default' } = {}, logElement = null) {
+  constructor(
+    url,
+    { name, uuid, secret, userAgent = 'WebClient', channel = 'Default', onmessage = null, onlog = null } = {}
+  ) {
     super(url)
 
     super.addEventListener('open', this.#onopen)
     super.addEventListener('message', this.#onmessage)
-    super.addEventListener('error', this.#onerror)
+    // super.addEventListener('error', this.#onerror)
     super.addEventListener('close', this.#onclose)
 
     if (typeof name !== 'string' || !name.trim().length) throw new TypeError('name is not a string')
@@ -28,12 +30,13 @@ export default class ChatSocketWebClient extends WebSocket {
     this.userAgent = userAgent
 
     this.channel = channel
-    this.logElement = logElement
 
     this.isAuth = false
-    this.onmessage = null
+    this.onmessageFn = typeof onmessage === 'function' ? onmessage : null
 
-    this.log(`&6&l+&6 Connecting to &f&n${this.url}&6…`)
+    if (typeof onlog === 'function') this.addEventListener('log', onlog)
+
+    this.log(`&6&l+&6 Connecting to &f&n${this.url}\n`)
   }
 
   set secret(secret) {
@@ -52,15 +55,6 @@ export default class ChatSocketWebClient extends WebSocket {
     return this.#channel
   }
 
-  set logElement(logElement) {
-    if (!(logElement instanceof HTMLElement)) this.#logElement = null
-    else this.#logElement = logElement
-  }
-
-  get logElement() {
-    return this.#logElement
-  }
-
   #onopen(event) {
     this.log(`&a&l+&a Connected to &f&n${this.url}`)
     this.authenticate(this.channel)
@@ -68,20 +62,35 @@ export default class ChatSocketWebClient extends WebSocket {
 
   #onmessage(event) {
     const { type, message, data } = ChatSocketProtocol.decodeMessage(event.data)
-    this.log(`&3➔ &6&l${type}&b ${message} &8${JSON.stringify(data)}`)
+    this.log(
+      `&2➔ &6&l${type}&a ${message} &7${JSON.stringify(data, (_, value) =>
+        typeof value === 'string' ? value + '&7' : value
+      )}`
+    )
 
-    if (type === 'AUTH') {
-      if ((this.isAuth = !!data.success)) {
-        if (data.channel) this.#channel = data.channel
-        if (data.name) this.name = data.name
-        if (data.uuid) this.uuid = data.uuid
-      } else {
-        throw new Error('WebSocket Error: ' + message)
-      }
-    } else if (type === 'CHANNEL' && data.success) {
-      if (data.channel) this.#channel = data.channel
-      else throw new Error('WebSocket Error: Missing channel')
+    const { name, uuid, userAgent } = data?._from
+
+    if (data?._from !== 'server' && (!name || !uuid || !userAgent)) {
+      this.log('&cWebSocketError:&f Invalid data._from')
+      return
     }
+
+    if (type === 'AUTH' && data?._from === 'server') {
+      if ((this.isAuth = !!data.success) && typeof data.channel === 'string') {
+        const to = data?._to ?? {}
+
+        this.#channel = data.channel.trim()
+        this.name = to.name
+        this.uuid = to.uuid
+        this.userAgent = to.userAgent
+      } else {
+        this.log('&cWebSocketError:&f ' + message)
+      }
+    } else if (type === 'CHANNEL' && data.success && typeof data.channel === 'string') {
+      this.#channel = data.channel.trim()
+    }
+
+    if (typeof this.onmessageFn === 'function') this.onmessageFn.call(this, type, message, data)
   }
 
   send(message) {
@@ -89,39 +98,31 @@ export default class ChatSocketWebClient extends WebSocket {
   }
 
   sendEncoded(type, message, data = {}) {
-    this.send(ChatSocketProtocol.encodeMessage(type, message, data))
     if (!data || data.constructor !== Object) data = {}
 
-    // Do not log the secret
+    data._from = {
+      name: this.name,
+      uuid: this.uuid,
+      userAgent: this.userAgent,
+    }
+    this.send(ChatSocketProtocol.encodeMessage(type, message, data))
+
+    // Mask secret
     if (data.secret) data.secret = '*'
-    this.log(`&a<span style="transform: rotate(180deg);">➔</span> &6&l${type}&b ${message} &8${JSON.stringify(data)}`)
+
+    this.log(
+      `&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>&6&l${type}&b ${Utils.shortenInnerHTML(
+        message,
+        128
+      )} &7${JSON.stringify(data)}`
+    )
   }
 
-  #onerror(event) {
-    console.error('WebSocket error:', event)
-  }
+  // #onerror(event) {}
 
   #onclose({ code, reason, wasClean }) {
-    this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7]`)
-  }
-
-  log(message) {
-    if (this.logElement === null) console.log(Utils.removeMcFormatting(message))
-    else {
-      const line = Utils.mcToHTML(message)
-      line.title = new Date().toLocaleString()
-      this.logElement.prepend(document.createElement('br'))
-      this.logElement.prepend(line)
-
-      if (this.logElement.children.length > 256) this.logElement.removeChild(this.logElement.lastChild)
-    }
-  }
-
-  logClear() {
-    if (this.logElement === null) return
-
-    this.logElement.innerHTML = '<button id="logClear" aria-label="Clear log">Clear</button>'
-    document.getElementById('logClear').addEventListener('click', () => this.logClear())
+    if (reason) this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7] &cReason: &f${reason}`)
+    else this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7]`)
   }
 
   authenticate(channel = null) {
@@ -137,17 +138,21 @@ export default class ChatSocketWebClient extends WebSocket {
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
       secret: this.#secret,
       channel: this.#channel,
-      name: this.name,
-      uuid: this.uuid,
-      userAgent: this.userAgent,
     })
   }
 
   selectChannel(channel) {
-    if (!this.isAuth) throw new Error('WebSocket is not authenticated')
+    if (!this.isAuth) {
+      this.log('&cWebSocketError:&f WebSocket is not authenticated')
+      return
+    }
     if (channel === this.channel) return
 
     this.log(`&e&l●&e Selecting channel &f${channel}`)
     this.sendEncoded('CHANNEL', `Selecting channel ${channel}`, { channel })
+  }
+
+  log(message) {
+    this.dispatchEvent(new CustomEvent('log', { detail: { message } }))
   }
 }
