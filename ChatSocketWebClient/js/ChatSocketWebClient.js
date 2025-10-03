@@ -1,7 +1,4 @@
-import ChatSocketProtocol from './ChatSocketProtocol.js'
-import Utils from './Utils.js'
-
-export default class ChatSocketWebClient extends WebSocket {
+class ChatSocketWebClient extends WebSocket {
   #secret
   #channel
 

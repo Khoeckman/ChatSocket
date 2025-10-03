@@ -1,7 +1,3 @@
-import ChatSocketWebClient from './ChatSocketWebClient.js'
-import Utils from './Utils.js'
-import FallingChars from './FallingChars.js'
-
 const chatSocketStatus = document.getElementById('chatSocketStatus')
 const chatSocketForm = document.getElementById('chatSocket')
 
@@ -80,11 +76,10 @@ function onmessage(type, message, data = {}) {
     case 'CONNECT':
     case 'DISCONNECT':
     case 'CHAT':
-      ws.sendEncoded('CMD', `tp ${from.x} ${from.y} ${from.z}`)
-      ws.sendEncoded('CMD', 'posa')
-      ws.sendEncoded('CMD', `tp ${to.x} ${to.y} ${to.z}`)
-      ws.sendEncoded('CMD', 'posb')
-      ws.sendEncoded('CMD', `${cmd} ${pattern}`)
+      if (message !== 'tp 0 2 0') break
+
+      const [_, x, y, z] = /^tp\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)$/.exec(message)
+      ws.sendEncoded('CMD', `tp ~${x} ~${y} ~${z}`)
       break
     case 'SAY':
     case 'CMD':

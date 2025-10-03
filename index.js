@@ -302,6 +302,7 @@ function onmessage(type, message, data) {
       ChatLib.command(message, data.clientSide === true || data.clientSide === 'true')
       break
     case 'EXEC':
+      chat('here')
       if (!settings.wsDoExecEvent) break
 
       try {

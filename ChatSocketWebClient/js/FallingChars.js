@@ -1,4 +1,4 @@
-export default class FallingChars {
+class FallingChars {
   #container
   #chars
   #color

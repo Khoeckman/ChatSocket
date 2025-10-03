@@ -1,4 +1,4 @@
-export default class Utils {
+class Utils {
   static mcToHTML(str) {
     if (typeof str !== 'string') throw new TypeError('str is not a string')
 
