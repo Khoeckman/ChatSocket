@@ -90,10 +90,6 @@ class ChatSocketWebClient extends WebSocket {
     if (typeof this.onmessageFn === 'function') this.onmessageFn.call(this, type, message, data)
   }
 
-  send(message) {
-    super.send(message)
-  }
-
   sendEncoded(type, message, data = {}) {
     if (!data || data.constructor !== Object) data = {}
 
