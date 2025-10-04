@@ -119,8 +119,8 @@ export default class ChatSocketServer extends WebSocketServer {
           }
 
           if (type === 'CLIENTS') {
-            const clients = this.listClients(data?.channel)
-            this.send(client, 'CLIENTS', clients.join(','), { clients })
+            const clients = this.listClients(data.channel)
+            this.send(client, 'CLIENTS', clients.map((c) => c.name).join(', '), { clients })
             return
           }
 
@@ -190,7 +190,7 @@ export default class ChatSocketServer extends WebSocketServer {
     const channels = new Set(['Default'])
 
     Array.from(this.clients)
-      .filter((client) => client.isAuth && client.readyState === client.OPEN)
+      .filter((client) => true || (client.isAuth && client.readyState === client.OPEN))
       .forEach((client) => channels.add(client.channel))
 
     return Array.from(channels)
@@ -203,7 +203,7 @@ export default class ChatSocketServer extends WebSocketServer {
       .filter((client) => client.isAuth && client.readyState === client.OPEN)
       .forEach((client) => {
         const { name, uuid, userAgent } = client
-        if (!channel || channel === client.channel) clients[channel] = { name, uuid, userAgent }
+        if (!channel || channel === client.channel) clients.push({ name, uuid, userAgent })
       })
 
     return clients
