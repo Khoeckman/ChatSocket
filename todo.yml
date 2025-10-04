@@ -1,9 +1,7 @@
 todo:
   - 'Setting to limit command execution rate + queue system (seperate module?)'
   - 'fix flying'
-  - 'CLIENTS dont work'
   - 'add INV event to click on a slot'
-  - 'click on log to put in form'
   - 'test if get hp still works'
 
 security: 'solution to message duping in WS:

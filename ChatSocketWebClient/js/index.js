@@ -46,17 +46,33 @@ function connect() {
 connect()
 
 // Log
-function onlog({ detail: { message } }) {
+function onlog({ detail: { line, type, message, data } }) {
   const logEl = document.getElementById('log')
 
   if (logEl === null) {
-    console.log(Utils.removeMcFormatting(message))
+    console.log(Utils.removeMcFormatting(line))
     return
   }
-  const line = Utils.mcToHTML(message)
-  line.title = new Date().toLocaleString('nl-BE')
+  const lineEl = Utils.mcToHTML(line)
+  lineEl.title = new Date().toLocaleString('nl-BE')
+
+  if (typeof type === 'string') {
+    lineEl.dataset.json = JSON.stringify({ type, message, data })
+    lineEl.style.cursor = 'copy'
+
+    lineEl.addEventListener('click', (e) => {
+      const json = lineEl.dataset.json
+      if (!json) return
+
+      const { type, message, data } = JSON.parse(json)
+      chatSocketForm.elements['type'].value = type
+      chatSocketForm.elements['message'].value = message
+      chatSocketForm.elements['data'].value = JSON.stringify(data)
+    })
+  }
+
   logEl.prepend(document.createElement('br'))
-  logEl.prepend(line)
+  logEl.prepend(lineEl)
 
   if (logEl.children.length > 1024) logEl.removeChild(logEl.lastChild)
 }

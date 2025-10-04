@@ -62,7 +62,8 @@ class ChatSocketWebClient extends WebSocket {
     this.log(
       `&2➔ &6&l${type}&a ${message} \t&7${JSON.stringify(data, (_, value) =>
         typeof value === 'string' ? value + '&7' : value
-      )}`
+      )}`,
+      { type, message, data }
     )
 
     const { name, uuid, userAgent } = data?._from
@@ -92,6 +93,7 @@ class ChatSocketWebClient extends WebSocket {
 
   sendEncoded(type, message, data = {}) {
     if (!data || data.constructor !== Object) data = {}
+    else if (data.secret === '*') data.secret = this.#secret
 
     data._from = {
       name: this.name,
@@ -107,7 +109,8 @@ class ChatSocketWebClient extends WebSocket {
       `&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>&6&l${type}&b ${Utils.shortenInnerHTML(
         message,
         128
-      )} \t&7${JSON.stringify(data)}`
+      )} \t&7${JSON.stringify(data, (_, value) => (typeof value === 'string' ? value + '&7' : value))}`,
+      { type, message, data }
     )
   }
 
@@ -145,7 +148,7 @@ class ChatSocketWebClient extends WebSocket {
     this.sendEncoded('CHANNEL', `Selecting channel ${channel}`, { channel })
   }
 
-  log(message) {
-    this.dispatchEvent(new CustomEvent('log', { detail: { message } }))
+  log(line, { type, message, data } = {}) {
+    this.dispatchEvent(new CustomEvent('log', { detail: { line, type, message, data } }))
   }
 }
