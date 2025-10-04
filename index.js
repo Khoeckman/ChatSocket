@@ -271,13 +271,14 @@ function onmessage(type, message, data) {
   switch (type) {
     case 'DEBUG':
     case 'AUTH':
-    case 'CLIENTS':
       break
     case 'CHANNEL':
       if (!settings.wsLogChat && settings.wsPrintChannelEvent) {
         if (data.action === 'join') chat(`&e● &f${from.name}&e joined the channel.`)
         else if (data.action === 'leave') chat(`&e● &f${from.name}&e left the channel.`)
       }
+      break
+    case 'CLIENTS':
       break
     case 'CONN':
       const server = {
