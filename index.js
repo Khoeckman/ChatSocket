@@ -207,16 +207,17 @@ function registerWebSocketTriggers() {
         data = JSON.parse(message)
       } catch (err) {}
 
-      const regex = new RegExp(settings.wsChatEventFilter)
-
-      if (settings.wsEnableChatEventFilter && !regex.test(message) && !regex.test(rawMessage)) {
-        return
-      }
-
       if (!data || data.constructor !== Object) data = {}
 
-      const match = regex.exec(message)
-      ws.sendEncoded('CHAT', match[1] ?? match[0], data)
+      if (settings.wsEnableChatEventFilter) {
+        const regex = new RegExp(settings.wsChatEventFilter)
+        if (!regex.test(message) && !regex.test(rawMessage)) return
+
+        const match = regex.exec(message)
+        ws.sendEncoded('CHAT', match[1] ?? match[0], data)
+      } else {
+        ws.sendEncoded('CHAT', message, data)
+      }
 
       // `ws.sendEncoded` already prints the message if `settings.wsLogChat` is true, so prevent double printing it
       if (settings.wsLogChat) cancel(event)
@@ -302,7 +303,6 @@ function onmessage(type, message, data) {
       ChatLib.command(message, data.clientSide === true || data.clientSide === 'true')
       break
     case 'EXEC':
-      chat('here')
       if (!settings.wsDoExecEvent) break
 
       try {
