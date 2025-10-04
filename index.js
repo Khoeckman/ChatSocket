@@ -201,22 +201,22 @@ function registerWebSocketTriggers() {
       const rawMessage = ChatLib.getChatMessage(event)
       const message = ChatLib.getChatMessage(event, true)
 
-      let data
+      let json
 
       try {
-        data = JSON.parse(message)
+        json = JSON.parse(message)
       } catch (err) {}
 
-      if (!data || data.constructor !== Object) data = {}
+      if (!json || json.constructor !== Object) json = undefined
 
       if (settings.wsEnableChatEventFilter) {
         const regex = new RegExp(settings.wsChatEventFilter)
         if (!regex.test(message) && !regex.test(rawMessage)) return
 
         const match = regex.exec(message)
-        ws.sendEncoded('CHAT', match[1] ?? match[0], data)
+        ws.sendEncoded('CHAT', message, { json, match, groups: match.groups })
       } else {
-        ws.sendEncoded('CHAT', message, data)
+        ws.sendEncoded('CHAT', message, { json })
       }
 
       // `ws.sendEncoded` already prints the message if `settings.wsLogChat` is true, so prevent double printing it
