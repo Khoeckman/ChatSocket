@@ -60,7 +60,7 @@ class ChatSocketWebClient extends WebSocket {
   #onmessage(event) {
     const { type, message, data } = ChatSocketProtocol.decodeMessage(event.data)
     this.log(
-      `&2➔ &6&l${type}&a ${message} &7${JSON.stringify(data, (_, value) =>
+      `&2➔ &6&l${type}&a ${message} \t&7${JSON.stringify(data, (_, value) =>
         typeof value === 'string' ? value + '&7' : value
       )}`
     )
@@ -111,7 +111,7 @@ class ChatSocketWebClient extends WebSocket {
       `&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>&6&l${type}&b ${Utils.shortenInnerHTML(
         message,
         128
-      )} &7${JSON.stringify(data)}`
+      )} \t&7${JSON.stringify(data)}`
     )
   }
 

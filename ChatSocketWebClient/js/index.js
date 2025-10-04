@@ -45,52 +45,6 @@ function connect() {
 
 connect()
 
-/**
- * Handles incoming WebSocket messages from {@link ChatSocketWebClient}.
- *
- * When registered with `ws.addEventListener("message", onmessage)`,
- * this function is invoked with `this` bound to the active WebSocket
- * client instance.
- *
- * @this {ChatSocketWebClient} The WebSocket client that received the message.
- * @param {string} type - The high-level message type (e.g. "AUTH", "CHAT", "EXEC").
- * @param {string} message - The human-readable message string from the server.
- * @param {Object<string, any>} [data={}] - Structured message data payload.
- *
- * @example
- * ws.addEventListener("message", onmessage)
- *
- * function onmessage(type, message, data) {
- *   this.log(this.url, type, message, data)
- * }
- */
-function onmessage(type, message, data = {}) {
-  switch (type) {
-    case 'DEBUG':
-    case 'AUTH':
-    case 'CLIENTS':
-    case 'CHANNEL':
-      break
-    case 'CHANNELS':
-    case 'CONN':
-    case 'CONNECT':
-    case 'DISCONNECT':
-    case 'CHAT':
-      if (message !== 'tp 0 2 0') break
-
-      const [_, x, y, z] = /^tp\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)$/.exec(message)
-      ws.sendEncoded('CMD', `tp ~${x} ~${y} ~${z}`)
-      break
-    case 'SAY':
-    case 'CMD':
-    case 'EXEC':
-      break
-    default:
-      ws.log(`&cWebSocketError: &fUnsupported message type '${type}'`)
-      break
-  }
-}
-
 // Log
 function onlog({ detail: { message } }) {
   const logEl = document.getElementById('log')
