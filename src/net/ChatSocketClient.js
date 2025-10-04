@@ -28,7 +28,7 @@ export default class ChatSocketClient {
     this.autoconnect = true
     this.hasConnected = false
 
-    this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 1)
+    this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 2)
     this.disconnectingMessageId = this.connectingMessageId + 1
 
     this.onmessage = null
@@ -81,13 +81,8 @@ export default class ChatSocketClient {
 
           ws.deleteConnectingMessage()
           ws.deleteDisconnectingMessage()
-
-          // Force close
-          ws.readyState = ChatSocketClient.CLOSED
-          ws.client.close()
         },
         onClose(code, reason, remote) {
-          ws.readyState = ChatSocketClient.CLOSED
           ws.deleteDisconnectingMessage()
 
           ws.isAuth = false
@@ -105,6 +100,8 @@ export default class ChatSocketClient {
           }
 
           if (remote && reason && typeof reason === 'string' && reason.length) chat('&cReason: &f' + reason)
+
+          if (ws.readyState !== ChatSocketClient.CLOSED) ws.readyState = ChatSocketClient.CLOSED
         },
       },
       this.url

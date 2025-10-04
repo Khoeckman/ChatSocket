@@ -96,7 +96,7 @@ export const runCall = (expr) => {
   let fn = ctx[path[path.length - 1]]
   if (typeof fn !== 'function') throw new Error('Target is not a function: ' + path.join('.'))
 
-  return fn.apply(ctx, args)
+  return fn.apply(global, args)
 }
 
 /**
