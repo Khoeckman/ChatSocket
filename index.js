@@ -214,7 +214,7 @@ function registerWebSocketTriggers() {
         if (!regex.test(message) && !regex.test(rawMessage)) return
 
         const match = regex.exec(message)
-        ws.sendEncoded('CHAT', message, { json, match, groups: match.groups })
+        ws.sendEncoded('CHAT', message, { json, match })
       } else {
         ws.sendEncoded('CHAT', message, { json })
       }
