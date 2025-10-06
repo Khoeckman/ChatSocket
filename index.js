@@ -39,7 +39,6 @@ try {
             '&e/cs &6st&eatus &7 Prints the status of the &fWebSocket&7.',
             // '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
-            '&e/cs &7 Prints this dialog.',
           ])
           break
 
@@ -122,16 +121,24 @@ try {
     }
   })
 
-  register('gameLoad', () => {
-    chat('&eModule loaded. Type "/cs" for help.')
-    metadata.printVersionStatus()
-  })
-
   register('gameUnload', () => {
     // Close WebSocket when unloading the module
     try {
       ws.close()
     } catch (err) {}
+  })
+
+  const firstWorldLoad = register('worldLoad', (event) => {
+    try {
+      chat('&eModule loaded. Type "/cs" for help.')
+      metadata.printVersionStatus()
+
+      ws.printConnectionStatus()
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    } finally {
+      firstWorldLoad.unregister()
+    }
   })
 
   registerWebSocketTriggers()
