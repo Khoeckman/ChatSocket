@@ -15,6 +15,10 @@
   width: fit-content;
 }
 
+#chatSocket .status {
+  min-width: 10rem;
+}
+
 #chatSocket .message {
   flex: 2 1 16rem;
 }
@@ -40,14 +44,14 @@
 
 #chatSocketStatus {
   content: attr(data-ready-state);
-  display: flex;
-  align-items: center;
+  display: inline-block;
   background-color: #0003;
   border: 1px solid var(--c48);
   border-radius: 1rem;
   font-size: 1rem;
   line-height: 1.5;
   color: var(--fg);
+  vertical-align: middle;
   padding: 0 0.75rem;
   transition: border-color 250ms, color 250ms;
 }
