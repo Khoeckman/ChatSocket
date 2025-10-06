@@ -15,10 +15,6 @@
   width: fit-content;
 }
 
-#chatSocket .status {
-  min-width: 10rem;
-}
-
 #chatSocket .message {
   flex: 2 1 16rem;
 }
@@ -130,4 +126,10 @@
 
 #log > span:hover {
   background-color: var(--c12);
+}
+
+@media (max-width: 40em) {
+  #chatSocket h1 {
+    flex-flow: column;
+  }
 }
