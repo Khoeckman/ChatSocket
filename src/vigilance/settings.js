@@ -1,5 +1,5 @@
 import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @DecimalSliderProperty, @NumberProperty, @ParagraphProperty, @PercentSliderProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
-import { PREFIX, rng } from '../utils'
+import { rng } from '../utils'
 
 const Long = Java.type('java.lang.Long')
 

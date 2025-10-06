@@ -1,3 +1,6 @@
+/// <reference types="../../../CTAutocomplete" />
+/// <reference lib="es2015" />
+
 import { error } from './'
 
 const Timer = Java.type('java.util.Timer')

@@ -1,3 +1,6 @@
+/// <reference types="../../../CTAutocomplete" />
+/// <reference lib="es2015" />
+
 import { chat, error } from './'
 import settings from '../vigilance/Settings'
 

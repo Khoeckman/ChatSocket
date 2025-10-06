@@ -1,3 +1,6 @@
+/// <reference types="../../../CTAutocomplete" />
+/// <reference lib="es2015" />
+
 import ChatSocketProtocol from './ChatSocketProtocol'
 import { randomInt, chat, error, dialog } from '../utils'
 import settings from '../vigilance/Settings'

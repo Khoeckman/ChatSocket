@@ -1,3 +1,6 @@
+/// <reference types="../../../CTAutocomplete" />
+/// <reference lib="es2015" />
+
 const Random = Java.type('java.util.Random')
 
 export const PREFIX = '&7[&6&lCS&7]&r '
