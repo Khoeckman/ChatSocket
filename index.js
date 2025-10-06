@@ -36,7 +36,7 @@ try {
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6r&eeconnect &7 Reconnects to the &fWebSocket&7.',
-            '&e/cs &6st&eatus &7 Prints the status of the &fWebSocket&7.',
+            '&e/cs &6st&eatus &7 Prints info of the &fWebSocket&7.',
             // '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
           ])

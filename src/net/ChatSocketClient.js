@@ -190,7 +190,7 @@ export default class ChatSocketClient {
   }
 
   printConnectionStatus() {
-    dialog('&eWebSocket status', [
+    dialog('&eWebSocket connection', [
       '&eURL &f ' + this.url,
       '&eStatus &7 ' + ['&6&lCONNECTING', '&a&lOPEN', '&c&lCLOSING', '&c&lCLOSED'][this.readyState ?? 3],
       '&eAuthenticated &7 ' + (this.isAuth ? '&a&lYES' : '&c&lNO'),
