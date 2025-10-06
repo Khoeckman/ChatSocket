@@ -8,10 +8,11 @@ ChatSocket enables you to interact with Minecraft programmatically **without mod
 ## Installation
 
 1. Install [ChatTriggers](https://github.com/ChatTriggers/ChatTriggers/releases)
-2. Download `ChatSocket.zip` from [Releases](https://github.com/Khoeckman/ChatSocket/releases/latest)
-3. Extract `ChatSocket.zip` to `%appdata%/.minecraft/config/ChatTriggers/modules/`
-4. Launch Minecraft or reload all ChatTriggers modules with `/ct load`.
-5. You should see: `[CS] Module Loaded. Type "/cs" for help.`
+2. Download `Source code.zip` from [Releases](https://github.com/Khoeckman/ChatSocket/releases/latest)
+3. Extract `Source code.zip` into `%appdata%/.minecraft/config/ChatTriggers/modules/ChatSocket`
+4. Make sure the `metadata.json` file is located at `%appdata%/.minecraft/config/ChatTriggers/modules/ChatSocket/metadata.json`
+5. Reload all ChatTrigger modules with `/ct load`.
+6. In chat should appear: `[CS] Module Loaded. Type "/cs" for help.`
 
 ## Architecture
 
