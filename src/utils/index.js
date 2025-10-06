@@ -1,6 +1,6 @@
 const Random = Java.type('java.util.Random')
 
-export const PREFIX = '&7[&6ChatSocket&7]&r '
+export const PREFIX = '&7[&6&lCS&7]&r '
 export const TAB = '    '
 
 // Java

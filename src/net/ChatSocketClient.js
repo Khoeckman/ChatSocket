@@ -1,6 +1,6 @@
 import ChatSocketProtocol from './ChatSocketProtocol'
 import { randomInt, chat, error, dialog } from '../utils'
-import settings from '../vigilance/settings'
+import settings from '../vigilance/Settings'
 
 const URI = Java.type('java.net.URI')
 const WebSocketClient = Java.type('org.java_websocket.client.WebSocketClient')

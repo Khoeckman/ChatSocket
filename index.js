@@ -3,20 +3,22 @@
 /// <reference lib="es2015" />
 
 import { chat, error, dialog, runCall } from './src/utils'
-import settings from './src/vigilance/settings'
-import metadata from './src/utils/metadata'
+import settings from './src/vigilance/Settings'
+import metadata from './src/utils/Metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
-import FIFO from './src/utils/FIFO'
+import Queue from './src/utils/Queue'
 
 // const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
+
+let isWorldLoadedOnGameLoad = null
 
 let ws = new ChatSocketClient(settings.wsURL)
 ws.autoconnect = true
 
-const cmdQueue = new FIFO(settings.wsCmdEventCooldown | 0, (cmd) => {
+const cmdQueue = new Queue(settings.wsCmdEventCooldown | 0, (cmd) => {
   ChatLib.command(cmd)
-  // if (!settings.wsDoCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
-  // ws.sendEncoded('CMD', cmd)
+  if (!settings.wsDoCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
+  ws.sendEncoded('CMD', cmd)
 })
 
 try {
@@ -114,16 +116,24 @@ try {
       if (cmdQueue.cooldown !== settings.wsCmdEventCooldown) {
         cmdQueue.cooldown = settings.wsCmdEventCooldown
       }
-      cmdQueue.queue(cmd)
+
+      if (cmdQueue.isExecuting) return
+
+      cmdQueue.queue(cmd.slice(1))
       cancel(event)
     } catch (err) {
       error(err, settings.printStackTrace)
     }
   })
 
+  register('gameLoad', () => {
+    isWorldLoadedOnGameLoad = World.isLoaded()
+  })
+
   register('gameUnload', () => {
     // Close WebSocket when unloading the module
     try {
+      cmdQueue.clear() // gc
       ws.close()
     } catch (err) {}
   })
@@ -133,7 +143,7 @@ try {
       chat('&eModule loaded. Type "/cs" for help.')
       metadata.printVersionStatus()
 
-      ws.printConnectionStatus()
+      if (!isWorldLoadedOnGameLoad) ws.printConnectionStatus()
     } catch (err) {
       error(err, settings.printStackTrace)
     } finally {

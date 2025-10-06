@@ -1,5 +1,5 @@
 import { chat, error } from './'
-import settings from '../vigilance/settings'
+import settings from '../vigilance/Settings'
 
 class Metadata {
   constructor(moduleName, fileName, remoteURL = 'null') {

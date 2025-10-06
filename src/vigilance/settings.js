@@ -3,7 +3,7 @@ import { PREFIX, rng } from '../utils'
 
 const Long = Java.type('java.lang.Long')
 
-@Vigilant('ChatSocket', PREFIX.replaceAll('&', '§') + 'Settings', {
+@Vigilant('ChatSocket', '§6ChatSocket §eSettings', {
   getCategoryComparator: () => (a, b) => {
     const categories = ['General', 'WebSocket', 'Debug']
     return categories.indexOf(a.name) - categories.indexOf(b.name)

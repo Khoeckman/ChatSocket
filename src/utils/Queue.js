@@ -3,19 +3,21 @@ import { chat, error } from './'
 const Timer = Java.type('java.util.Timer')
 const TimerTask = Java.type('java.util.TimerTask')
 
-export default class FIFO {
+export default class Queue {
   _cooldown = 0
   _timer = null
   _executeFn = null
-  fifo = []
+  isExecuting = false
+  lastExecution = 0
 
   constructor(cooldown, executeFn) {
     this._cooldown = cooldown
     this.executeFn = executeFn
-    this.resume()
+
+    this.clear()
+    this.pause()
   }
 
-  // --- Cooldown ---
   set cooldown(cd) {
     if (typeof cd !== 'number' || cd < 0) throw new TypeError('cooldown is not a positive number')
     this._cooldown = cd
@@ -36,11 +38,8 @@ export default class FIFO {
   }
 
   queue(entry) {
-    chat('queue: ' + entry + ' / ' + this._timer)
     this.fifo.push(entry)
-
-    this.pause()
-    this.resume()
+    if (!this._timer) this.resume()
   }
 
   clear() {
@@ -58,11 +57,18 @@ export default class FIFO {
     this.pause()
 
     const timer = new Timer()
+
     const run = () => {
       try {
-        chat('tick')
+        chat('tick queue length: ' + this.fifo.length)
+        if (!this.fifo.length) {
+          this.pause()
+          return
+        }
 
-        const entry = this.fifo.shift()
+        let entry = this.fifo.shift()
+
+        chat(entry)
 
         if (!entry) {
           this.pause()
@@ -71,20 +77,22 @@ export default class FIFO {
 
         if (typeof entry !== 'string') return
 
-        Client.scheduleTask(() => {
-          try {
-            this._executeFn(entry)
-          } catch (err) {
-            error(err, settings.printStackTrace)
-          }
-        })
+        this.isExecuting = true
+        this.lastExecution = Date.now()
+        this._executeFn(entry)
       } catch (err) {
         error(err, settings.printStackTrace)
         this.pause()
+      } finally {
+        this.isExecuting = false
       }
     }
 
-    timer.schedule(new TimerTask({ run }), 0, this._cooldown)
+    timer.schedule(
+      new TimerTask({ run }),
+      Math.max(this._cooldown - (Date.now() - this.lastExecution), 0),
+      this._cooldown
+    )
     this._timer = timer
   }
 }
