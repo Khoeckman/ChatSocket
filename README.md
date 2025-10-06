@@ -1,9 +1,9 @@
 # ChatSocket
 
 **A ChatTriggers module**\
-ChatSocket lets you quickly set up a WebSocket connection for real‑time ChatTriggers events, acting as a bridge between Minecraft and the web.
+Configure and open a WebSocket connection to send and receive ChatTrigger events in real time.
 
-It enables you to interact with Minecraft programmatically **without modifying its internal code**, using **WebSocket communication** to exchange messages with external programs.
+ChatSocket enables you to interact with Minecraft programmatically **without modifying its internal code**, using **WebSocket communication** to exchange messages with external programs.
 
 ## Installation
 
@@ -11,11 +11,11 @@ It enables you to interact with Minecraft programmatically **without modifying i
 2. Download `ChatSocket.zip` from [Releases](https://github.com/Khoeckman/ChatSocket/releases/latest)
 3. Extract `ChatSocket.zip` to `%appdata%/.minecraft/config/ChatTriggers/modules/`
 4. Launch Minecraft or reload all ChatTriggers modules with `/ct load`.
-5. You should see: `[ChatSocket] Module Loaded. Type "/cs" for help.`
+5. You should see: `[CS] Module Loaded. Type "/cs" for help.`
 
 ## Architecture
 
-**Client** (Minecraft + ChatSocket) ↔ **Server** (WebSocket server) ↔ **Controller** (Any program that connects to the WebSocket server)
+**Client** (Minecraft + ChatSocket) ↔ **Server** (WebSocket server) ↔ **Controller** (Any program connected to the Server)
 
 Clients and controllers can only communicate if they connect to the same server and use the same channel.
 
@@ -33,27 +33,28 @@ Configure the WebSocket server with the `.env` file located in `./WebSocketServe
 ### Start the Server
 
 1. Open a terminal.
-2. Navigate to the server directory: `cd WebSocketServer`
-3. Install dependencies and run:
+2. Navigate to the server directory: `cd WebSocketServer/`
+3. Install dependencies and start the server:
 
 ```bash
 npm install
 npm run wss
 ```
 
-On success the terminal will print: _ChatSocket server running on [ws://localhost:47576](ws://localhost:47576)_
+On success the terminal will print: _ChatSocket server running on ws://localhost:47576_
 
-### Minecraft Setup
+## Minecraft Setup
 
-In Minecraft, run `/cs settings` to open the ChatSocket settings GUI. Make sure the `URL` is set to your WebSocket server address.
+In Minecraft (Forge 1.8.9), run `/cs settings` to open the ChatSocket settings GUI. Make sure the `URL` is set to your WebSocket server address.
 
-You must also select a **Channel**. Think of a channel like a radio frequency: your Minecraft client can only be tuned to one channel at a time. To communicate, every controller or external client you want to interact with must connect to the same server and use the exact same channel. If they are on different channels, they will not receive each other's messages.
+You must also select a **Channel**. Think of it like a radio frequency: your Minecraft client can only be set to one channel at a time. To communicate, every controller or external client you want to interact with must connect to the same server and use the same channel. If they are on different channels, they will not receive each other's messages.
 
 ![ChatSocket settings GUI in Minecraft](img/ChatSocketSettings.png)
 
-### Connecting External Clients
+## Connecting External Clients
 
-Refer to the `./ChatSocketController` directory for a example implementation. You can use this as a starting point to build your own external programs that connect to the ChatSocket server. That way it can communicate with Minecraft clients in real time.
+Refer to the `ChatSocketController/` directory for a demo. You can use this as a starting point to build your own external programs that connect to the ChatSocket server. That way it can communicate with Minecraft clients in real time.
+Making changes to this program does not require you to reload or modify anything inside Minecraft, saving time.
 
 ## Credits
 
