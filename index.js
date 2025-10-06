@@ -6,11 +6,18 @@ import { chat, error, dialog, runCall } from './src/utils'
 import settings from './src/vigilance/settings'
 import metadata from './src/utils/metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
+import FIFO from './src/utils/FIFO'
 
 // const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
 
 let ws = new ChatSocketClient(settings.wsURL)
 ws.autoconnect = true
+
+const cmdQueue = new FIFO(settings.wsCmdEventCooldown | 0, (cmd) => {
+  ChatLib.command(cmd)
+  // if (!settings.wsDoCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
+  // ws.sendEncoded('CMD', cmd)
+})
 
 try {
   register('command', (command, ...args) => {
@@ -25,7 +32,7 @@ try {
         case 'help':
           dialog('&eCommands', [
             '&e/cs &6s&eettings &7 Opens the settings GUI.',
-            '&e/cs &6s&eettings sync &7 Syncs the config.toml&7 with the settings GUI.',
+            '&e/cs &6s&eettings sync &7 Syncs the config.toml&7 with the GUI.',
             '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6r&eeconnect &7 Reconnects to the &fWebSocket&7.',
@@ -100,6 +107,21 @@ try {
     .setName('cs')
     .setAliases('chatsocket')
 
+  // Queue commands
+  register('messageSent', (cmd, event) => {
+    try {
+      if (!settings.wsEnableCmdEventCooldown || !cmd.startsWith('/') || cmd === '/locraw') return
+
+      if (cmdQueue.cooldown !== settings.wsCmdEventCooldown) {
+        cmdQueue.cooldown = settings.wsCmdEventCooldown
+      }
+      cmdQueue.queue(cmd)
+      cancel(event)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
   register('gameLoad', () => {
     chat('&eModule loaded. Type "/cs" for help.')
     metadata.printVersionStatus()
@@ -154,7 +176,14 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('CONNECT', ws.name + ' connected to ' + Server.getIP(), {
+      const server = {
+        name: Server.getName(),
+        motd: Server.getMOTD(),
+        ip: Server.getIP(),
+      }
+
+      ws.sendEncoded('CONNECT', `${ws.name} connected to ${server.ip}`, {
+        server,
         isLocal: event.isLocal,
         connectionType: event.connectionType,
       })
@@ -167,28 +196,13 @@ function registerWebSocketTriggers() {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('DISCONNECT', ws.name + ' disconnected from server')
-    } catch (err) {
-      error(err, settings.printStackTrace)
-    }
-  })
-
-  register('messageSent', (message) => {
-    try {
-      // Hypixel polls this command
-      if (message === '/locraw') return
-
-      const type = message.startsWith('/') ? 'CMD' : 'SAY'
-
-      if (
-        (!settings.wsDoSayEvent && type === 'SAY') ||
-        (!settings.wsDoCmdEvent && type === 'CMD') ||
-        ws.readyState !== ChatSocketClient.OPEN
-      ) {
-        return
+      const server = {
+        name: Server.getName(),
+        motd: Server.getMOTD(),
+        ip: Server.getIP(),
       }
 
-      ws.sendEncoded(type, message)
+      ws.sendEncoded('DISCONNECT', `${ws.name} disconnected from ${server.ip}`, { server })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -211,6 +225,8 @@ function registerWebSocketTriggers() {
 
       if (settings.wsEnableChatEventFilter) {
         const regex = new RegExp(settings.wsChatEventFilter)
+
+        // Ignore if RegEx filter fails on both color coded and raw message
         if (!regex.test(message) && !regex.test(rawMessage)) return
 
         const match = regex.exec(message)
@@ -221,6 +237,22 @@ function registerWebSocketTriggers() {
 
       // `ws.sendEncoded` already prints the message if `settings.wsLogChat` is true, so prevent double printing it
       if (settings.wsLogChat) cancel(event)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
+  register('messageSent', (message) => {
+    try {
+      // Hypixel polls this command
+      if (message === '/locraw') return
+
+      const type = message.startsWith('/') ? 'CMD' : 'SAY'
+
+      if ((!settings.wsDoSayEvent && type === 'SAY') || type === 'CMD' || ws.readyState !== ChatSocketClient.OPEN)
+        return
+
+      ws.sendEncoded(type, message)
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -286,10 +318,18 @@ function onmessage(type, message, data) {
         motd: Server.getMOTD(),
         ip: Server.getIP(),
       }
-      this.sendEncoded('CONN', this.name + ' is ' + (server.ip ? 'connected to ' + server.ip : 'disconnected'), server)
+      this.sendEncoded('CONN', `${this.name} is ${server.ip ? 'connected to ' + server.ip : 'disconnected'}`, {
+        server,
+      })
       break
     case 'CONNECT':
-      Client.connect(message)
+      Client.connect(
+        typeof data.ip === 'string'
+          ? data.ip
+          : data.server && data.server.constructor === Object && typeof data.server.ip === 'string'
+          ? data.server.ip
+          : message
+      )
       break
     case 'DISCONNECT':
       Client.disconnect()

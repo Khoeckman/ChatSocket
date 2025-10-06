@@ -1,4 +1,4 @@
-import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @NumberProperty, @ParagraphProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
+import { @Vigilant, @ButtonProperty, @CheckboxProperty, @ColorProperty, @DecimalSliderProperty, @NumberProperty, @ParagraphProperty, @PercentSliderProperty, @SelectorProperty, @SliderProperty, @SwitchProperty, @TextProperty } from './'
 import { PREFIX, rng } from '../utils'
 
 const Long = Java.type('java.lang.Long')
@@ -27,6 +27,8 @@ const Long = Java.type('java.lang.Long')
       'CHAT Event RegEx Capture',
       'Send SAY Events',
       'Send CMD Events',
+      'Enable CMD Event Cooldown',
+      'CMD Event Cooldown',
       'Execute EXEC Events',
       'Chat Logger',
       'File Logger',
@@ -39,6 +41,8 @@ const Long = Java.type('java.lang.Long')
 })
 class Settings {
   // General
+
+  // General > Version
 
   @CheckboxProperty({
     name: 'Check Latest Version',
@@ -68,6 +72,8 @@ class Settings {
   })
   wsAutoconnect = true
 
+  // WebSocket > Security
+
   @TextProperty({
     name: 'Name',
     description: `The name for this ChatSocket client. Defaults to: ${Player.getName()}.`,
@@ -93,6 +99,8 @@ class Settings {
     protected: true,
   })
   wsChannel = 'Project_' + rng.nextInt().toString(36)
+
+  // WebSocket > Events
 
   @CheckboxProperty({
     name: 'Print CHANNEL Events',
@@ -136,6 +144,25 @@ class Settings {
   })
   wsDoCmdEvent = true
 
+  @SwitchProperty({
+    name: 'Enable CMD Event Cooldown',
+    description: 'Prevent getting kicked for sending commands too fast.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsEnableCmdEventCooldown = true
+
+  @DecimalSliderProperty({
+    name: 'CMD Event Cooldown',
+    description: 'Amount of milliseconds between execution of commands.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+    minF: 0,
+    maxF: 1000,
+    decimalPlaces: 0,
+  })
+  wsCmdEventCooldown = '200.0'
+
   @CheckboxProperty({
     name: 'Execute EXEC Events',
     description: 'EXEC events allow other clients to invoke methods on your Minecraft instance.',
@@ -145,6 +172,8 @@ class Settings {
   wsDoExecEvent = false
 
   // Debug
+
+  // Debug > Logger
 
   @SwitchProperty({
     name: 'Chat Logger',
@@ -169,6 +198,8 @@ class Settings {
     subcategory: 'Logger',
   })
   logFileDir = './config/ChatTriggers/modules/ChatSocket/log/' */
+
+  // Debug > Errors
 
   @CheckboxProperty({
     name: 'Stack Trace',
@@ -200,6 +231,9 @@ class Settings {
     // })
 
     this.addDependency('CHAT Event RegEx Capture', 'Enable CHAT Event RegEx Capture')
+
+    this.addDependency('CMD Event Cooldown', 'Enable CMD Event Cooldown')
+
     // this.addDependency('File Logger Directory', 'File Logger')
   }
 }

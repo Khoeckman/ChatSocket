@@ -60,12 +60,25 @@ const DecoratorCollector = config => ({
 })
 
 export function createPropertyAttributesExt(propertyType, configObj) {
-  return new PropertyAttributesExt(
-    propertyType, configObj.name, configObj.category, configObj.subcategory ?? '', configObj.description ?? '', configObj.min ?? 0, configObj.max ?? 0,
-    configObj.minF ?? 0, configObj.maxF ?? 0, configObj.decimalPlaces ?? 1, configObj.increment ?? 1, configObj.options ?? new java.util.ArrayList(),
-    configObj.allowAlpha ?? true, configObj.placeholder ?? '', configObj.protected ?? false, configObj.triggerActionOnInitialization ?? true, configObj
-    .hidden ?? false
-  )
+    return new PropertyAttributesExt(
+        propertyType,
+        configObj.name,
+        configObj.category,
+        configObj.subcategory ?? '',
+        configObj.description ?? '',
+        configObj.min ?? 0,
+        configObj.max ?? 0,
+        configObj.minF ?? 0,
+        configObj.maxF ?? 0,
+        configObj.decimalPlaces ?? 1,
+        configObj.increment ?? 1,
+        configObj.options ?? new java.util.ArrayList(),
+        configObj.allowAlpha ?? true,
+        configObj.placeholder ?? '',
+        configObj.protected ?? false,
+        configObj.triggerActionOnInitialization ?? true,
+        configObj.hidden ?? false,
+    )
 }
 
 export decorator @Vigilant(
