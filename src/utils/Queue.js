@@ -1,4 +1,4 @@
-import { chat, error } from './'
+import { error } from './'
 
 const Timer = Java.type('java.util.Timer')
 const TimerTask = Java.type('java.util.TimerTask')
@@ -60,15 +60,11 @@ export default class Queue {
 
     const run = () => {
       try {
-        chat('tick queue length: ' + this.fifo.length)
         if (!this.fifo.length) {
           this.pause()
           return
         }
-
-        let entry = this.fifo.shift()
-
-        chat(entry)
+        const entry = this.fifo.shift()
 
         if (!entry) {
           this.pause()
