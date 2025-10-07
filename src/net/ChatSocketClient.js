@@ -200,6 +200,7 @@ export default class ChatSocketClient {
       '&eChannel &7 ' + this.channel,
       '&eName &7 ' + this.name,
       '&eUUID &7 ' + this.uuid,
+      '&eUser Agent &7 ' + this.userAgent,
     ])
   }
 
