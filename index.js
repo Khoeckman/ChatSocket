@@ -198,9 +198,9 @@ function registerWebSocketTriggers() {
         name: Server.getName(),
         motd: Server.getMOTD(),
         ip: Server.getIP(),
+        ping: Server.getPing(),
       }
-
-      ws.sendEncoded('CONNECT', `${ws.name} connected to ${server.ip}`, {
+      ws.sendEncoded('CONNECT', `${ws.name} connected to ${server && server.ip ? server.ip : 'unknown'}`, {
         server,
         isLocal: event.isLocal,
         connectionType: event.connectionType,
@@ -218,9 +218,11 @@ function registerWebSocketTriggers() {
         name: Server.getName(),
         motd: Server.getMOTD(),
         ip: Server.getIP(),
+        ping: Server.getPing(),
       }
-
-      ws.sendEncoded('DISCONNECT', `${ws.name} disconnected from ${server.ip}`, { server })
+      ws.sendEncoded('DISCONNECT', `${ws.name} disconnected from ${server && server.ip ? server.ip : 'unknown'}`, {
+        server,
+      })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -230,7 +232,7 @@ function registerWebSocketTriggers() {
     try {
       const world = World.getWorld()
 
-      ws.sendEncoded('WORLD', `${ws.name} disconnected from ${server.ip}`, { world })
+      ws.sendEncoded('WORLD', 'World loaded', { world })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -349,7 +351,7 @@ function onmessage(type, message, data) {
       }
       this.sendEncoded(
         'CONN',
-        `${this.name} is ${server.ip ? 'connected to ' + server.ip : 'not connected to any server'}`,
+        `${this.name} is ${server && server.ip ? 'connected to ' + server.ip : 'not connected to any server'}`,
         { server }
       )
       break
