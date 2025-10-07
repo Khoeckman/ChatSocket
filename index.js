@@ -272,6 +272,16 @@ function registerWebSocketTriggers() {
     }
   })
 
+  register('command', (command, ...args) => {
+    try {
+      if (!settings.wsDoClientCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
+
+      ws.sendEncoded('CLIENT_CMD', command, { command, args: [...args] })
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
   register('messageSent', (message) => {
     try {
       // Hypixel polls this command
