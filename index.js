@@ -2,7 +2,7 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-import { chat, error, dialog, runCall } from './src/utils'
+import { chat, error, dialog, runCall, reflectJavaObject } from './src/utils'
 import settings from './src/vigilance/Settings'
 import metadata from './src/utils/Metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
@@ -139,7 +139,7 @@ try {
     } catch (err) {}
   })
 
-  const firstWorldLoad = register('worldLoad', (event) => {
+  const firstWorldLoad = register('worldLoad', () => {
     try {
       chat('&eModule loaded. Type "/cs" for help.')
       metadata.printVersionStatus()
@@ -228,11 +228,23 @@ function registerWebSocketTriggers() {
     }
   })
 
-  register('worldLoad', (event) => {
+  register('worldLoad', () => {
     try {
-      const world = World.getWorld()
+      if (ws.readyState !== ChatSocketClient.OPEN) return
 
-      ws.sendEncoded('WORLD', 'World loaded', { world })
+      const world = World.getWorld()
+      ws.sendEncoded('LOAD', 'World loaded', { world: String(world) })
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
+  register('worldUnload', () => {
+    try {
+      if (ws.readyState !== ChatSocketClient.OPEN) return
+
+      const world = World.getWorld()
+      ws.sendEncoded('UNLOAD', 'World unloaded', { world: String(world) })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -272,7 +284,7 @@ function registerWebSocketTriggers() {
     }
   })
 
-  register('command', (command, ...args) => {
+  /* register('command', (command, ...args) => {
     try {
       if (!settings.wsDoClientCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
 
@@ -280,17 +292,17 @@ function registerWebSocketTriggers() {
     } catch (err) {
       error(err, settings.printStackTrace)
     }
-  })
+  }) */
 
   register('messageSent', (message) => {
     try {
       // Hypixel polls this command
-      if (message === '/locraw') return
+      if (ws.readyState !== ChatSocketClient.OPEN || message === '/locraw') return
 
       const isCommand = message.startsWith('/')
       const type = isCommand ? 'SERVER_CMD' : 'SERVER_SAY'
 
-      if ((!settings.wsDoSayEvent && !isCommand) || isCommand || ws.readyState !== ChatSocketClient.OPEN) return
+      if ((!settings.wsDoSayEvent && !isCommand) || isCommand) return
 
       ws.sendEncoded(type, message)
     } catch (err) {
