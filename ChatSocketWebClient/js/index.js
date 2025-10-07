@@ -1,3 +1,4 @@
+// Theres no need to modify this file, instead look into app.js
 const chatSocketStatus = document.getElementById('chatSocketStatus')
 const chatSocketForm = document.getElementById('chatSocket')
 
@@ -18,15 +19,17 @@ function updateReadyState(readyState) {
 let ws = null
 let retryCount = 0
 
-function connect() {
+window.onload = () => {
   ws = new ChatSocketWebClient(false ? 'ws://legendarygames.dev:47576' : 'ws://localhost:47576', {
     name: 'WebClient',
     [atob('c2VjcmV0')]: atob('OGRmODJhN2FjYmU0ZjAxNWE1NGE2OGU1MTE5ODJhNWM'),
     userAgent: window.navigator.userAgent,
     channel: 'Hypixel',
-    onmessage,
     onlog,
   })
+
+  // Custom logic
+  new App(ws)
 
   updateReadyState(ws.readyState)
 
@@ -46,8 +49,6 @@ function connect() {
     setTimeout(connect, Math.min(30000, 2000 * Math.pow(1.25, retryCount++)))
   })
 }
-
-connect()
 
 // Log
 function onlog({ detail: { line, type, message, data } }) {
