@@ -368,20 +368,23 @@ function onmessage(type, message, data) {
     case 'WORLD':
       const world = World.getWorld()
       chat(world)
-      this.sendEncoded('WORLD', '', { world: '' })
+      this.sendEncoded('WORLD', String(world))
       break
     case 'JOIN':
     case 'LEAVE':
       // @todo
       break
-    case 'CHAT':
+    case 'CLIENT_SAY':
       if (!settings.wsLogChat) ChatLib.chat(message)
       break
-    case 'SAY':
+    case 'SERVER_SAY':
       ChatLib.say(message)
       break
-    case 'CMD':
-      ChatLib.command(message, data.clientSide === true || data.clientSide === 'true')
+    case 'CLIENT_CMD':
+      ChatLib.command(message, true)
+      break
+    case 'SERVER_CMD':
+      ChatLib.command(message)
       break
     case 'EXEC':
       if (!settings.wsDoExecEvent) break
