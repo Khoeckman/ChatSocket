@@ -19,16 +19,17 @@ export const randomInt = (inclMin, exclMax) => {
 
 // ChatTriggers
 export const chat = (message, id = null) => {
-  if (typeof message === 'string') {
-    message = new Message(PREFIX, message)
-  } else if (isJavaClass(message, 'com.chattriggers.ctjs.minecraft.objects.message.TextComponent')) {
+  if (
+    typeof message === 'string' ||
+    isJavaClass(message, 'com.chattriggers.ctjs.minecraft.objects.message.TextComponent')
+  ) {
     message = new Message(PREFIX, message)
   } else if (isJavaClass(message, 'com.chattriggers.ctjs.minecraft.objects.message.Message')) {
     message.addTextComponent(0, PREFIX)
   } else {
     message = new Message(PREFIX, String(message))
   }
-  if (Number.isInteger(id)) message = message.setChatLineId(id)
+  if (Number.isInteger(id)) message = message.setChatLineId(id & 0x7fffffff)
   message.chat()
 }
 
