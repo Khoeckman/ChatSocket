@@ -330,14 +330,14 @@ function registerWebSocketTriggers() {
  * @this {ChatSocketClient}
  *
  * @param {string} type
- *   Uppercase message type (e.g., "CHAT", "CMD", "SAY", "CONNECT").
+ *   Uppercase message type (e.g., "AUTH", "CHANNEL", "EXEC").
  *
  * @param {string} message
  *   The main payload of the message. Often a chat message, server IP, or command.
  *
  * @param {Object} data
  *   Structured data object sent with the message. Contents depend on `type`.
- *   For example, "CONNECT" may include `{ serverIP: string }`.
+ *   For example, "CONNECT" may include `{ ip: string }`.
  *
  * @example
  * ws.onmessage = function (type, message, data) {
@@ -372,7 +372,7 @@ function onmessage(type, message, data) {
         ping: Server.getPing(),
       }
       this.sendEncoded(
-        'CONN',
+        'SERVER',
         `${this.name} is ${server && server.ip ? 'connected to ' + server.ip : 'not connected to any server'}`,
         { server }
       )
