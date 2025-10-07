@@ -58,7 +58,7 @@
       <div class="inline">
         <label class="type">
           Type
-          <select name="type">
+          <select name="chatsocket-type">
             <option>AUTH</option>
             <option>CHANNEL</option>
             <option>CHANNELS</option>
@@ -78,20 +78,20 @@
         <label class="message">
           Message
           <span class="bytes" aria-hidden="true">(0 B)</span>
-          <input name="message" />
+          <input name="chatsocket-message" />
         </label>
 
         <label class="data">
           Data
           <span class="bytes" aria-hidden="true">(0 B)</span>
-          <input name="data" value="{}" />
+          <input name="chatsocket-data" value="{}" class="monospace" />
         </label>
 
         <button type="submit">Send</button>
       </div>
     </form>
 
-    <div id="log" aria-live="polite"></div>
+    <div id="log" class="monospace" aria-live="polite"></div>
   </main>
 
   <footer>

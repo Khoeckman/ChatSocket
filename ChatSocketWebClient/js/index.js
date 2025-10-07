@@ -1,6 +1,12 @@
 const chatSocketStatus = document.getElementById('chatSocketStatus')
 const chatSocketForm = document.getElementById('chatSocket')
 
+chatSocketForm.fields = {
+  type: chatSocketForm.querySelector('.type select'),
+  message: chatSocketForm.querySelector('.message input'),
+  data: chatSocketForm.querySelector('.data input'),
+}
+
 function updateReadyState(readyState) {
   const name = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][+readyState ?? 3]
   chatSocketStatus.innerText = name
@@ -64,14 +70,12 @@ function onlog({ detail: { line, type, message, data } }) {
 
       const { type, message, data } = JSON.parse(json)
 
-      // If `type` is an option of `chatSocketForm.elements['type']`
-      if (
-        [...chatSocketForm.elements['type'].querySelectorAll('option')].some((option) => option.textContent === type)
-      ) {
-        chatSocketForm.elements['type'].value = type
+      // If `type` is an option of `chatSocketForm.fields.type`
+      if ([...chatSocketForm.fields.type.querySelectorAll('option')].some((option) => option.textContent === type)) {
+        chatSocketForm.fields.type.value = type
       }
-      chatSocketForm.elements['message'].value = message
-      chatSocketForm.elements['data'].value = JSON.stringify(data)
+      chatSocketForm.fields.message.value = message
+      chatSocketForm.fields.data.value = JSON.stringify(data)
     })
   }
 
@@ -85,16 +89,24 @@ function onlog({ detail: { line, type, message, data } }) {
 const messageBytes = document.querySelector('.message .bytes')
 const dataBytes = document.querySelector('.data .bytes')
 
+chatSocketForm.fields.message.name = `chatsocket-message-${chatSocketForm.fields.type.value.toLowerCase()}`
+chatSocketForm.fields.data.name = `chatsocket-data-${chatSocketForm.fields.type.value.toLowerCase()}`
+
 const updateBytes = (el, value) => (el.innerText = `(${new TextEncoder().encode(value).byteLength} B)`)
 
-updateBytes(messageBytes, chatSocketForm.elements['message'].value)
-updateBytes(dataBytes, chatSocketForm.elements['data'].value)
+updateBytes(messageBytes, chatSocketForm.fields.message.value)
+updateBytes(dataBytes, chatSocketForm.fields.data.value)
 
-chatSocketForm.elements['message'].addEventListener('input', (e) => {
+chatSocketForm.fields.type.addEventListener('input', (e) => {
+  chatSocketForm.fields.message.name = `message-${e.target.value.toLowerCase()}`
+  chatSocketForm.fields.data.name = `data-${e.target.value.toLowerCase()}`
+})
+
+chatSocketForm.fields.message.addEventListener('input', (e) => {
   updateBytes(messageBytes, e.target.value)
 })
 
-chatSocketForm.elements['data'].addEventListener('input', (e) => {
+chatSocketForm.fields.data.addEventListener('input', (e) => {
   e.target.classList.remove('error')
   updateBytes(dataBytes, e.target.value)
 })
@@ -105,21 +117,21 @@ chatSocketForm.addEventListener('submit', (e) => {
   if (!ws || ws.readyState !== ChatSocketWebClient.OPEN) return
 
   const form = e.target
-  const type = form.elements['type'].value
-  const message = form.elements['message'].value
+  const type = form.fields.type.value
+  const message = form.fields.message.value
   let data = {}
 
   try {
-    data = JSON.parse(form.elements['data'].value || '{}')
+    data = JSON.parse(form.fields.data.value || '{}')
     if (!data || data.constructor !== Object) data = {}
 
-    form.elements['data'].classList.remove('error')
-    form.elements['data'].value = JSON.stringify(data)
+    form.fields.data.classList.remove('error')
+    form.fields.data.value = JSON.stringify(data)
 
     ws.sendEncoded(type, message, data)
   } catch (err) {
     console.error(err)
-    form.elements['data'].classList.add('error')
+    form.fields.data.classList.add('error')
   }
 })
 
