@@ -47,6 +47,7 @@ export default class Queue {
 
   clear() {
     this.fifo = []
+    this.pause()
   }
 
   pause() {
@@ -90,7 +91,7 @@ export default class Queue {
     timer.schedule(
       new TimerTask({ run }),
       Math.max(this._cooldown - (Date.now() - this.lastExecution), 0),
-      this._cooldown
+      Math.max(this._cooldown, 1)
     )
     this._timer = timer
   }

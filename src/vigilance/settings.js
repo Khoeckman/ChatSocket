@@ -76,7 +76,7 @@ class Settings {
 
   @TextProperty({
     name: 'Name',
-    description: `The name for this ChatSocket client. Defaults to: ${Player.getName()}.`,
+    description: `The name for this ChatSocket client. Defaults to "${Player.getName()}".`,
     category: 'WebSocket',
     subcategory: 'Security',
   })

@@ -118,7 +118,7 @@ try {
         cmdQueue.cooldown = settings.wsCmdEventCooldown
       }
 
-      if (cmdQueue.isExecuting) return
+      if (cmdQueue.isExecuting || settings.wsCmdEventCooldown === 0) return
 
       cmdQueue.queue(cmd.slice(1))
       cancel(event)
@@ -367,7 +367,8 @@ function onmessage(type, message, data) {
       break
     case 'WORLD':
       const world = World.getWorld()
-      this.sendEncoded('WORLD', world, { world })
+      chat(world)
+      this.sendEncoded('WORLD', '', { world: '' })
       break
     case 'JOIN':
     case 'LEAVE':
