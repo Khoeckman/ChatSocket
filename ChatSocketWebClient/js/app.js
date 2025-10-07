@@ -26,9 +26,10 @@ function onmessage(type, message, data = {}) {
     case 'CHANNEL':
     case 'CHANNELS':
     case 'CLIENTS':
-    case 'CONN':
+    case 'SERVER':
     case 'CONNECT':
     case 'DISCONNECT':
+    case 'WORLD':
     case 'CHAT':
     case 'SAY':
     case 'CMD':

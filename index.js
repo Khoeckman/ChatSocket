@@ -8,6 +8,7 @@ import metadata from './src/utils/Metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
 import Queue from './src/utils/Queue'
 
+const Minecraft = Java.type('net.minecraft.client.Minecraft')
 // const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
 
 let isWorldLoadedOnGameLoad = null
@@ -225,6 +226,16 @@ function registerWebSocketTriggers() {
     }
   })
 
+  register('worldLoad', (event) => {
+    try {
+      const world = World.getWorld()
+
+      ws.sendEncoded('WORLD', `${ws.name} disconnected from ${server.ip}`, { world })
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
   register('chat', (event) => {
     try {
       if (ws.readyState !== ChatSocketClient.OPEN) return
@@ -329,7 +340,7 @@ function onmessage(type, message, data) {
       break
     case 'CLIENTS':
       break
-    case 'CONN':
+    case 'SERVER':
       const server = {
         ip: Server.getIP(),
         name: Server.getName(),
@@ -353,6 +364,14 @@ function onmessage(type, message, data) {
       break
     case 'DISCONNECT':
       Client.disconnect()
+      break
+    case 'WORLD':
+      const world = World.getWorld()
+      this.sendEncoded('WORLD', world, { world })
+      break
+    case 'JOIN':
+    case 'LEAVE':
+      // @todo
       break
     case 'CHAT':
       if (!settings.wsLogChat) ChatLib.chat(message)
