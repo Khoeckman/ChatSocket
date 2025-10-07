@@ -89,6 +89,8 @@ class ChatSocketWebClient extends WebSocket {
     }
 
     if (typeof this.onmessageFn === 'function') this.onmessageFn.call(this, type, message, data)
+
+    this.dispatchEvent(new CustomEvent('message', { detail: { type, message, data } }))
   }
 
   sendEncoded(type, message, data = {}) {
