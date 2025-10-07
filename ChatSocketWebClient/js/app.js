@@ -1,3 +1,5 @@
+let connectTimeout
+
 /**
  * Handles incoming WebSocket messages from {@link ChatSocketWebClient}.
  *
@@ -28,11 +30,19 @@ function onmessage(type, message, data = {}) {
     case 'CLIENTS':
     case 'SERVER':
     case 'CONNECT':
+      connection = true
+      break
     case 'DISCONNECT':
+      clearTimeout(connectTimeout)
+      // Attempt reconnect after 2s
+      connectTimeout = setTimeout(() => ws.sendEncoded('CONNECT', 'play.hypixel.net'), 2000)
+      break
     case 'WORLD':
     case 'LOAD':
     case 'UNLOAD':
     case 'CLIENT_SAY':
+      onchat(rawMessage)
+      break
     case 'SERVER_SAY':
     case 'CLIENT_CMD':
     case 'SERVER_CMD':
@@ -41,5 +51,15 @@ function onmessage(type, message, data = {}) {
     default:
       ws.log(`&cWebSocketError: &fUnsupported message type '${type}'`)
       break
+  }
+}
+
+function onchat(rawMessage) {
+  let regex = /\[CS\]\s+tp\s+(\s\S)+/
+
+  if (regex.test(rawMessage)) {
+    const [_, args] = regex.exec(rawMessage)
+    ws.sendEncoded('CMD', `tp ${args}`)
+    return
   }
 }
