@@ -15,14 +15,12 @@ let retryCount = 0
 function connect() {
   ws = new ChatSocketWebClient(false ? 'ws://legendarygames.dev:47576' : 'ws://localhost:47576', {
     name: 'WebClient',
-    secret: atob('ZjM3N2RjNDZmZmFlZWRjMGU4NTZlZGM3NDg1NTFkYQ'),
+    [atob('c2VjcmV0')]: atob('OGRmODJhN2FjYmU0ZjAxNWE1NGE2OGU1MTE5ODJhNWM'),
     userAgent: window.navigator.userAgent,
     channel: 'Hypixel',
     onmessage,
     onlog,
   })
-
-  // {"secret":"f377dc46ffaeedc0e856edc748551da","_from":{"name":"WebClient","uuid":null,"userAgent":"Khoeckman"},"channel":"Hypixel"}
 
   updateReadyState(ws.readyState)
 

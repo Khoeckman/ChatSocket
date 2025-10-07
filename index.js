@@ -258,9 +258,9 @@ function registerWebSocketTriggers() {
         if (!regex.test(message) && !regex.test(rawMessage)) return
 
         const match = regex.exec(message)
-        ws.sendEncoded('CHAT', message, { json, match })
+        ws.sendEncoded('CLIENT_SAY', message, { json, match })
       } else {
-        ws.sendEncoded('CHAT', message, { json })
+        ws.sendEncoded('CLIENT_SAY', message, { json })
       }
 
       // `ws.sendEncoded` already prints the message if `settings.wsLogChat` is true, so prevent double printing it
@@ -275,10 +275,10 @@ function registerWebSocketTriggers() {
       // Hypixel polls this command
       if (message === '/locraw') return
 
-      const type = message.startsWith('/') ? 'CMD' : 'SAY'
+      const isCommand = message.startsWith('/')
+      const type = isCommand ? 'SERVER_CMD' : 'SERVER_SAY'
 
-      if ((!settings.wsDoSayEvent && type === 'SAY') || type === 'CMD' || ws.readyState !== ChatSocketClient.OPEN)
-        return
+      if ((!settings.wsDoSayEvent && !isCommand) || isCommand || ws.readyState !== ChatSocketClient.OPEN) return
 
       ws.sendEncoded(type, message)
     } catch (err) {
@@ -367,7 +367,6 @@ function onmessage(type, message, data) {
       break
     case 'WORLD':
       const world = World.getWorld()
-      chat(world)
       this.sendEncoded('WORLD', String(world))
       break
     case 'JOIN':
