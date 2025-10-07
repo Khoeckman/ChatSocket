@@ -233,7 +233,7 @@ function registerWebSocketTriggers() {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const world = World.getWorld()
-      ws.sendEncoded('LOAD', 'World loaded', { world: String(world) })
+      ws.sendEncoded('LOAD', String(world), { world: String(world) })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -244,7 +244,7 @@ function registerWebSocketTriggers() {
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const world = World.getWorld()
-      ws.sendEncoded('UNLOAD', 'World unloaded', { world: String(world) })
+      ws.sendEncoded('UNLOAD', String(world), { world: String(world) })
     } catch (err) {
       error(err, settings.printStackTrace)
     }
@@ -394,8 +394,10 @@ function onmessage(type, message, data) {
       this.sendEncoded('WORLD', String(world))
       break
     case 'LOAD':
+      this.sendEncoded('LOAD', 'Not implemented yet')
+      break
     case 'UNLOAD':
-      // @todo
+      this.sendEncoded('UNLOAD', 'Not implemented yet')
       break
     case 'CLIENT_SAY':
       if (!settings.wsLogChat) ChatLib.chat(message)
@@ -423,6 +425,7 @@ function onmessage(type, message, data) {
       break
     default:
       error(`WebSocketError: Unsupported message type '${type}'`, settings.printStackTrace, true)
+      this.sendEncoded(type, 'Unsupported message type')
       break
   }
 }
