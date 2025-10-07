@@ -1,8 +1,9 @@
 todo:
-  - 'Setting to limit command execution rate + queue system (seperate module?)'
   - 'fix flying'
   - 'add INV event to click on a slot'
   - 'test if get hp still works'
+  - 'config menu for webclient so they can change: name, (uuid, ), URL, SECRET, channel (only on load)'
+  - 'add to cv'
 
 security: 'solution to message duping in WS:
   include message ID (MID) in each message which contains: random part + Date.now()

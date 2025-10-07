@@ -3,3 +3,4 @@ log/
 .env
 .vscode
 config.toml
+todo.yml
