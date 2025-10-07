@@ -331,13 +331,16 @@ function onmessage(type, message, data) {
       break
     case 'CONN':
       const server = {
+        ip: Server.getIP(),
         name: Server.getName(),
         motd: Server.getMOTD(),
-        ip: Server.getIP(),
+        ping: Server.getPing(),
       }
-      this.sendEncoded('CONN', `${this.name} is ${server.ip ? 'connected to ' + server.ip : 'disconnected'}`, {
-        server,
-      })
+      this.sendEncoded(
+        'CONN',
+        `${this.name} is ${server.ip ? 'connected to ' + server.ip : 'not connected to any server'}`,
+        { server }
+      )
       break
     case 'CONNECT':
       Client.connect(
