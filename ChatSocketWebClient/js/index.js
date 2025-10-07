@@ -65,7 +65,13 @@ function onlog({ detail: { line, type, message, data } }) {
       if (!json) return
 
       const { type, message, data } = JSON.parse(json)
-      chatSocketForm.elements['type'].value = type
+
+      // If `type` is an option of `chatSocketForm.elements['type']`
+      if (
+        [...chatSocketForm.elements['type'].querySelectorAll('option')].some((option) => option.textContent === type)
+      ) {
+        chatSocketForm.elements['type'].value = type
+      }
       chatSocketForm.elements['message'].value = message
       chatSocketForm.elements['data'].value = JSON.stringify(data)
     })
