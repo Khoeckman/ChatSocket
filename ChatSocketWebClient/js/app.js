@@ -30,6 +30,8 @@ function onmessage(type, message, data = {}) {
     case 'CONNECT':
     case 'DISCONNECT':
     case 'WORLD':
+    case 'LOAD':
+    case 'UNLOAD':
     case 'CLIENT_SAY':
     case 'SERVER_SAY':
     case 'CLIENT_CMD':

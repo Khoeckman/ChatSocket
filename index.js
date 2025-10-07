@@ -393,8 +393,8 @@ function onmessage(type, message, data) {
       const world = World.getWorld()
       this.sendEncoded('WORLD', String(world))
       break
-    case 'JOIN':
-    case 'LEAVE':
+    case 'LOAD':
+    case 'UNLOAD':
       // @todo
       break
     case 'CLIENT_SAY':
