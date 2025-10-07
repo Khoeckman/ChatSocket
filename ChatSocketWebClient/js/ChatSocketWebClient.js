@@ -94,6 +94,9 @@ class ChatSocketWebClient extends WebSocket {
   }
 
   sendEncoded(type, message, data = {}) {
+    type = String(type).toUpperCase()
+    message = String(message ?? '')
+
     if (!data || data.constructor !== Object) data = {}
     else if (data.secret === '*') data.secret = this.#secret
 
