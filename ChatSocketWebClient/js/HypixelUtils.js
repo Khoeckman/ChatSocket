@@ -1,16 +1,16 @@
 // Helper functions for Hypixel Housing (copy this folder to another location later)
 
 class HypixelUtils {
-  static selectRegion(ws, from, to) {
+  static selectRegion(ws, pos1, pos2) {
     if (!(ws instanceof ChatSocketWebClient)) throw new TypeError('ws is not an instance of ChatSocketWebClient')
-    if (!from || !Number.isInteger(from.x) || !Number.isInteger(from.y) || !Number.isInteger(from.z))
-      throw new TypeError(`from is not of type {x: int, y: int, z: int}`)
-    if (!to || !Number.isInteger(to.x) || !Number.isInteger(to.y) || !Number.isInteger(to.z))
-      throw new TypeError(`to is not of type {x: int, y: int, z: int}`)
+    if (!pos1 || !Number.isInteger(pos1.x) || !Number.isInteger(pos1.y) || !Number.isInteger(pos1.z))
+      throw new TypeError(`pos1 is not of type {x: int, y: int, z: int}`)
+    if (!pos2 || !Number.isInteger(pos2.x) || !Number.isInteger(pos2.y) || !Number.isInteger(pos2.z))
+      throw new TypeError(`pos2 is not of type {x: int, y: int, z: int}`)
 
-    ws.sendEncoded('SERVER_CMD', `tp ${from.x} ${from.y} ${from.z}`)
+    ws.sendEncoded('SERVER_CMD', `tp ${pos1.x + 0.5} ${pos1.y + 0.5} ${pos1.z + 0.5}`)
     ws.sendEncoded('SERVER_CMD', 'posa')
-    ws.sendEncoded('SERVER_CMD', `tp ${to.x} ${to.y} ${to.z}`)
+    ws.sendEncoded('SERVER_CMD', `tp ${pos2.x + 0.5} ${pos2.y + 0.5} ${pos2.z + 0.5}`)
     ws.sendEncoded('SERVER_CMD', 'posb')
   }
 
