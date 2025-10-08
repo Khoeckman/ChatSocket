@@ -80,27 +80,57 @@ export const dialog = (title, lines) => {
   World.playSound('random.click', 0.7, 1)
 }
 
-export const runCall = (expr) => {
-  // Match "a.b.c(d, e)"
-  let match = expr.match(/^([^(]+)\((.*)\)$/)
+export const runCall = (expr, useGlobal = true) => {
+  const match = expr.match(/^([^(]+)\((.*)\)$/)
   if (!match) throw new Error('Invalid expression: ' + expr)
 
-  // Split path on "."
-  let path = match[1].split('.')
-
-  // Extract arguments (very naive split, assumes no nested stuff)
+  const path = match[1].split('.')
   let args = match[2].trim()
-  args = args ? args.split(/\s*,\s*/).map(eval) : []
 
-  // Walk down the global object
-  let ctx = global
-  for (let i = 0; i < path.length - 1; i++) ctx = ctx[path[i]]
+  // Split on commas that are not inside quotes
+  const parts = []
+  let current = ''
+  let inQuotes = false
+  let quoteChar = null
 
-  // Final function
-  let fn = ctx[path[path.length - 1]]
+  for (let c of args) {
+    if (c === '"' || c === "'") {
+      if (inQuotes && c === quoteChar) {
+        inQuotes = false
+        quoteChar = null
+      } else if (!inQuotes) {
+        inQuotes = true
+        quoteChar = c
+      }
+    }
+
+    if (c === ',' && !inQuotes) {
+      parts.push(current.trim())
+      current = ''
+    } else {
+      current += c
+    }
+  }
+  if (current.trim()) parts.push(current.trim())
+
+  args = parts.map((arg) => {
+    if ((arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")))
+      return arg.slice(1, -1)
+    if (!isNaN(arg)) return Number(arg)
+    if (arg === 'true') return true
+    if (arg === 'false') return false
+    return arg
+  })
+
+  // Resolve function
+  let fn = useGlobal ? global : exports
+  for (let i = 0; i < path.length; i++) {
+    fn = fn[path[i]]
+    if (!fn) throw new Error('Function not found: ' + path.join('.'))
+  }
+
   if (typeof fn !== 'function') throw new Error('Target is not a function: ' + path.join('.'))
-
-  return fn.apply(global, args)
+  return fn(...args)
 }
 
 /**
