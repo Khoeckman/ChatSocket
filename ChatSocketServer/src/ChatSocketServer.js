@@ -5,7 +5,7 @@ import TRA from './TRA/TRA.js'
 import Utils from './Utils.js'
 
 export default class ChatSocketServer extends WebSocketServer {
-  constructor({ port, secret, jsonSecret, readOnlySecret, dataByteLimit }) {
+  constructor({ port, secret, jsonReadWriteSecret, traReadSecret, dataByteLimit }) {
     // Initialize WebSocketServer
     super({ port })
 
@@ -18,13 +18,13 @@ export default class ChatSocketServer extends WebSocketServer {
       throw new TypeError('Invalid secret: expected a non-empty string.')
     this.secret = secret.trim().replace(/\s+/g, ' ')
 
-    if (jsonSecret && (typeof jsonSecret !== 'string' || !jsonSecret.trim().length))
-      throw new TypeError('Invalid jsonSecret: expected undefined or a non-empty string.')
-    if (jsonSecret) this.jsonSecret = jsonSecret.trim().replace(/\s+/g, ' ')
+    if (jsonReadWriteSecret && (typeof jsonReadWriteSecret !== 'string' || !jsonReadWriteSecret.trim().length))
+      throw new TypeError('Invalid jsonReadWriteSecret: expected undefined or a non-empty string.')
+    if (jsonReadWriteSecret) this.jsonReadWriteSecret = jsonReadWriteSecret.trim().replace(/\s+/g, ' ')
 
-    if (readOnlySecret && (typeof readOnlySecret !== 'string' || !readOnlySecret.trim().length))
-      throw new TypeError('Invalid readOnlySecret: expected undefined or a non-empty string.')
-    if (readOnlySecret) this.readOnlySecret = readOnlySecret.trim().replace(/\s+/g, ' ')
+    if (traReadSecret && (typeof traReadSecret !== 'string' || !traReadSecret.trim().length))
+      throw new TypeError('Invalid traReadSecret: expected undefined or a non-empty string.')
+    if (traReadSecret) this.traReadSecret = traReadSecret.trim().replace(/\s+/g, ' ')
 
     // Optional
     this.dataByteLimit = +(dataByteLimit || Infinity)
@@ -176,8 +176,8 @@ export default class ChatSocketServer extends WebSocketServer {
     if (
       !(
         data.secret === this.secret ||
-        (this.jsonSecret && data.secret === this.jsonSecret) ||
-        (this.readOnlySecret && data.secret === this.readOnlySecret)
+        (this.jsonReadWriteSecret && data.secret === this.jsonReadWriteSecret) ||
+        (this.traReadSecret && data.secret === this.traReadSecret)
       )
     ) {
       this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
@@ -190,7 +190,7 @@ export default class ChatSocketServer extends WebSocketServer {
     if (data.secret === this.secret) {
       client.auth.type = 'TRA'
       client.auth.permissions = ['read', 'write']
-    } else if (data.secret === this.jsonSecret) {
+    } else if (data.secret === this.jsonReadWriteSecret) {
       client.auth.type = 'json'
       client.auth.permissions = ['read', 'write']
     }

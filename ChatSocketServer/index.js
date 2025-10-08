@@ -13,8 +13,8 @@ if (!process.env.WSS_SECRET || process.env.WSS_SECRET.length < 1) {
 const server = new ChatSocketServer({
   port: +(process.env.WSS_PORT || 47576),
   secret: process.env.WSS_SECRET,
-  plainSecret: process.env.WSS_PLAIN_SECRET,
-  readOnlySecret: process.env.WSS_READ_ONLY_SECRET,
+  jsonReadWriteSecret: process.env.WSS_JSON_READ_WRITE_SECRET,
+  traReadSecret: process.env.WSS_TRA_READ_SECRET,
   dataByteLimit: 10000,
 })
 if (typeof onmessage === 'function') server.onmessage = onmessage
