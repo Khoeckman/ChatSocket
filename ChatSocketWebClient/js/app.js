@@ -13,10 +13,6 @@ class MinecraftApp {
       this.ws.sendEncoded('SERVER')
       this.ws.sendEncoded('WORLD')
     })
-
-    setInterval(() => {
-      ws.sendEncoded('SERVER_CMD', 'tp ~ ~ ~')
-    }, 1002)
   }
 
   /**
