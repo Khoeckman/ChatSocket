@@ -15,13 +15,19 @@ let isWorldLoadedOnGameLoad = null
 let ws = new ChatSocketClient(settings.wsURL)
 ws.autoconnect = true
 
-const cmdQueue = new Queue(settings.wsCmdEventCooldown | 0, (cmd) => {
-  ChatLib.command(cmd)
-  if (ws.readyState !== ChatSocketClient.OPEN) return
-  ws.sendEncoded('SERVER_CMD', cmd)
-})
-
 try {
+  function connect({ mustNotBeOpen = false } = {}) {
+    if (mustNotBeOpen && ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
+    if (typeof onmessage === 'function') ws.onmessage = onmessage
+    ws.connect()
+  }
+
+  const cmdQueue = new Queue(settings.wsCmdEventCooldown | 0, (cmd) => {
+    ChatLib.command(cmd)
+    if (ws.readyState !== ChatSocketClient.OPEN) return
+    ws.sendEncoded('SERVER_CMD', cmd)
+  })
+
   register('command', (command, ...args) => {
     try {
       if (typeof command !== 'string') command = ''
@@ -35,7 +41,7 @@ try {
           dialog('&eCommands', [
             '&e/cs &6s&eettings &7 Opens the settings GUI.',
             '&e/cs &6s&eettings sync &7 Syncs the config.toml&7 with the GUI.',
-            '&e/cs &6o&epen &7 Connects to the &fWebSocket&7.',
+            '&e/cs &6conn&eect &7 Connects to the &fWebSocket&7.',
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6r&eeconnect &7 Reconnects to the &fWebSocket&7.',
             '&e/cs &6st&eatus &7 Prints info of the &fWebSocket&7.',
@@ -56,13 +62,11 @@ try {
           settings.openGUI()
           break
 
-        case 'open':
-        case 'o':
+        case 'connect':
+        case 'conn':
           if (!ws.autoconnect && settings.wsAutoconnect) chat('&eAutoconnect resumed')
 
-          if (ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
-          if (typeof onmessage === 'function') ws.onmessage = onmessage
-          ws.connect()
+          connect({ mustNotBeOpen: true })
           break
 
         case 'close':
@@ -75,9 +79,7 @@ try {
         case 'reconnect':
         case 'r':
           ws.close()
-          ws = new ChatSocketClient(settings.wsURL)
-          if (typeof onmessage === 'function') ws.onmessage = onmessage
-          ws.connect()
+          connect()
           break
 
         case 'status':
@@ -185,9 +187,7 @@ try {
         ws.close()
       } catch (err) {}
 
-      ws = new ChatSocketClient(settings.wsURL)
-      if (typeof onmessage === 'function') ws.onmessage = onmessage
-      ws.connect()
+      connect()
     } catch (err) {
       error(err, settings.printStackTrace)
     }
