@@ -83,6 +83,7 @@ class MinecraftApp {
       case 'CLIENT_SAY':
         this.teleport(rawMessage)
         this.selectRegion(rawMessage)
+        this.proTool(rawMessage)
         break
       case 'SERVER_SAY':
         break
@@ -115,6 +116,16 @@ class MinecraftApp {
     if (!regex.test(rawMessage)) return
 
     const [_, x1, y1, z1, x2, y2, z2] = regex.exec(rawMessage).map(Number)
-    HypixelUtils.selectRegion(this.ws, { x: x1, y: y1, z: z1 }, { x: x2, y: y2, z: z2 })
+    const queue = HypixelUtils.selectRegion(this.ws, [x1, y1, z1], [x2, y2, z2])
+    ws.sendEncoded('SERVER_CMD', '', { queue })
+  }
+
+  proTool(rawMessage) {
+    const regex = /\[CS\]\s+\/?(\w+)\s+(\s\S+)/
+    if (!regex.test(rawMessage)) return
+
+    const [_, tool, args] = regex.exec(rawMessage).map(Number)
+    const cmd = HypixelUtils.proTool(this.ws, tool, args.trim().replace(/\s+/g, ' '))
+    ws.sendEncoded('SERVER_CMD', cmd)
   }
 }
