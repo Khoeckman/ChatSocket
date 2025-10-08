@@ -1,27 +1,22 @@
 // Helper functions for Hypixel Housing (copy this folder to another location later)
 
 class HypixelUtils {
-  static selectRegion(ws, pos1, pos2) {
+  static selectRegion(ws, [x1, y1, z1], [x2, y2, z2]) {
     if (!(ws instanceof ChatSocketWebClient)) throw new TypeError('ws is not an instance of ChatSocketWebClient')
-    if (!pos1 || !Number.isInteger(pos1.x) || !Number.isInteger(pos1.y) || !Number.isInteger(pos1.z))
+    if (!pos1 || !Number.isInteger(x1) || !Number.isInteger(y1) || !Number.isInteger(z1))
       throw new TypeError(`pos1 is not of type {x: int, y: int, z: int}`)
-    if (!pos2 || !Number.isInteger(pos2.x) || !Number.isInteger(pos2.y) || !Number.isInteger(pos2.z))
+    if (!pos2 || !Number.isInteger(x2) || !Number.isInteger(y2) || !Number.isInteger(z2))
       throw new TypeError(`pos2 is not of type {x: int, y: int, z: int}`)
 
-    ws.sendEncoded('SERVER_CMD', `tp ${pos1.x + 0.5} ${pos1.y + 0.5} ${pos1.z + 0.5}`)
-    ws.sendEncoded('SERVER_CMD', 'posa')
-    ws.sendEncoded('SERVER_CMD', `tp ${pos2.x + 0.5} ${pos2.y + 0.5} ${pos2.z + 0.5}`)
-    ws.sendEncoded('SERVER_CMD', 'posb')
+    return [`tp ${x1 + 0.5} ${y1 + 0.5} ${z1 + 0.5}`, 'posa', `tp ${x2 + 0.5} ${y2 + 0.5} ${z2 + 0.5}`, 'posb']
   }
 
-  static proTools(ws, action, arg = null) {
+  static proTool(ws, tool, args = null) {
     if (!(ws instanceof ChatSocketWebClient)) throw new TypeError('ws is not an instance of ChatSocketWebClient')
+    const tool = ['set', 'fill', 'walls', 'wireframe', 'cut', 'copy', 'paste', 'undo']
+    if (!tool.includes(tool)) throw new TypeError(`tool is not one of: ${tool.split(', ')}`)
+    if (args && typeof args !== 'string') throw new TypeError(`args is defined but is not a string`)
 
-    const actions = ['set', 'fill', 'walls', 'wireframe', 'cut', 'copy', 'paste', 'undo']
-    if (!actions.includes(action)) throw new TypeError(`action is not one of: ${actions.split(', ')}`)
-
-    if (arg && typeof arg !== 'string') throw new TypeError(`arg is defined but not a string`)
-
-    ws.sendEncoded('SERVER_CMD', `${action} ${arg ?? ''}`)
+    return `${tool} ${args ?? ''}`
   }
 }
