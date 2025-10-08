@@ -8,6 +8,27 @@ import settings from '../vigilance/Settings'
 const URI = Java.type('java.net.URI')
 const WebSocketClient = Java.type('org.java_websocket.client.WebSocketClient')
 
+export function trustAllSSL() {
+  const SSLContext = Java.type('javax.net.ssl.SSLContext')
+  const X509TrustManager = Java.type('javax.net.ssl.X509TrustManager')
+  const SecureRandom = Java.type('java.security.SecureRandom')
+  const X509Certificate = Java.type('java.security.cert.X509Certificate')
+
+  const trustAllCerts = [
+    new X509TrustManager({
+      checkClientTrusted: function (certs, authType) {},
+      checkServerTrusted: function (certs, authType) {},
+      getAcceptedIssuers: function () {
+        return null
+      },
+    }),
+  ]
+
+  const ctx = SSLContext.getInstance('TLS')
+  ctx.init(null, trustAllCerts, new SecureRandom())
+  return ctx
+}
+
 export default class ChatSocketClient {
   static CONNECTING = 0
   static OPEN = 1

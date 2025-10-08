@@ -5,7 +5,7 @@
 import { PREFIX, chat, error, dialog, runCall } from './src/utils'
 import settings from './src/vigilance/Settings'
 import metadata from './src/utils/Metadata'
-import ChatSocketClient from './src/net/ChatSocketClient'
+import ChatSocketClient, { trustAllSSL } from './src/net/ChatSocketClient'
 import Queue from './src/utils/Queue'
 
 // const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
@@ -18,6 +18,7 @@ ws.autoconnect = true
 try {
   function connect({ mustNotBeOpen = false } = {}) {
     if (mustNotBeOpen && ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
+    ws.setSocketFactory(trustAllSSL().getSocketFactory())
     if (typeof onmessage === 'function') ws.onmessage = onmessage
     ws.connect()
   }
