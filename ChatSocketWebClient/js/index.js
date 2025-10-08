@@ -1,4 +1,6 @@
-'use strict'(() => {
+'use strict'
+
+;(() => {
   // Theres no need to modify this file, instead look into app.js
   const chatSocketStatus = document.getElementById('chatSocketStatus')
   const chatSocketForm = document.getElementById('chatSocket')
