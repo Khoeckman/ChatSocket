@@ -130,11 +130,11 @@ export default class ChatSocketClient {
 
   authenticate() {
     chat(`&e● Authenticating as &f${this.name}`)
-    chat(`&e● Selecting channel &f${settings.wsChannel}`)
+    chat(`&e● Selecting channel &f${settings.wsChannel.trim().replace(/\s+/g, ' ')}`)
 
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
-      secret: settings.wsSecret.trim(),
-      channel: settings.wsChannel.trim(),
+      secret: settings.wsSecret.trim().replace(/\s+/g, ' '),
+      channel: settings.wsChannel.trim().replace(/\s+/g, ' '),
     })
   }
 

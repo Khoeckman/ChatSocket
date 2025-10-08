@@ -15,7 +15,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
     if (typeof secret !== 'string' || !secret.trim().length)
       throw new TypeError('Invalid secret: expected a non-empty string.')
-    this.secret = secret.trim()
+    this.secret = secret.trim().replace(/\s+/g, ' ')
 
     // Optional
     this.dataByteLimit = +(dataByteLimit || Infinity)
@@ -53,6 +53,7 @@ export default class ChatSocketServer extends WebSocketServer {
             const fromChannel = client.channel
 
             if (typeof data.channel !== 'string') data.channel = ''
+            data.channel = data.channel.trim().replace(/\s+/g, ' ')
 
             // Leave the previous channel if client selected a new one
             if (data.channel && data.channel !== fromChannel)
@@ -62,11 +63,15 @@ export default class ChatSocketServer extends WebSocketServer {
             if (typeof from.uuid !== 'string') from.uuid = ''
             if (typeof from.userAgent !== 'string') from.userAgent = ''
 
+            from.name = from.name.trim().replace(/\s+/g, ' ')
+            from.uuid = from.uuid.trim().replace(/\s+/g, ' ')
+            from.userAgent = from.userAgent.trim().replace(/\s+/g, ' ')
+
             client.isAuth = true
-            client.channel = data.channel.trim() ?? client.channel ?? 'Default'
-            client.name = from.name.trim() ?? client.name
-            client.uuid = uuidValidate(from.uuid) ? from.uuid.trim() : client.uuid ?? uuidv4()
-            client.userAgent = from.userAgent.trim() ?? 'Unknown'
+            client.channel = data.channel ?? client.channel ?? 'Default'
+            client.name = from.name ?? client.name
+            client.uuid = uuidValidate(from.uuid) ? from.uuid : client.uuid ?? uuidv4()
+            client.userAgent = from.userAgent ?? 'Unknown'
 
             const { name, uuid, userAgent } = client
             from = { name, uuid, userAgent }

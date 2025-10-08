@@ -21,7 +21,7 @@ class ChatSocketWebClient extends WebSocket {
       throw new TypeError('uuid is defined but is not a string')
     else this.uuid = uuid.replaceAll(/\s/, '')
 
-    this.#secret = secret
+    this.secret = secret
 
     if (typeof userAgent !== 'string' || !userAgent.trim().length) throw new TypeError('userAgent is not a string')
     this.userAgent = userAgent
@@ -38,14 +38,14 @@ class ChatSocketWebClient extends WebSocket {
 
   set secret(secret) {
     if (typeof secret !== 'string' || !secret.trim().length) throw new TypeError('secret is not a string')
-    this.#secret = secret.trim()
+    this.#secret = secret.trim().replace(/\s+/g, ' ')
     if (this.readyState === this.OPEN) this.authenticate(this.channel)
   }
 
   set channel(channel) {
     if (typeof channel !== 'string' || !channel.trim().length) throw new TypeError('channel is not a string')
+    this.#channel = channel.trim().replace(/\s+/g, ' ')
     if (this.readyState === this.OPEN) this.selectChannel(channel)
-    this.#channel = channel
   }
 
   get channel() {
