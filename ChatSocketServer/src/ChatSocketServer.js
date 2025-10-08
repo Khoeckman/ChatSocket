@@ -37,7 +37,13 @@ export default class ChatSocketServer extends WebSocketServer {
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
       client.userAgent = 'Unknown'
 
-      console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
+      console.log(
+        Utils.mcToAnsi(
+          `&2&l+&r &e${client.ip} &7[&c${client.name}&7] [&e${client.auth.type}&7] [&e${client.auth.permissions.join(
+            ', '
+          )}&7] &a connected`
+        )
+      )
 
       client.on('message', (rawData) => {
         try {
@@ -45,7 +51,7 @@ export default class ChatSocketServer extends WebSocketServer {
           if (new TextEncoder().encode(rawData).byteLength > this.dataByteLimit)
             client.close(1009, `Message cannot be over ${this.dataByteLimit} bytes.`)
 
-          const { type, message, data } = this.#onmessage(client, rawData)
+          const { type, message, data } = this.#onmessage(client, String(rawData))
 
           if (type === 'AUTH' && !this.authenticate(client, data)) return
 
@@ -112,7 +118,9 @@ export default class ChatSocketServer extends WebSocketServer {
       client.on('close', () => {
         console.log(
           Utils.mcToAnsi(
-            `&4&l-&r &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name || '?'}&7]&c disconnected`
+            `&4&l-&r &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name || '?'}&7] [&e${
+              client.auth.type
+            }&7] [&e${client.auth.permissions.join(', ')}&7]&c disconnected`
           )
         )
         this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
@@ -128,7 +136,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
     if (!isJson && !client.auth.isAuth) {
       try {
-        JSON.parse(String(rawData))
+        JSON.parse(rawData)
         isJson = true
       } catch {}
     }
@@ -144,9 +152,11 @@ export default class ChatSocketServer extends WebSocketServer {
 
     console.log(
       Utils.mcToAnsi(
-        `&2-> &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${
-          client.name ?? data.name ?? '?'
-        }&7] &l\x1b[48;5;11m&l ${type} &r &a${message} &7 ${JSON.stringify(maskedData)}`
+        `&2-> &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name ?? data.name ?? '?'}&7] [&e${
+          client.auth.type
+        }&7] [&e${client.auth.permissions.join(', ')}&7] &l\x1b[48;5;11m&l ${type} &r &a${message} &7 ${JSON.stringify(
+          maskedData
+        )}`
       )
     )
     return { type, message, data }
@@ -241,7 +251,9 @@ export default class ChatSocketServer extends WebSocketServer {
 
     console.log(
       Utils.mcToAnsi(
-        `&3<- &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name}&7] &l\x1b[48;5;11m&l ${String(
+        `&3<- &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name}&7] [&e${
+          client.auth.type
+        }&7] [&e${client.auth.permissions.join(', ')}&7] &l\x1b[48;5;11m&l ${String(
           type
         ).toUpperCase()} &r &b${message} &7 ${JSON.stringify(data)}`
       )
