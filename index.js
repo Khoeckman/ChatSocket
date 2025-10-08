@@ -65,6 +65,7 @@ try {
 
         case 'connect':
         case 'conn':
+        case 'o':
           if (!ws.autoconnect && settings.wsAutoconnect) chat('&eAutoconnect resumed')
 
           connect({ mustNotBeOpen: true })
