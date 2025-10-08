@@ -4,7 +4,7 @@ class ChatSocketWebClient extends WebSocket {
 
   constructor(
     url,
-    { name, uuid, secret, userAgent = 'WebClient', channel = 'Default', onmessage = null, onlog = null } = {}
+    { name, uuid, secret, userAgent = 'WebClient', channel = 'Default', ondecoded = null, onlog = null } = {}
   ) {
     super(url)
 
@@ -29,7 +29,7 @@ class ChatSocketWebClient extends WebSocket {
     this.channel = channel
 
     this.isAuth = false
-    this.onmessageFn = typeof onmessage === 'function' ? onmessage : null
+    this.ondecoded = typeof ondecoded === 'function' ? ondecoded : null
 
     if (typeof onlog === 'function') this.addEventListener('log', onlog)
 
@@ -88,7 +88,7 @@ class ChatSocketWebClient extends WebSocket {
       this.#channel = data.channel.trim()
     }
 
-    if (typeof this.onmessageFn === 'function') this.onmessageFn.call(this, type, message, data)
+    if (typeof this.ondecoded === 'function') this.ondecoded(type, message, data)
 
     this.dispatchEvent(new CustomEvent('decoded', { detail: { type, message, data } }))
   }

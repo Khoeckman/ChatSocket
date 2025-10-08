@@ -29,7 +29,7 @@ window.onload = () => {
   })
 
   // Custom logic
-  new App(ws)
+  new MinecraftApp(ws)
 
   updateReadyState(ws.readyState)
 

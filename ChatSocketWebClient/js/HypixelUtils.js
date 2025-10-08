@@ -8,10 +8,10 @@ class HypixelUtils {
     if (!to || !Number.isInteger(to.x) || !Number.isInteger(to.y) || !Number.isInteger(to.z))
       throw new TypeError(`to is not of type {x: int, y: int, z: int}`)
 
-    ws.sendEncoded('CMD', `tp ${from.x} ${from.y} ${from.z}`)
-    ws.sendEncoded('CMD', 'posa')
-    ws.sendEncoded('CMD', `tp ${to.x} ${to.y} ${to.z}`)
-    ws.sendEncoded('CMD', 'posb')
+    ws.sendEncoded('SERVER_CMD', `tp ${from.x} ${from.y} ${from.z}`)
+    ws.sendEncoded('SERVER_CMD', 'posa')
+    ws.sendEncoded('SERVER_CMD', `tp ${to.x} ${to.y} ${to.z}`)
+    ws.sendEncoded('SERVER_CMD', 'posb')
   }
 
   static proTools(ws, action, arg = null) {
@@ -22,6 +22,6 @@ class HypixelUtils {
 
     if (arg && typeof arg !== 'string') throw new TypeError(`arg is defined but not a string`)
 
-    ws.sendEncoded('CMD', `${action} ${arg ?? ''}`)
+    ws.sendEncoded('SERVER_CMD', `${action} ${arg ?? ''}`)
   }
 }
