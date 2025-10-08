@@ -105,7 +105,7 @@ class ChatSocketWebClient extends WebSocket {
       uuid: this.uuid,
       userAgent: this.userAgent,
     }
-    this.send(TRA[atob('ZW5jcnlwdA')](ChatSocketProtocol.encodeMessage(type, message, data)))
+    this.send(TRA[atob('ZW5jcnlwdA')](ChatSocketProtocol.encodeMessage(type, message, data), 64))
 
     // Mask secret
     if (data.secret) data.secret = '*'
