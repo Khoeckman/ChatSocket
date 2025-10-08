@@ -25,8 +25,10 @@ const Long = Java.type('java.lang.Long')
       'Print CHANNEL Events',
       'Enable CHAT Event RegEx Capture',
       'CHAT Event RegEx Capture',
-      'Send SAY Events',
-      'Send CMD Events',
+      'Send CLIENT_SAY Events',
+      'Send SERVER_SAY Events',
+      'Send CLIENT_CMD Events',
+      'Send SERVER_CMD Events',
       'Enable CMD Event Cooldown',
       'CMD Event Cooldown',
       'Execute EXEC Events',
@@ -129,20 +131,36 @@ class Settings {
   wsChatEventFilter = '^&r&7*s&r&f[ChatSocket]'
 
   @CheckboxProperty({
-    name: 'Send SAY Events',
-    description: 'Send a SAY event for every chat you send.',
+    name: 'Send CLIENT_SAY Events',
+    description: 'Send a CLIENT_SAY event for every chat you receive. This includes chats of yourself.',
     category: 'WebSocket',
     subcategory: 'Events',
   })
-  wsDoSayEvent = true
+  wsDoClientSayEvent = true
 
   @CheckboxProperty({
-    name: 'Send CMD Events',
-    description: 'Send a CMD event for every command you execute.',
+    name: 'Send SERVER_SAY Events',
+    description: 'Send a SERVER_SAY event for every chat you send to a server.',
     category: 'WebSocket',
     subcategory: 'Events',
   })
-  wsDoCmdEvent = true
+  wsDoServerSayEvent = false
+
+  @CheckboxProperty({
+    name: 'Send CLIENT_CMD Events',
+    description: 'Send a CLIENT_CMD event for every client-side command you execute that is intercepted by a mod.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsDoClientCmdEvent = true
+
+  @CheckboxProperty({
+    name: 'Send SERVER_CMD Events',
+    description: 'Send a SERVER_CMD event for every server-side command you execute.',
+    category: 'WebSocket',
+    subcategory: 'Events',
+  })
+  wsDoServerCmdEvent = true
 
   @SwitchProperty({
     name: 'Enable CMD Event Cooldown',
@@ -158,7 +176,7 @@ class Settings {
     category: 'WebSocket',
     subcategory: 'Events',
     minF: 0,
-    maxF: 1000,
+    maxF: 2000,
     decimalPlaces: 0,
   })
   wsCmdEventCooldown = '200.0'
