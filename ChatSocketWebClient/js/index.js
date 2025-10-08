@@ -1,5 +1,4 @@
 'use strict'
-
 ;(() => {
   // Theres no need to modify this file, instead look into app.js
   const chatSocketStatus = document.getElementById('chatSocketStatus')
@@ -22,7 +21,7 @@
   let ws = null
   let retryCount = 0
 
-  window.onload = () => {
+  window.onload = function connect() {
     ws = new ChatSocketWebClient(false ? 'ws://legendarygames.dev:47576' : 'wss://chatsocket-a1xp.onrender.com', {
       name: 'GitHubWebClient',
       [atob('c2VjcmV0')]: atob(
