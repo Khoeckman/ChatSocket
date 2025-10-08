@@ -8,7 +8,6 @@ import metadata from './src/utils/Metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
 import Queue from './src/utils/Queue'
 
-const Minecraft = Java.type('net.minecraft.client.Minecraft')
 // const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
 
 let isWorldLoadedOnGameLoad = null
@@ -193,6 +192,15 @@ try {
       error(err, settings.printStackTrace)
     }
   }).setDelay(2)
+
+  // Prevent command heat getting too hot
+  register('step', () => {
+    try {
+      //
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
 
   // Render how many commands are left in the queue
   register('renderOverlay', () => {
@@ -438,7 +446,11 @@ function onmessage(type, message, data) {
       ChatLib.command(message, true)
       break
     case 'SERVER_CMD':
-      ChatLib.command(message)
+      if (!Array.isArray(data.queue)) {
+        ChatLib.command(message)
+        break
+      }
+      data.queue.forEach((command) => ChatLib.command(command))
       break
     case 'EXEC':
       if (!settings.wsDoExecEvent) break

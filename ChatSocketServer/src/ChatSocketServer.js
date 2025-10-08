@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import ChatSocketProtocol from './ChatSocketProtocol.js'
+import ChatSocketProtocolTRA from './ChatSocketProtocolTRA.js'
 import Utils from './Utils.js'
 
 export default class ChatSocketServer extends WebSocketServer {
@@ -157,7 +157,7 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   #onmessage(client, rawData) {
-    const { type, message, data } = ChatSocketProtocol.decodeMessage(rawData)
+    const { type, message, data } = ChatSocketProtocolTRA.decodeMessage(rawData)
 
     // Mask secret
     const maskedData = {
@@ -181,7 +181,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
     if (!data?._from) data._from = 'server'
 
-    client.send(ChatSocketProtocol.encodeMessage(type, message, data))
+    client.send(ChatSocketProtocolTRA.encodeMessage(type, message, data))
     console.log(
       Utils.mcToAnsi(
         `&3<- &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${client.name}&7] &l\x1b[48;5;11m&l ${String(

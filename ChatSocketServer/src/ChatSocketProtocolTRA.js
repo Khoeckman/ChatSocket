@@ -13,7 +13,7 @@
  * // Decode a received message
  * const {type, message, data} = ChatSocketProtocol.decodeMessage(json);
  */
-class ChatSocketProtocol {
+export default class ChatSocketProtocolTRA {
   /**
    * Encodes a message for ChatSocket.
    *

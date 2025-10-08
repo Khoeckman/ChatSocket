@@ -81,6 +81,8 @@ class MinecraftApp {
       case 'UNLOAD':
         break
       case 'CLIENT_SAY':
+        if (!this.inServer || !this.inWorld) break
+
         this.teleport(rawMessage)
         this.selectRegion(rawMessage)
         this.proTool(rawMessage)

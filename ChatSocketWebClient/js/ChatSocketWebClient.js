@@ -58,7 +58,7 @@ class ChatSocketWebClient extends WebSocket {
   }
 
   #onmessage(event) {
-    const { type, message, data } = ChatSocketProtocol.decodeMessage(event.data)
+    const { type, message, data } = ChatSocketProtocolTRA.decodeMessage(event.data)
     this.log(
       `&2➔ &6&l${type}&a ${message} \t&7${JSON.stringify(data, (_, value) =>
         typeof value === 'string' ? value + '&7' : value
@@ -105,7 +105,7 @@ class ChatSocketWebClient extends WebSocket {
       uuid: this.uuid,
       userAgent: this.userAgent,
     }
-    this.send(ChatSocketProtocol.encodeMessage(type, message, data))
+    this.send(ChatSocketProtocolTRA.encodeMessage(type, message, data))
 
     // Mask secret
     if (data.secret) data.secret = '*'
