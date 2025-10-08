@@ -2,7 +2,7 @@
 /// <reference types="../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-import { chat, error, dialog, runCall, reflectJavaObject } from './src/utils'
+import { PREFIX, chat, error, dialog, runCall } from './src/utils'
 import settings from './src/vigilance/Settings'
 import metadata from './src/utils/Metadata'
 import ChatSocketClient from './src/net/ChatSocketClient'
@@ -40,6 +40,7 @@ try {
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6r&eeconnect &7 Reconnects to the &fWebSocket&7.',
             '&e/cs &6st&eatus &7 Prints info of the &fWebSocket&7.',
+            '&e/cs &6cl&ear &7 Clear the command queue.',
             // '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
           ])
@@ -83,6 +84,11 @@ try {
         case 'status':
         case 'st':
           ws.printConnectionStatus()
+          break
+
+        case 'clear':
+        case 'cl':
+          cmdQueue.clear()
           break
 
         /* case "fly":
@@ -185,6 +191,27 @@ try {
       error(err, settings.printStackTrace)
     }
   }).setDelay(2)
+
+  // Render how many commands are left in the queue
+  register('renderOverlay', () => {
+    const size = cmdQueue.fifo.length
+    if (!size) return
+
+    const text = PREFIX + ` &eCommand queue &7(&e${size}&7)`
+
+    const screen = Renderer.screen
+    const screenWidth = screen.getWidth()
+    const screenHeight = screen.getHeight()
+
+    // Center horizontally
+    const textWidth = Renderer.getStringWidth(text)
+    const x = (screenWidth - textWidth) / 2
+
+    const offset = 35
+    const y = screenHeight - offset
+
+    Renderer.drawStringWithShadow(text, x, y)
+  })
 } catch (err) {
   error(err, settings.printStackTrace)
 }
