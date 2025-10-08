@@ -13,7 +13,7 @@
  * @license Copyright (c) 2025 Kyle Hoeckman, All rights reserved.
  */
 
-class ByteArrayConverter {
+export default class ByteArrayConverter {
   /**
    * Encodes a byte array into a string using the given radix.
    *

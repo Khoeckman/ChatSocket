@@ -1,3 +1,5 @@
+import ByteArrayConverter from './ByteArrayConverter.js'
+
 /**
  * TRA - Text Rotation Algorithm
  *
@@ -30,7 +32,7 @@
  * @class
  * @license Copyright (c) 2025 Kyle Hoeckman, All rights reserved.
  */
-class TRA {
+export default class TRA {
   /**
    * Encrypts a given string by encoding it to bytes, applying a
    * custom reversible rotation, and converting to a radix-based string.

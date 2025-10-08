@@ -1,10 +1,11 @@
 import { WebSocket, WebSocketServer } from 'ws'
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
-import ChatSocketProtocolTRA from './ChatSocketProtocolTRA.js'
+import ChatSocketProtocol from './ChatSocketProtocol.js'
+import TRA from './TRA/TRA.js'
 import Utils from './Utils.js'
 
 export default class ChatSocketServer extends WebSocketServer {
-  constructor({ port, secret, dataByteLimit }) {
+  constructor({ port, secret, plainSecret, readOnlySecret, dataByteLimit }) {
     // Initialize WebSocketServer
     super({ port })
 
@@ -17,6 +18,14 @@ export default class ChatSocketServer extends WebSocketServer {
       throw new TypeError('Invalid secret: expected a non-empty string.')
     this.secret = secret.trim().replace(/\s+/g, ' ')
 
+    if (plainSecret && (typeof plainSecret !== 'string' || !plainSecret.trim().length))
+      throw new TypeError('Invalid plainSecret: expected undefined or a non-empty string.')
+    this.plainSecret = plainSecret.trim().replace(/\s+/g, ' ')
+
+    if (readOnlySecret && (typeof readOnlySecret !== 'string' || !readOnlySecret.trim().length))
+      throw new TypeError('Invalid readOnlySecret: expected undefined or a non-empty string.')
+    this.readOnlySecret = readOnlySecret.trim().replace(/\s+/g, ' ')
+
     // Optional
     this.dataByteLimit = +(dataByteLimit || Infinity)
     if (!Number.isInteger(dataByteLimit) || this.dataByteLimit < 0)
@@ -24,8 +33,9 @@ export default class ChatSocketServer extends WebSocketServer {
 
     this.on('connection', (client, request) => {
       client.ip = request.socket.remoteAddress || 'unknown'
-      client.isAuth = false
+      client.auth = { isAuth: false, type: 'TRA', permissions: ['read'] }
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
+      client.userAgent = 'Unknown'
 
       console.log(Utils.mcToAnsi(`&2&l+&r &e${client.ip} &7[&c${client.name}&7]&a connected`))
 
@@ -37,65 +47,9 @@ export default class ChatSocketServer extends WebSocketServer {
 
           const { type, message, data } = this.#onmessage(client, rawData)
 
-          let from = data?._from
+          if (type === 'AUTH' && !this.authenticate(client, data)) return
 
-          if (!from || from.constructor !== Object) {
-            this.send(client, 'AUTH', 'Missing data._from', { success: false })
-            return
-          }
-
-          if (type === 'AUTH') {
-            if (data.secret !== this.secret) {
-              this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
-              return
-            }
-
-            const fromChannel = client.channel
-
-            if (typeof data.channel !== 'string') data.channel = ''
-            data.channel = data.channel.trim().replace(/\s+/g, ' ')
-
-            // Leave the previous channel if client selected a new one
-            if (data.channel && data.channel !== fromChannel)
-              this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
-
-            if (typeof from.name !== 'string') from.name = ''
-            if (typeof from.uuid !== 'string') from.uuid = ''
-            if (typeof from.userAgent !== 'string') from.userAgent = ''
-
-            from.name = from.name.trim().replace(/\s+/g, ' ')
-            from.uuid = from.uuid.trim().replace(/\s+/g, ' ')
-            from.userAgent = from.userAgent.trim().replace(/\s+/g, ' ')
-
-            client.isAuth = true
-            client.channel = data.channel ?? client.channel ?? 'Default'
-            client.name = from.name ?? client.name
-            client.uuid = uuidValidate(from.uuid) ? from.uuid : client.uuid ?? uuidv4()
-            client.userAgent = from.userAgent ?? 'Unknown'
-
-            const { name, uuid, userAgent } = client
-            from = { name, uuid, userAgent }
-
-            this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
-              success: true,
-              channel: client.channel,
-              _to: from,
-            })
-
-            if (data.channel) {
-              this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
-                success: true,
-                channel: client.channel,
-              })
-            }
-
-            if (client.channel !== fromChannel)
-              this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel`, { action: 'join' })
-
-            return
-          }
-
-          if (!client.isAuth) {
+          if (!client.auth.isAuth) {
             this.send(client, 'AUTH', 'Unauthenticated', { success: false })
             return
           }
@@ -117,6 +71,12 @@ export default class ChatSocketServer extends WebSocketServer {
             return
           }
 
+          // Client does not have read_sensitive permissions
+          if (!client.auth.permissions.includes('read_sensitive') && (type === 'CHANNELS' || type === 'CLIENTS')) {
+            this.send(client, 'AUTH', 'Missing permission: read_sensitive', { success: false })
+            return
+          }
+
           if (type === 'CHANNELS') {
             const channels = this.listChannels()
             this.send(client, 'CHANNELS', channels.join(', '), { channels })
@@ -126,6 +86,12 @@ export default class ChatSocketServer extends WebSocketServer {
           if (type === 'CLIENTS') {
             const clients = this.listClients(data.channel)
             this.send(client, 'CLIENTS', clients.map((c) => c.name).join(', '), { clients })
+            return
+          }
+
+          // Client does not have write permissions
+          if (!client.auth.permissions.includes('write')) {
+            this.send(client, 'AUTH', 'Missing permission: write', { success: false })
             return
           }
 
@@ -146,7 +112,7 @@ export default class ChatSocketServer extends WebSocketServer {
       client.on('close', () => {
         console.log(
           Utils.mcToAnsi(
-            `&4&l-&r &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${client.name || '?'}&7]&c disconnected`
+            `&4&l-&r &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name || '?'}&7]&c disconnected`
           )
         )
         this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
@@ -157,7 +123,18 @@ export default class ChatSocketServer extends WebSocketServer {
   }
 
   #onmessage(client, rawData) {
-    const { type, message, data } = ChatSocketProtocolTRA.decodeMessage(rawData)
+    // Only allow raw json without permission if the client is not yet authenticated
+    let isJson = client.auth.type === 'json'
+
+    if (!isJson && !client.auth.isAuth) {
+      try {
+        JSON.parse(String(rawData))
+        isJson = true
+      } catch {}
+    }
+
+    // Don't use TRA encryption if the authType is plain
+    const { type, message, data } = ChatSocketProtocol.decodeMessage(isJson ? rawData : TRA.decrypt(rawData, 64))
 
     // Mask secret
     const maskedData = {
@@ -167,12 +144,83 @@ export default class ChatSocketServer extends WebSocketServer {
 
     console.log(
       Utils.mcToAnsi(
-        `&2-> &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${
+        `&2-> &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${
           client.name ?? data.name ?? '?'
         }&7] &l\x1b[48;5;11m&l ${type} &r &a${message} &7 ${JSON.stringify(maskedData)}`
       )
     )
     return { type, message, data }
+  }
+
+  authenticate(client, data) {
+    if (!(client instanceof WebSocket)) throw TypeError('client is not an instance of WebSocket')
+    if (!data || data.constructor !== Object) throw TypeError('data is not an Object')
+
+    let from = data?._from
+
+    if (!from || from.constructor !== Object) {
+      this.send(client, 'AUTH', 'Missing data._from', { success: false })
+      return false
+    }
+
+    if (data.secret !== this.secret && data.secret !== this.plainSecret && data.secret !== this.readOnlySecret) {
+      this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
+      return false
+    }
+
+    client.auth.isAuth = true
+
+    // Determine auth type based on which secret key the client used
+    if (data.secret === this.secret) {
+      client.auth.type = 'TRA'
+      client.auth.permissions = ['read', 'write']
+    } else if (data.secret === this.plainSecret) {
+      client.auth.type = 'json'
+      client.auth.permissions = ['read', 'write']
+    }
+
+    const fromChannel = client.channel
+
+    if (typeof data.channel !== 'string') data.channel = ''
+    data.channel = data.channel.trim().replace(/\s+/g, ' ')
+
+    // Leave the previous channel if client selected a new one
+    if (data.channel && data.channel !== fromChannel)
+      this.sendChannel(client, 'CHANNEL', `${client.name} left the channel`, { action: 'leave' })
+
+    if (typeof from.name !== 'string') from.name = ''
+    if (typeof from.uuid !== 'string') from.uuid = ''
+    if (typeof from.userAgent !== 'string') from.userAgent = ''
+
+    from.name = from.name.trim().replace(/\s+/g, ' ')
+    from.uuid = from.uuid.trim().replace(/\s+/g, ' ')
+    from.userAgent = from.userAgent.trim().replace(/\s+/g, ' ')
+
+    client.channel = data.channel ?? client.channel ?? 'Default'
+    client.name = from.name ?? client.name
+    client.uuid = uuidValidate(from.uuid) ? from.uuid : client.uuid ?? uuidv4()
+    client.userAgent = from.userAgent ?? 'Unknown'
+
+    const { name, uuid, userAgent } = client
+    from = { name, uuid, userAgent }
+
+    this.send(client, 'AUTH', `Authenticated as ${client.name}`, {
+      success: true,
+      channel: client.channel,
+      _to: from,
+    })
+
+    if (data.channel) {
+      this.send(client, 'CHANNEL', 'Selected channel ' + client.channel, {
+        success: true,
+        channel: client.channel,
+      })
+    }
+
+    if (client.channel !== fromChannel)
+      this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel`, { action: 'join' })
+
+    return true
   }
 
   send(client, type, message, data = {}) {
@@ -181,10 +229,13 @@ export default class ChatSocketServer extends WebSocketServer {
 
     if (!data?._from) data._from = 'server'
 
-    client.send(ChatSocketProtocolTRA.encodeMessage(type, message, data))
+    const encoded = ChatSocketProtocol.encodeMessage(type, message, data)
+    // Don't use TRA encryption if the authType is plain
+    client.send(client.auth.type === 'json' ? encoded : TRA.encrypt(encoded, 64))
+
     console.log(
       Utils.mcToAnsi(
-        `&3<- &e${client.ip} &7[${client.isAuth ? '&a' : '&c'}${client.name}&7] &l\x1b[48;5;11m&l ${String(
+        `&3<- &e${client.ip} &7[${client.auth.isAuth ? '&a' : '&c'}${client.name}&7] &l\x1b[48;5;11m&l ${String(
           type
         ).toUpperCase()} &r &b${message} &7 ${JSON.stringify(data)}`
       )
@@ -195,7 +246,7 @@ export default class ChatSocketServer extends WebSocketServer {
     const channels = new Set(['Default'])
 
     Array.from(this.clients)
-      .filter((client) => true || (client.isAuth && client.readyState === client.OPEN))
+      .filter((client) => true || (client.auth.isAuth && client.readyState === client.OPEN))
       .forEach((client) => channels.add(client.channel))
 
     return Array.from(channels)
@@ -205,7 +256,7 @@ export default class ChatSocketServer extends WebSocketServer {
     const clients = []
 
     Array.from(this.clients)
-      .filter((client) => client.isAuth && client.readyState === client.OPEN)
+      .filter((client) => client.auth.isAuth && client.readyState === client.OPEN)
       .forEach((client) => {
         const { name, uuid, userAgent } = client
         if (!channel || channel === client.channel) clients.push({ name, uuid, userAgent })
@@ -226,7 +277,7 @@ export default class ChatSocketServer extends WebSocketServer {
     Array.from(this.clients)
       .filter(
         (client) =>
-          client.isAuth &&
+          client.auth.isAuth &&
           client.readyState === client.OPEN &&
           client.channel === fromClient.channel &&
           client.uuid !== fromClient.uuid

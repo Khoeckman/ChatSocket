@@ -13,7 +13,7 @@
  * // Decode a received message
  * const {type, message, data} = ChatSocketProtocol.decodeMessage(json);
  */
-class ChatSocketProtocolTRA {
+class ChatSocketProtocol {
   /**
    * Encodes a message for ChatSocket.
    *
@@ -25,7 +25,7 @@ class ChatSocketProtocolTRA {
    */
   static encodeMessage(type, message, data = {}) {
     if (!data || data.constructor !== Object) data = {}
-    return TRA.encrypt(JSON.stringify({ type: String(type).toUpperCase(), message: String(message ?? ''), data }), 64)
+    return JSON.stringify({ type: String(type).toUpperCase(), message: String(message ?? ''), data })
   }
 
   /**
@@ -57,7 +57,7 @@ class ChatSocketProtocolTRA {
     let type, message, data
 
     try {
-      ;({ type, message, data } = JSON.parse(TRA.decrypt(String(rawData), 64)))
+      ;({ type, message, data } = JSON.parse(String(rawData)))
     } catch (err) {
       throw new SyntaxError('Invalid JSON: ' + rawData)
     }
