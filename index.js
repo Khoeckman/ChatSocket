@@ -18,8 +18,8 @@ ws.autoconnect = true
 
 const cmdQueue = new Queue(settings.wsCmdEventCooldown | 0, (cmd) => {
   ChatLib.command(cmd)
-  if (!settings.wsDoCmdEvent || ws.readyState !== ChatSocketClient.OPEN) return
-  ws.sendEncoded('CMD', cmd)
+  if (ws.readyState !== ChatSocketClient.OPEN) return
+  ws.sendEncoded('SERVER_CMD', cmd)
 })
 
 try {
@@ -252,7 +252,7 @@ function registerWebSocketTriggers() {
 
   register('chat', (event) => {
     try {
-      if (ws.readyState !== ChatSocketClient.OPEN) return
+      if (!settings.wsDoClientSayEvent || ws.readyState !== ChatSocketClient.OPEN) return
 
       const rawMessage = ChatLib.getChatMessage(event)
       const message = ChatLib.getChatMessage(event, true)
@@ -302,7 +302,7 @@ function registerWebSocketTriggers() {
       const isCommand = message.startsWith('/')
       const type = isCommand ? 'SERVER_CMD' : 'SERVER_SAY'
 
-      if ((!settings.wsDoSayEvent && !isCommand) || isCommand) return
+      if ((!isCommand && !settings.wsDoServerSayEvent) || (isCommand && settings.wsDoServerCmdEvent)) return
 
       ws.sendEncoded(type, message)
     } catch (err) {
@@ -415,7 +415,7 @@ function onmessage(type, message, data) {
       if (!settings.wsDoExecEvent) break
 
       try {
-        const result = runCall(message)
+        const result = runCall(message, data.global !== false)
         this.sendEncoded('EXEC', result ?? 'Success', { success: true, result })
       } catch (err) {
         error('Error while executing &6&lEXEC&c event.')
