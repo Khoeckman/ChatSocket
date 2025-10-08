@@ -129,11 +129,13 @@ class ChatSocketWebClient extends WebSocket {
   authenticate(channel = null) {
     this.log(`&e&l●&e Authenticating as &f${this.name}`)
 
-    if (typeof channel === 'string') {
+    // Optional: select channel when authenticating
+    if ((channel ?? null) !== null) {
+      if (typeof channel !== 'string' || !channel.trim().length) throw new TypeError('channel is not a string')
+      channel = channel.trim().replace(/\s+/g, ' ')
+
       this.log(`&e&l●&e Selecting channel &f${channel}`)
       this.#channel = channel
-    } else {
-      this.log(`&c&l●&c Cannot select channel &f${channel}`)
     }
 
     this.sendEncoded('AUTH', `Authenticating as ${this.name}`, {
