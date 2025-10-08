@@ -22,15 +22,18 @@
   let retryCount = 0
 
   window.onload = function connect() {
-    ws = new ChatSocketWebClient(false ? 'ws://legendarygames.dev:47576' : 'wss://chatsocket-a1xp.onrender.com', {
-      name: 'GitHubWebClient',
-      [atob('c2VjcmV0')]: atob(
-        'MzkwNjNlMGY1ZDM2MDRlNmJkNWU5MDhjYWExY2YxN2NiNTk2N2NiZDExOTBjNjBiZTM4M2JhOWEzM2EwYzI4Yg'
-      ),
-      userAgent: window.navigator.userAgent,
-      channel: 'Hypixel',
-      onlog,
-    })
+    ws = new ChatSocketWebClient(
+      ['ws://localhost:47576', 'ws://legendarygames.dev:47576', 'wss://chatsocket-a1xp.onrender.com'][2],
+      {
+        name: 'GitHubWebClient',
+        [atob('c2VjcmV0')]: atob(
+          'MzkwNjNlMGY1ZDM2MDRlNmJkNWU5MDhjYWExY2YxN2NiNTk2N2NiZDExOTBjNjBiZTM4M2JhOWEzM2EwYzI4Yg'
+        ),
+        userAgent: window.navigator.userAgent,
+        channel: 'Hypixel',
+        onlog,
+      }
+    )
 
     // Custom logic
     new MinecraftApp(ws)
