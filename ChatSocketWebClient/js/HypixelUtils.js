@@ -13,8 +13,8 @@ class HypixelUtils {
 
   static proTool(ws, tool, args = null) {
     if (!(ws instanceof ChatSocketWebClient)) throw new TypeError('ws is not an instance of ChatSocketWebClient')
-    const tool = ['set', 'fill', 'walls', 'wireframe', 'cut', 'copy', 'paste', 'undo']
-    if (!tool.includes(tool)) throw new TypeError(`tool is not one of: ${tool.split(', ')}`)
+    const tools = ['set', 'fill', 'walls', 'wireframe', 'cut', 'copy', 'paste', 'undo']
+    if (!tools.includes(tool)) throw new TypeError(`tool is not one of: ${tools.split(', ')}`)
     if (args && typeof args !== 'string') throw new TypeError(`args is defined but is not a string`)
 
     return `${tool} ${args ?? ''}`
