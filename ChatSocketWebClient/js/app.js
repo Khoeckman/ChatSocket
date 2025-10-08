@@ -69,7 +69,10 @@ class MinecraftApp {
 
         clearTimeout(this.connectTimeout)
         // Attempt reconnect after 2s
-        this.connectTimeout = setTimeout(() => (!inServer ? ws.sendEncoded('CONNECT', 'play.hypixel.net') : null), 2000)
+        this.connectTimeout = setTimeout(
+          () => (!this.inServer ? ws.sendEncoded('CONNECT', 'play.hypixel.net') : null),
+          2000
+        )
         break
       case 'WORLD':
         this.inWorld = message !== 'null'
@@ -78,7 +81,8 @@ class MinecraftApp {
       case 'UNLOAD':
         break
       case 'CLIENT_SAY':
-        this.teleporter(rawMessage)
+        this.teleport(rawMessage)
+        this.selectRegion(rawMessage)
         break
       case 'SERVER_SAY':
         break
@@ -96,13 +100,21 @@ class MinecraftApp {
 
   // -> SERVER_SAY "... [CS] tp {args}"
   // <- SERVER_CMD "tp {args}"
-  teleporter(rawMessage) {
-    const regex = /\[CS\]\s+\/*tp\s+([\s\S]+)/
+  teleport(rawMessage) {
+    const regex = /\[CS\]\s+\/?tp\s+([\s\S]+)/
+    if (!regex.test(rawMessage)) return
 
-    if (regex.test(rawMessage)) {
-      const [_, args] = regex.exec(rawMessage)
-      this.ws.sendEncoded('SERVER_CMD', `tp ${args.trim()}`)
-      return
-    }
+    const [_, args] = regex.exec(rawMessage)
+    this.ws.sendEncoded('SERVER_CMD', `tp ${args.trim()}`)
+  }
+
+  // -> SERVER_SAY "... [CS] selectRegion <x1> <y1> <z1> / <x2> <y2> <z2>"
+  // <- SERVER_CMD HypixelUtils.selectRegion(...)
+  selectRegion(rawMessage) {
+    const regex = /\[CS\]\s+\/?selectRegion\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)\s+\/\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)/
+    if (!regex.test(rawMessage)) return
+
+    const [_, x1, y1, z1, x2, y2, z2] = regex.exec(rawMessage).map(Number)
+    HypixelUtils.selectRegion(this.ws, { x: x1, y: y1, z: z1 }, { x: x2, y: y2, z: z2 })
   }
 }
