@@ -2,7 +2,7 @@
 /// <reference lib="es2015" />
 
 import ChatSocketProtocol from './ChatSocketProtocol'
-import { randomInt, chat, error, dialog } from '../utils'
+import { chat, error, dialog } from '../utils'
 import settings from '../vigilance/Settings'
 
 const URI = Java.type('java.net.URI')
@@ -52,7 +52,7 @@ export default class ChatSocketClient {
     this.autoconnect = true
     this.hasConnected = false
 
-    this.connectingMessageId = randomInt(2 ** 15, 2 ** 31 - 2)
+    this.connectingMessageId = 47576001
     this.disconnectingMessageId = this.connectingMessageId + 1
 
     this.onmessage = null
