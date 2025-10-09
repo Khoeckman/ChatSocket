@@ -203,10 +203,6 @@ export default class ChatSocketClient {
       this.deleteConnectingMessage()
       throw new Error('WebSocket is already in CONNECTING or OPEN state')
     }
-    if (this.readyState === ChatSocketClient.CLOSING) {
-      this.deleteConnectingMessage()
-      throw new Error('WebSocket is still in CLOSING state')
-    }
 
     this.readyState = ChatSocketClient.CONNECTING
     if (this.hasConnected) this.client.reconnect()
