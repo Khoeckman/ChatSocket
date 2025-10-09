@@ -18,7 +18,7 @@ ws.autoconnect = true
 try {
   function connect({ mustNotBeOpen = false } = {}) {
     if (mustNotBeOpen && ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
-    ws.setSocketFactory(trustAllSSL().getSocketFactory())
+    // ws.setSocketFactory(trustAllSSL().getSocketFactory())
     if (typeof onmessage === 'function') ws.onmessage = onmessage
     ws.connect()
   }
