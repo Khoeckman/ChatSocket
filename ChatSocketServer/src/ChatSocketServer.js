@@ -33,7 +33,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
     this.on('connection', (client, request) => {
       client.ip = request.socket.remoteAddress || 'unknown'
-      client.auth = { isAuth: false, type: 'TRA', permissions: ['read'] }
+      client.auth = { isAuth: false, type: 'TRA', permissions: ['receive'] }
       client.name = 'client_' + ~~(Math.random() * 2 ** 31)
       client.userAgent = 'Unknown'
 
@@ -80,9 +80,9 @@ export default class ChatSocketServer extends WebSocketServer {
             return
           }
 
-          // Client does not have read_sensitive permissions
-          if (!client.auth.permissions.includes('read_sensitive') && (type === 'CHANNELS' || type === 'CLIENTS')) {
-            this.send(client, 'AUTH', 'Missing permission: read_sensitive', { success: false })
+          // Client does not have read permissions
+          if (!client.auth.permissions.includes('read') && (type === 'CHANNELS' || type === 'CLIENTS')) {
+            this.send(client, 'AUTH', 'Missing permission: read', { success: false })
             return
           }
 
@@ -98,9 +98,9 @@ export default class ChatSocketServer extends WebSocketServer {
             return
           }
 
-          // Client does not have write permissions
-          if (!client.auth.permissions.includes('write')) {
-            this.send(client, 'AUTH', 'Missing permission: write', { success: false })
+          // Client does not have send permissions
+          if (!client.auth.permissions.includes('send')) {
+            this.send(client, 'AUTH', 'Missing permission: send', { success: false })
             return
           }
 
@@ -192,10 +192,10 @@ export default class ChatSocketServer extends WebSocketServer {
     // Determine auth type based on which secret key the client used
     if (data.secret === this.secret) {
       client.auth.type = 'TRA'
-      client.auth.permissions = ['read', 'write']
+      client.auth.permissions = ['receive', 'send', 'read']
     } else if (data.secret === this.jsonReadWriteSecret) {
       client.auth.type = 'json'
-      client.auth.permissions = ['read', 'write']
+      client.auth.permissions = ['receive', 'send', 'read']
     }
 
     const fromChannel = client.channel
