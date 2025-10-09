@@ -33,13 +33,13 @@ Configure the WebSocket server with the `.env` file located in `./WebSocketServe
 
 ### Start the Server
 
-1. Open a terminal.
+1. Open a terminal
 2. Navigate to the server directory: `cd WebSocketServer/`
-3. Install dependencies and start the server:
+3. Install npm dependencies and start the server:
 
 ```bash
 npm install
-npm run wss
+npm run server
 ```
 
 On success the terminal will print: _ChatSocket server running on ws://localhost:47576_

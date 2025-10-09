@@ -16,7 +16,6 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "wss": "node index.js",
     "server": "node index.js"
   },
   "dependencies": {
