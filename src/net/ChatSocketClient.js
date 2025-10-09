@@ -188,9 +188,9 @@ export default class ChatSocketClient {
   close() {
     this.autoconnect = false
 
-    if (this.readyState === ChatSocketClient.CLOSING || this.readyState === ChatSocketClient.CLOSED) {
+    if (this.readyState === ChatSocketClient.CLOSED) {
       this.deleteDisconnectingMessage()
-      throw new Error('WebSocket is already in CLOSING or CLOSED state')
+      throw new Error('WebSocket is already in CLOSED state')
     }
 
     this.printDisconnectingMessage()
