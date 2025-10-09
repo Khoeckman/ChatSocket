@@ -53,7 +53,10 @@ export default class ChatSocketServer extends WebSocketServer {
 
           const { type, message, data } = this.#onmessage(client, String(rawData))
 
-          if (type === 'AUTH' && !this.authenticate(client, data)) return
+          if (type === 'AUTH') {
+            this.authenticate(client, data)
+            return
+          }
 
           if (!client.auth.isAuth) {
             this.send(client, 'AUTH', 'Unauthenticated', { success: false })
@@ -170,7 +173,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
     if (!from || from.constructor !== Object) {
       this.send(client, 'AUTH', 'Missing data._from', { success: false })
-      return false
+      return
     }
 
     if (
@@ -181,7 +184,7 @@ export default class ChatSocketServer extends WebSocketServer {
       )
     ) {
       this.send(client, 'AUTH', 'Incorrect secret key', { success: false })
-      return false
+      return
     }
 
     client.auth.isAuth = true
@@ -235,8 +238,6 @@ export default class ChatSocketServer extends WebSocketServer {
 
     if (client.channel !== fromChannel)
       this.sendChannel(client, 'CHANNEL', `${client.name} joined the channel`, { action: 'join' })
-
-    return true
   }
 
   send(client, type, message, data = {}) {
