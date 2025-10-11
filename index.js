@@ -6,28 +6,23 @@ import { PREFIX, chat, error, dialog, runCall } from './src/utils'
 import settings from './src/vigilance/Settings'
 import metadata from './src/utils/Metadata'
 import ChatSocketClient, { trustAllSSL } from './src/net/ChatSocketClient'
-import Queue from './src/utils/Queue'
+import { cmdQueue } from './src/utils/heatManager'
 
 // const C13PacketPlayerAbilities = Java.type('net.minecraft.network.play.client.C13PacketPlayerAbilities')
 
 let isWorldLoadedOnGameLoad = null
+let cmdHeat = 0
 
 let ws = new ChatSocketClient(settings.wsURL)
 ws.autoconnect = true
 
 try {
-  function connect({ mustNotBeOpen = false } = {}) {
-    if (mustNotBeOpen && ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
+  function wsConnect({ newInstance = true } = {}) {
+    if (newInstance || ws.readyState !== ChatSocketClient.OPEN) ws = new ChatSocketClient(settings.wsURL)
     // ws.setSocketFactory(trustAllSSL().getSocketFactory())
     if (typeof onmessage === 'function') ws.onmessage = onmessage
     ws.connect()
   }
-
-  const cmdQueue = new Queue(settings.wsCmdEventCooldown | 0, (cmd) => {
-    ChatLib.command(cmd)
-    if (ws.readyState !== ChatSocketClient.OPEN) return
-    ws.sendEncoded('SERVER_CMD', cmd)
-  })
 
   register('command', (command, ...args) => {
     try {
@@ -68,7 +63,7 @@ try {
         case 'o':
           if (!ws.autoconnect && settings.wsAutoconnect) chat('&eAutoconnect resumed')
 
-          connect({ mustNotBeOpen: true })
+          wsConnect({ newInstance: false })
           break
 
         case 'close':
@@ -81,7 +76,7 @@ try {
         case 'reconnect':
         case 'r':
           ws.close()
-          connect()
+          wsConnect()
           break
 
         case 'status':
@@ -120,24 +115,6 @@ try {
     .setName('cs')
     .setAliases('chatsocket')
 
-  // Queue commands
-  register('messageSent', (cmd, event) => {
-    try {
-      if (!settings.wsEnableCmdEventCooldown || !cmd.startsWith('/') || cmd === '/locraw') return
-
-      if (cmdQueue.cooldown !== settings.wsCmdEventCooldown) {
-        cmdQueue.cooldown = settings.wsCmdEventCooldown
-      }
-
-      if (cmdQueue.isExecuting || settings.wsCmdEventCooldown === 0) return
-
-      cmdQueue.queue(cmd.slice(1))
-      cancel(event)
-    } catch (err) {
-      error(err, settings.printStackTrace)
-    }
-  })
-
   register('gameLoad', () => {
     isWorldLoadedOnGameLoad = World.isLoaded()
   })
@@ -145,7 +122,6 @@ try {
   register('gameUnload', () => {
     // Close WebSocket when unloading the module
     try {
-      cmdQueue.clear() // gc
       ws.close()
     } catch (err) {}
   })
@@ -164,6 +140,7 @@ try {
   })
 
   registerWebSocketTriggers()
+  registerHeatManagementTriggers()
 
   // Autoreconnect
   register('step', () => {
@@ -189,41 +166,11 @@ try {
         ws.close()
       } catch (err) {}
 
-      connect()
+      wsConnect()
     } catch (err) {
       error(err, settings.printStackTrace)
     }
   }).setDelay(2)
-
-  // Prevent command heat getting too hot
-  register('step', () => {
-    try {
-      //
-    } catch (err) {
-      error(err, settings.printStackTrace)
-    }
-  })
-
-  // Render how many commands are left in the queue
-  register('renderOverlay', () => {
-    const size = cmdQueue.fifo.length
-    if (!size) return
-
-    const text = PREFIX + ` &eCommand queue &7(&e${size}&7)`
-
-    const screen = Renderer.screen
-    const screenWidth = screen.getWidth()
-    const screenHeight = screen.getHeight()
-
-    // Center horizontally
-    const textWidth = Renderer.getStringWidth(text)
-    const x = (screenWidth - textWidth) / 2
-
-    const offset = 35
-    const y = screenHeight - offset
-
-    Renderer.drawStringWithShadow(text, x, y)
-  })
 } catch (err) {
   error(err, settings.printStackTrace)
 }
@@ -269,6 +216,12 @@ function registerWebSocketTriggers() {
 
   register('worldLoad', () => {
     try {
+      if (cmdQueue.length) {
+        chat('&eCleared the command queue.')
+        World.playSound('dig.glass', 0.7, 1)
+      }
+      cmdQueue.clear()
+
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const world = World.getWorld()
@@ -280,6 +233,12 @@ function registerWebSocketTriggers() {
 
   register('worldUnload', () => {
     try {
+      if (cmdQueue.length) {
+        chat('&eCleared the command queue.')
+        World.playSound('dig.glass', 0.7, 1)
+      }
+      cmdQueue.clear()
+
       if (ws.readyState !== ChatSocketClient.OPEN) return
 
       const world = World.getWorld()
@@ -347,6 +306,78 @@ function registerWebSocketTriggers() {
     } catch (err) {
       error(err, settings.printStackTrace)
     }
+  })
+}
+
+function registerHeatManagementTriggers() {
+  // Reduce heat every tick and execute commands from queue is heat is low enough
+  register('tick', () => {
+    try {
+      // Cooldown
+      if (cmdHeat > 0) cmdHeat -= 1
+
+      // WebSocket must be open so it can receive feedback from commands
+      // AND heat must be low enough
+      if (
+        !(
+          ws.readyState === ChatSocketClient.OPEN &&
+          cmdHeat + Number(settings.cmdHeatGeneration) < Number(settings.cmdHeatLimit)
+        )
+      )
+        return
+
+      const cmd = cmdQueue.dequeueOldest()
+      if (!cmd) return
+
+      ChatLib.command(cmd)
+      ws.sendEncoded('SERVER_CMD', cmd)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
+  // Queue commands if they would exceed the heat limit
+  register('messageSent', (cmd, event) => {
+    try {
+      // Don't queue
+      // IF disabled in settings
+      // OR `cmd` does not have a leading slash (then it's a regular message)
+      // OR `cmd` is /locraw (doesn't count towards heat limit)
+      if (!settings.enableCmdHeat || !cmd.startsWith('/') || cmd === '/locraw') return
+
+      // Execute command and increase heat if heat is low enough
+      if (cmdHeat + Number(settings.cmdHeatGeneration) < Number(settings.cmdHeatLimit)) {
+        cmdHeat += Number(settings.cmdHeatGeneration)
+        return
+      }
+
+      // Queue command after slicing off leading slash
+      cmdQueue.enqueue(cmd.slice(1))
+      cancel(event)
+    } catch (err) {
+      error(err, settings.printStackTrace)
+    }
+  })
+
+  // Render how many commands are left in the queue
+  register('renderOverlay', () => {
+    const size = cmdQueue.length
+    if (!size) return
+
+    const text = PREFIX + ` &eCommand queue &7(&e${size}&7)`
+
+    const screen = Renderer.screen
+    const screenWidth = screen.getWidth()
+    const screenHeight = screen.getHeight()
+
+    // Center horizontally
+    const textWidth = Renderer.getStringWidth(text)
+    const x = (screenWidth - textWidth) / 2
+
+    const offset = 35
+    const y = screenHeight - offset
+
+    Renderer.drawStringWithShadow(text, x, y)
   })
 }
 

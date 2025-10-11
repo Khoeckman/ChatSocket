@@ -120,7 +120,7 @@ export decorator @Vigilant(
                 config.registerProperty(propertyData)
             }
 
-            instance.addDependency = (dependentName, dependencyName) => {
+            instance.addDependency = (dependencyName, dependentName) => {
                 const dependent = findProp(dependentName)
                 const dependency = findProp(dependencyName)
 

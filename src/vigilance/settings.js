@@ -5,11 +5,11 @@ const Long = Java.type('java.lang.Long')
 
 @Vigilant('ChatSocket', '§6ChatSocket §eSettings', {
   getCategoryComparator: () => (a, b) => {
-    const categories = ['General', 'WebSocket', 'Debug']
+    const categories = ['General', 'WebSocket', 'Command Queue', 'Debug']
     return categories.indexOf(a.name) - categories.indexOf(b.name)
   },
   getSubcategoryComparator: () => (a, b) => {
-    const subcategories = ['General', 'Connection', 'Security', 'Events', 'Logger', 'Errors']
+    const subcategories = ['General', 'Connection', 'Security', 'Events', 'Heat Manager', 'Logger', 'Errors']
     return (
       subcategories.indexOf(a.getValue()[0].attributesExt.subcategory) -
       subcategories.indexOf(b.getValue()[0].attributesExt.subcategory)
@@ -29,9 +29,10 @@ const Long = Java.type('java.lang.Long')
       'Send SERVER_SAY Events',
       'Send CLIENT_CMD Events',
       'Send SERVER_CMD Events',
-      'Enable CMD Event Cooldown',
-      'CMD Event Cooldown',
       'Execute EXEC Events',
+      'Enable Heat Manager',
+      'Heat Limit',
+      'Command Heat',
       'Chat Logger',
       'File Logger',
       'File Logger Directory',
@@ -162,25 +163,6 @@ class Settings {
   })
   wsDoServerCmdEvent = true
 
-  @SwitchProperty({
-    name: 'Enable CMD Event Cooldown',
-    description: 'Prevent getting kicked for sending commands too fast.',
-    category: 'WebSocket',
-    subcategory: 'Events',
-  })
-  wsEnableCmdEventCooldown = true
-
-  @DecimalSliderProperty({
-    name: 'CMD Event Cooldown',
-    description: 'Amount of milliseconds between execution of commands.',
-    category: 'WebSocket',
-    subcategory: 'Events',
-    minF: 0,
-    maxF: 2000,
-    decimalPlaces: 0,
-  })
-  wsCmdEventCooldown = '200.0'
-
   @CheckboxProperty({
     name: 'Execute EXEC Events',
     description: 'EXEC events allow other clients to invoke methods on your Minecraft instance.',
@@ -188,6 +170,39 @@ class Settings {
     subcategory: 'Events',
   })
   wsDoExecEvent = false
+
+  // Command Queue
+
+  // Command Queue > Heat Manager
+
+  @SwitchProperty({
+    name: 'Enable Heat Manager',
+    description: 'Prevent getting kicked for sending too many commands.',
+    category: 'Command Queue',
+    subcategory: 'Heat Manager',
+  })
+  enableCmdHeat = true
+
+  @NumberProperty({
+    name: 'Heat Limit',
+    description: 'Maximum amount of heat before commands start getting queued.',
+    category: 'Command Queue',
+    subcategory: 'Heat Manager',
+    min: 0,
+    max: 1000,
+    increment: 10,
+  })
+  cmdHeatLimit = '200'
+
+  @NumberProperty({
+    name: 'Command Heat',
+    description: 'Amount of heat generated each time a command is executed.',
+    category: 'Command Queue',
+    subcategory: 'Heat Manager',
+    min: 1,
+    max: 100,
+  })
+  cmdHeatGeneration = '20'
 
   // Debug
 
@@ -248,9 +263,16 @@ class Settings {
     //   // }
     // })
 
-    this.addDependency('CHAT Event RegEx Capture', 'Enable CHAT Event RegEx Capture')
+    this.setSubcategoryDescription(
+      'Command Queue',
+      'Heat Manager',
+      'Queue commands that would exceed the command heat limit to avoid disconnection.\nHeat increases when executing commands and decreases by 1 each tick.'
+    )
 
-    this.addDependency('CMD Event Cooldown', 'Enable CMD Event Cooldown')
+    this.addDependency('Enable CHAT Event RegEx Capture', 'CHAT Event RegEx Capture')
+
+    this.addDependency('Enable Heat Manager', 'Heat Limit')
+    this.addDependency('Enable Heat Manager', 'Command Heat')
 
     // this.addDependency('File Logger Directory', 'File Logger')
   }
