@@ -1,14 +1,15 @@
 {
   "name": "chatsocketserver",
   "version": "1.3.1",
-  "description": "A Node.js WebSocket middleman between controllers (e.g. websites) and clients (e.g. Minecraft ChatTriggers).",
+  "description": "A Node.js WebSocket Server protocol that allows clients to connect and listen or broadcast to a certain channel ",
   "keywords": [
-    "Minecraft",
-    "ChatTriggers",
     "ChatSocket",
     "WebSocket",
     "WebSocketServer",
     "Server",
+    "protocol",
+    "channel",
+    "channeling",
     "ws"
   ],
   "license": "MIT",

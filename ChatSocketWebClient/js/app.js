@@ -81,11 +81,14 @@ class MinecraftApp {
       case 'UNLOAD':
         break
       case 'CLIENT_SAY':
-        if (!this.inServer || !this.inWorld) break
+        if (this.inServer && this.inWorld) {
+          // Message must contain "[CS] "
+          if (!/\[CS\]\s+/.test(rawMessage)) return
 
-        this.teleport(rawMessage)
-        this.selectRegion(rawMessage)
-        this.proTool(rawMessage)
+          this.teleport(rawMessage)
+          this.selectRegion(rawMessage)
+          this.proTool(rawMessage)
+        }
         break
       case 'SERVER_SAY':
         break
@@ -101,7 +104,7 @@ class MinecraftApp {
     }
   }
 
-  // -> SERVER_SAY "... [CS] tp {args}"
+  // -> SERVER_SAY "… [CS] tp {args}"
   // <- SERVER_CMD "tp {args}"
   teleport(rawMessage) {
     const regex = /\[CS\]\s+\/?tp\s+([\s\S]+)/
@@ -111,10 +114,11 @@ class MinecraftApp {
     this.ws.sendEncoded('SERVER_CMD', `tp ${args.trim()}`)
   }
 
-  // -> SERVER_SAY "... [CS] selectRegion <x1> <y1> <z1> / <x2> <y2> <z2>"
-  // <- SERVER_CMD HypixelUtils.selectRegion(...)
+  // -> SERVER_SAY "… [CS] selectRegion [<x1> <y1> <z1>] [<x2> <y2> <z2>]"
+  // <- SERVER_CMD HypixelUtils.selectRegion(ws, [<x1>, <y1>, <z1>], [<x2>, <y2>, <z2>])
   selectRegion(rawMessage) {
-    const regex = /\[CS\]\s+\/?selectRegion\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)\s+\/\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)/
+    const regex =
+      /\[CS\]\s+\/?selectRegion\s+\[\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)\s*\]\s+\[\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)\s*\[/
     if (!regex.test(rawMessage)) return
 
     const [_, x1, y1, z1, x2, y2, z2] = regex.exec(rawMessage).map(Number)
@@ -122,6 +126,8 @@ class MinecraftApp {
     ws.sendEncoded('SERVER_CMD', '', { queue })
   }
 
+  // -> SERVER_SAY "… [CS] proTool <tool> <args>"
+  // <- SERVER_CMD HypixelUtils.proTool
   proTool(rawMessage) {
     const regex = /\[CS\]\s+\/?(\w+)\s+(\s\S+)/
     if (!regex.test(rawMessage)) return
@@ -130,4 +136,6 @@ class MinecraftApp {
     const cmd = HypixelUtils.proTool(this.ws, tool, args.trim().replace(/\s+/g, ' '))
     ws.sendEncoded('SERVER_CMD', cmd)
   }
+  // [CS] selectRegion [112 27 -102] [88 3 -78] | proTool set [14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  // EVENT MINE: /set 14,15,16,56,129,41,133,57,41,133,57,49,1
 }

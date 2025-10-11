@@ -14,13 +14,12 @@ class FallingChars {
     this.color = color
     this.spawnDensityPerSecond = spawnDensityPerSecond
     this.spawnsPerInterval = spawnsPerInterval
+    this.fontSize = parseFloat(window.getComputedStyle(this.container).fontSize)
 
     this.spawnFn = function () {
       return {
         x: Math.random() * window.innerWidth,
-        y:
-          -(2 * parseFloat(window.getComputedStyle(this.container).fontSize)) -
-          Math.random() * 0.25 * window.innerHeight,
+        y: -2 * this.fontSize - Math.random() * 0.25 * window.innerHeight,
         scale: 0.25 + Math.random(),
         direction: -10 + Math.random() * 20,
         rotation: -25 + Math.random() * 50,

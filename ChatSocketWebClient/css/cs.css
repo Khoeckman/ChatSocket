@@ -1,4 +1,4 @@
-#chatSocket {
+form {
   display: flex;
   flex-flow: column;
   gap: 2rem;
@@ -9,10 +9,6 @@
   flex-flow: row wrap;
   align-items: center;
   gap: 1rem 2rem;
-}
-
-#chatSocket button {
-  width: fit-content;
 }
 
 #chatSocket .message {
@@ -31,11 +27,19 @@
   color: var(--bg);
 }
 
-#chatSocket:not([data-ready-state='1']) .inline button {
+#chatSocket:not([data-ready-state='1']) .inline button[type='submit'] {
   cursor: not-allowed;
   background-color: var(--c12);
   border-color: var(--c24);
   color: var(--c72);
+}
+
+#chatSocket .inline button.settings svg {
+  transition: transform 500ms;
+}
+
+#chatSocket .inline button.settings:is(:hover, :focus-visible, :active) svg {
+  transform: rotate(180deg);
 }
 
 #chatSocketStatus {
@@ -87,6 +91,33 @@
   color: #ff5555;
 }
 
+#chatSocketSettingsDialog {
+  overflow: hidden;
+  background-color: var(--bg);
+  border: 1px solid var(--c24);
+  border-radius: 0.5rem;
+  padding: 0;
+  width: min(40em, 100vw);
+}
+
+#chatSocketSettingsDialog::backdrop {
+  background-color: #0006;
+}
+
+#chatSocketSettings {
+  padding: 3rem;
+}
+
+#chatSocketSettings .actions {
+  display: flex;
+  gap: 1rem;
+}
+
+#chatSocketSettings .actions button {
+  flex: 1;
+  max-width: 6rem;
+}
+
 #log {
   scrollbar-color: var(--c48) var(--c12);
   cursor: default;
@@ -129,5 +160,9 @@
 @media (max-width: 40em) {
   #chatSocket h1 {
     flex-flow: column;
+  }
+
+  #chatSocketSettings {
+    padding: 2rem;
   }
 }
