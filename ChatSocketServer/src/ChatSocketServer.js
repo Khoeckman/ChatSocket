@@ -167,7 +167,7 @@ export default class ChatSocketServer extends WebSocketServer {
 
   authenticate(client, data) {
     if (!(client instanceof WebSocket)) throw TypeError('client is not an instance of WebSocket')
-    if (!data || data.constructor !== Object) throw TypeError('data is not an Object')
+    if (!data || data.constructor !== Object) throw TypeError('data is not an object')
 
     let from = data?._from
 

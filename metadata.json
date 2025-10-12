@@ -1,7 +1,7 @@
 {
   "name": "ChatSocket",
   "creator": "Khoeckman",
-  "description": "Configure and open a WebSocket connection to send and receive ChatTrigger events in real time.",
+  "description": "Configure and open a WebSocket connection to send and receive ChatTrigger events in real-time.",
   "version": "2.0.0",
   "entry": "index.js",
   "homepage": "https://github.com/Khoeckman/ChatSocket"

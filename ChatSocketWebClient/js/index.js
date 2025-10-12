@@ -1,7 +1,7 @@
 // Theres no need to modify this file, instead look into app.js
 
 console.log(
-  '%cChatSocket%c\nConfigure and open a WebSocket connection to send and receive ChatTrigger events in real time.\nwss://chatsocket-a1xp.onrender.com',
+  '%cChatSocket%c\nConfigure and open a WebSocket connection to send and receive ChatTrigger events in real-time.\nwss://chatsocket-a1xp.onrender.com',
   'color: #fff; background: #f9ba1a; border-radius: 4px; font-size: 24px; font-weight: bold; color: #000; padding: 4px 16px;',
   'font-size: 14px; color: #aaa; margin-top: 8px;'
 )

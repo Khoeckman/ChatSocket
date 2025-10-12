@@ -1,7 +1,7 @@
 # ChatSocket
 
 **A ChatTriggers module**\
-Configure and open a WebSocket connection to send and receive ChatTrigger events in real time.
+Configure and open a WebSocket connection to send and receive ChatTrigger events in real-time.
 
 ChatSocket enables you to interact with Minecraft programmatically **without modifying its internal code**, using **WebSocket communication** to exchange messages with external programs.
 
@@ -54,7 +54,7 @@ You must also select a **Channel**. Think of it like a radio frequency: your Min
 
 ## Connecting External Clients
 
-Refer to the `ChatSocketController/` directory for a demo. You can use this as a starting point to build your own external programs that connect to the ChatSocket server. That way it can communicate with Minecraft clients in real time.
+Refer to the `ChatSocketController/` directory for a demo. You can use this as a starting point to build your own external programs that connect to the ChatSocket server. That way it can communicate with Minecraft clients in real-time.
 Making changes to this program does not require you to reload or modify anything inside Minecraft, saving time.
 
 ## Credits
