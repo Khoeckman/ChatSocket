@@ -47,6 +47,7 @@ formValidator.form.addEventListener('submit', (e) => {
     logFromField: logFromField.checked,
   }
 
+  connect(true)
   chatSocketSettingsDialog.close()
 })
 

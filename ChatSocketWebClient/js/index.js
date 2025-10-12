@@ -10,8 +10,14 @@ console.log(
 let ws = null
 let retryCount = 0
 
-window.onload = function connect() {
+window.onload = connect
+
+function connect(reconnect = false) {
   const settings = localStorageSettings.value
+
+  if (!reconnect && ws && ws.readyState === ws.OPEN) return
+
+  ws?.close()
 
   ws = new ChatSocketWebClient(settings.url, {
     name: settings.name,
