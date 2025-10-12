@@ -1,9 +1,10 @@
 // Theres no need to modify this file, instead look into app.js
 
 console.log(
-  '%cChatSocket%c\nConfigure and open a WebSocket connection to send and receive ChatTrigger events in real-time.\nwss://chatsocket-a1xp.onrender.com',
+  '%cChatSocket%c\nConfigure and open a WebSocket connection to send and receive ChatTrigger events in real-time.%c\nwss://chatsocket-a1xp.onrender.com',
   'color: #fff; background: #f9ba1a; border-radius: 4px; font-size: 24px; font-weight: bold; color: #000; padding: 4px 16px;',
-  'font-size: 14px; color: #aaa; margin-top: 8px;'
+  'font-size: 14px; color: #999; margin-top: 8px;',
+  'font-size: 14px; color: #999;'
 )
 
 // WebSocket
@@ -26,6 +27,9 @@ function connect(reconnect = false) {
     channel: settings.channel ?? 'Default',
     onlog,
   })
+
+  // Custom field for easy access
+  ws.settings = settings
 
   // Custom logic
   new MinecraftApp(ws)
@@ -54,13 +58,25 @@ function connect(reconnect = false) {
 }
 
 // Log
-function onlog({ detail: { line, type, message, data } }) {
+function onlog({ detail: { line, direction, type, message, data } }) {
+  let maskedData = { ...data }
+  if (!this.settings.logFromField) delete maskedData?._from
+
   const logEl = document.getElementById('log')
 
   if (logEl === null) {
+    line += `${type} ${message} \t${JSON.stringify(maskedData)}`
     console.log(Utils.removeMcFormatting(line))
     return
   }
+
+  if (typeof type === 'string') {
+    line += `&6&l${type}${direction === 'incoming' ? '&a' : '&b'} ${Utils.shortenInnerHTML(message, 128)}`
+
+    if (localStorageSettings.value)
+      line += ` \t&7${JSON.stringify(maskedData, (_, value) => (typeof value === 'string' ? value + '&7' : value))}`
+  }
+
   const lineEl = Utils.mcToHTML(line)
   lineEl.title = new Date().toLocaleString('nl-BE')
 

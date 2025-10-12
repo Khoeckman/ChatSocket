@@ -59,12 +59,7 @@ class ChatSocketWebClient extends WebSocket {
 
   #onmessage(event) {
     const { type, message, data } = ChatSocketProtocol.decodeMessage(TRA[atob('ZGVjcnlwdA')](event.data, 64))
-    this.log(
-      `&2➔ &6&l${type}&a ${message} \t&7${JSON.stringify(data, (_, value) =>
-        typeof value === 'string' ? value + '&7' : value
-      )}`,
-      { type, message, data }
-    )
+    this.log(`&2➔ `, { direction: 'incoming', type, message, data })
 
     const { name, uuid, userAgent } = data?._from
 
@@ -110,13 +105,12 @@ class ChatSocketWebClient extends WebSocket {
     // Mask secret
     if (data.secret) data.secret = '*'
 
-    this.log(
-      `&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>&6&l${type}&b ${Utils.shortenInnerHTML(
-        message,
-        128
-      )} \t&7${JSON.stringify(data, (_, value) => (typeof value === 'string' ? value + '&7' : value))}`,
-      { type, message, data }
-    )
+    this.log(`&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>`, {
+      direction: 'outgoing',
+      type,
+      message,
+      data,
+    })
   }
 
   // #onerror(event) {}
@@ -155,7 +149,7 @@ class ChatSocketWebClient extends WebSocket {
     this.sendEncoded('CHANNEL', `Selecting channel ${channel}`, { channel })
   }
 
-  log(line, { type, message, data } = {}) {
-    this.dispatchEvent(new CustomEvent('log', { detail: { line, type, message, data } }))
+  log(line, { direction, type, message, data } = {}) {
+    this.dispatchEvent(new CustomEvent('log', { detail: { line, direction, type, message, data } }))
   }
 }
