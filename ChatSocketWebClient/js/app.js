@@ -92,14 +92,15 @@ class MinecraftApp {
         break
       case 'CLIENT_SAY':
         if (this.inServer && this.inWorld) {
+          this.welcome(message)
+          this.welcomeBack(message)
+
           // Message must contain " [CS] "
-          if (!/\s+\[CS\]\s+/.test(rawMessage)) return
-
-          break
-
-          this.teleport(rawMessage)
-          this.selectRegion(rawMessage)
-          this.proTool(rawMessage)
+          if (/\s+\[CS\]\s+/.test(rawMessage)) {
+            this.teleport(rawMessage)
+            this.selectRegion(rawMessage)
+            this.proTool(rawMessage)
+          }
         }
         break
       case 'SERVER_SAY':
@@ -141,10 +142,11 @@ class MinecraftApp {
   // -> SERVER_SAY "… [CS] proTool <tool> <args>"
   // <- SERVER_CMD HypixelUtils.proTool
   proTool(rawMessage) {
-    const regex = /\[CS\]\s+\/?(\w+)\s+(\s\S+)/
+    const regex = /\[CS\]\s+\/?proTool\s+(set|fill|replace|walls|wireframe|cut|copy|paste|undo)\s+\[([^\]]+)\]/
+    console.log(rawMessage, regex.test(rawMessage))
     if (!regex.test(rawMessage)) return
 
-    const [_, tool, args] = regex.exec(rawMessage).map(Number)
+    const [_, tool, args] = regex.exec(rawMessage)
     const cmd = HypixelUtils.proTool(this.ws, tool, args.trim().replace(/\s+/g, ' '))
     ws.sendEncoded('SERVER_CMD', cmd)
   }
