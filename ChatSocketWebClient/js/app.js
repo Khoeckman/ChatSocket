@@ -13,6 +13,15 @@ class MinecraftApp {
       this.ws.sendEncoded('SERVER')
       this.ws.sendEncoded('WORLD')
     })
+
+    setInterval(() => {
+      if (!this.inServer || !this.inWorld) return
+      this.ws.sendEncoded(
+        'SERVER_CMD',
+        'set 14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1'
+      )
+      this.ws.sendEncoded('SERVER_CMD', 'variable global set mine1mined 0')
+    }, 10 * 60 * 1000)
   }
 
   /**
@@ -66,6 +75,7 @@ class MinecraftApp {
         break
       case 'DISCONNECT':
         this.inServer = false
+        break // @todo put back
 
         clearTimeout(this.connectTimeout)
         // Attempt reconnect after 2s
@@ -82,8 +92,10 @@ class MinecraftApp {
         break
       case 'CLIENT_SAY':
         if (this.inServer && this.inWorld) {
-          // Message must contain "[CS] "
-          if (!/\[CS\]\s+/.test(rawMessage)) return
+          // Message must contain " [CS] "
+          if (!/\s+\[CS\]\s+/.test(rawMessage)) return
+
+          break
 
           this.teleport(rawMessage)
           this.selectRegion(rawMessage)
@@ -137,5 +149,6 @@ class MinecraftApp {
     ws.sendEncoded('SERVER_CMD', cmd)
   }
   // [CS] selectRegion [112 27 -102] [88 3 -78] | proTool set [14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-  // EVENT MINE: /set 14,15,16,56,129,41,133,57,41,133,57,49,1
+  // Only blocks: /set 14,15,16,56,129,41,133,57,41,133,57,49,1
+  // Less blocks: /set 14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,1,42,41,133,57,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 }
