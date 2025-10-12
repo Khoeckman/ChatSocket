@@ -117,6 +117,22 @@ class MinecraftApp {
     }
   }
 
+  welcome(message) {
+    const regex = /&r&6&l&oWELCOME &r&8\[PRISON\] &r&7\[&r&21&r&7\] &r&2\[[A-Z]\] ([0-9a-zA-Z_]+) &r&7\(&r&b#/
+    if (!regex.test(message)) return
+
+    const [_, name] = regex.exec(message)
+    this.ws.sendEncoded('SERVER_SAY', `welcome ${name}!`)
+  }
+
+  welcomeBack(message) {
+    const regex = /&r&a&l&oJOIN &r&8\[PRISON\] &r&7\[&r&21&r&7\] &r&2\[[A-Z]\] ([0-9a-zA-Z_]+) &r&7\(&r&b#/
+    if (!regex.test(message)) return
+
+    const [_, name] = regex.exec(message)
+    this.ws.sendEncoded('SERVER_SAY', `wb ${name}!`)
+  }
+
   // -> SERVER_SAY "… [CS] tp {args}"
   // <- SERVER_CMD "tp {args}"
   teleport(rawMessage) {
