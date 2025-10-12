@@ -1,0 +1,126 @@
+label:has(> .slider) {
+  cursor: pointer;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--bg);
+  border: 1px solid var(--c24);
+  border-radius: 0.3rem;
+  font-size: 1em;
+  color: var(--fg);
+  line-height: 1;
+  padding: 0.5rem 1rem;
+  width: fit-content;
+  height: unset;
+  transition: border-color 150ms;
+}
+
+label:has(> .slider):hover {
+  border-color: var(--c48);
+}
+label:has(> .slider input:focus-visible) {
+  border-color: var(--err);
+}
+
+.slider {
+  overflow: hidden;
+  border-radius: 0.1rem;
+}
+
+.slider input {
+  opacity: 0;
+  position: absolute;
+}
+
+.slider > span {
+  overflow: hidden;
+  display: block;
+  background-color: var(--err);
+  position: relative;
+  width: 4em;
+  height: 2em;
+  transition: background 300ms ease-in-out;
+}
+
+.slider > span::before,
+.slider > span::after {
+  content: '';
+  display: block;
+  position: relative;
+  width: 50%;
+  height: 100%;
+}
+
+.slider > span::after {
+  left: 0;
+}
+
+.slider input:checked + span::after {
+  left: 50%;
+}
+
+.slider > span::before,
+.slider > span::after {
+  font-weight: 700;
+  line-height: 2;
+  text-align: center;
+  color: var(--fg);
+  position: absolute;
+  width: 100%;
+  transition: color 300ms ease-in-out, left 300ms ease-in-out;
+}
+
+.slider > span::before {
+  content: 'OFF';
+  left: 0;
+}
+
+.slider > span::after {
+  content: 'ON';
+  left: 100%;
+}
+
+.slider.yes-no > span::before {
+  content: 'NO';
+  left: 0;
+}
+
+.slider.yes-no > span::after {
+  content: 'YES';
+  left: 100%;
+}
+
+.slider.show-hide > span::before {
+  content: 'HIDE';
+  left: 0;
+}
+
+.slider.show-hide > span::after {
+  content: 'SHOW';
+  left: 100%;
+}
+
+label:active > .slider > span::before,
+.slider > span:active::before {
+  left: -8%;
+}
+
+.slider input:checked + span {
+  background-color: #55ff55;
+}
+
+.slider input:checked + span::before {
+  color: var(--bg);
+  left: -100%;
+}
+
+.slider input:checked + span::after {
+  color: var(--bg);
+  left: 0;
+}
+
+label:active > .slider input:checked + span::after,
+.slider input:checked + span:active::after {
+  left: 8%;
+}

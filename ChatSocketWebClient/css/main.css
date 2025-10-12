@@ -58,6 +58,10 @@ main :is(input, select, textarea).error {
   border-color: var(--err);
 }
 
+main input[type='checkbox'] {
+  width: 2.5rem;
+}
+
 main button {
   background-color: var(--bg);
   border: 1px solid var(--pri);
@@ -128,6 +132,15 @@ main .inline {
 
 main .inline button {
   align-self: flex-end;
+}
+
+main span.highlight {
+  background-color: var(--fg);
+  border-radius: 0.3rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--bg);
+  padding: 0 0.3rem;
 }
 
 @media (max-width: 60em) {

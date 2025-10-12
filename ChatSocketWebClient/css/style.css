@@ -1,5 +1,7 @@
+@import './helper/slider.css';
 @import './credits.css';
 @import './main.css';
+@import './form-validator.css';
 @import './cs.css';
 @import './falling-chars.css';
 
