@@ -96,14 +96,14 @@ class FormValidator {
     if (!summmary) return
 
     summmary.style.display = 'none'
-    this.form.querySelector('.error-summary ul').innerHTML = '' // clear ul
+    summmary.querySelector('ul').innerHTML = '' // clear ul
   }
 
   showSummary() {
     const summmary = this.form.querySelector('.error-summary')
     if (!summmary) return
 
-    const ul = this.form.querySelector('.error-summary ul')
+    const ul = summmary.querySelector('ul')
 
     // fill ul with links to the fields with an error
     this.errors.forEach((error) => {
@@ -128,6 +128,7 @@ class FormValidator {
       ul.appendChild(li)
     })
 
+    summmary.tabIndex = -1
     summmary.style.display = 'block'
     summmary.focus()
   }

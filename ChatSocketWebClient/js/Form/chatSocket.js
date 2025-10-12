@@ -6,6 +6,8 @@ chatSocketForm.fields = {
   data: chatSocketForm.querySelector('.data input'),
 }
 
+// Byte labels
+
 const messageBytes = document.querySelector('.message .bytes')
 const dataBytes = document.querySelector('.data .bytes')
 
@@ -31,32 +33,33 @@ chatSocketForm.fields.data.addEventListener('input', (e) => {
   updateBytes(dataBytes, e.target.value)
 })
 
+// Form submission
+
 chatSocketForm.addEventListener('submit', (e) => {
+  const form = e.target
+  if (!(form instanceof HTMLFormElement)) return
   e.preventDefault()
 
   // Return if button is disabled
-  if (+e.target.dataset.readyState !== ChatSocketWebClient.OPEN) return
+  if (+form.dataset.readyState !== ChatSocketWebClient.OPEN) return
 
   if (!ws || ws.readyState !== ChatSocketWebClient.OPEN) {
     window.alert(new Error('WebSocket is not in OPEN state'))
     return
   }
 
-  const fields = e.target.fields
-  const type = fields.type.value
-  const message = fields.message.value
-  let data = {}
+  const { type, message, data = {} } = form.fields
 
   try {
-    data = JSON.parse(fields.data.value || '{}')
-    if (!data || data.constructor !== Object) data = {}
+    let dataValue = JSON.parse(data.value || '{}')
+    if (!dataValue || dataValue.constructor !== Object) dataValue = {}
 
-    fields.data.classList.remove('error')
-    fields.data.value = JSON.stringify(data)
+    data.classList.remove('error')
+    data.value = JSON.stringify(dataValue)
 
-    ws.sendEncoded(type, message, data)
+    ws.sendEncoded(type.value, message.value, dataValue)
   } catch (err) {
     console.error(err)
-    fields.data.classList.add('error')
+    data.classList.add('error')
   }
 })

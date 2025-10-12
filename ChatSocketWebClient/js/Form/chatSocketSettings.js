@@ -1,37 +1,87 @@
 const chatSocketSettingsDialog = document.getElementById('chatSocketSettingsDialog')
 const chatSocketSettingsForm = document.getElementById('chatSocketSettings')
 
-chatSocketSettingsForm.fields = {
-  url: chatSocketSettingsForm.querySelector('.url input'),
-  secret: chatSocketSettingsForm.querySelector('.secret input'),
+const localStorageSettings = new LocalStorageManager('chatsocket.settings', {
+  defaultValue: {
+    url: 'wss://chatsocket-a1xp.onrender.com',
+    name: 'WebClient',
+    secret: '*',
+    channel: 'Default',
+    logFromField: false,
+  },
+  encryptFn: (value) => TRA.encrypt(value, 64),
+  decryptFn: (value) => TRA.decrypt(value, 64),
+})
+
+const formValidator = new FormValidator(chatSocketSettingsForm)
+
+formValidator.form.fields = {
+  url: formValidator.form.querySelector('.url input'),
+  name: formValidator.form.querySelector('.name input'),
+  secret: formValidator.form.querySelector('.secret input'),
+  channel: formValidator.form.querySelector('.channel input'),
+  logFromField: formValidator.form.querySelector('.log-from-field input'),
 }
 
-const form = new FormValidator(chatSocketSettingsForm)
+// Form submission
 
-form.addValidator({
-  name: 'chatsocketsettings-url',
-  method: (field) => /^wss?:\/\/(?:[a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+(?::\d{1,5})?(?:\/\S*)?$/.test(field.value),
-  message: 'WebSocket Server URL does not match pattern: ws(s)://domain(:port)(/path)',
-})
+const { url, name: name_, secret, channel, logFromField } = formValidator.form.fields
+const settings = localStorageSettings.value
+url.value = settings.url
+name_.value = settings.name
+secret.value = settings.secret
+channel.value = settings.channel
+logFromField.checked = settings.logFromField
 
-form.addValidator({
-  name: 'chatsocketsettings-secret',
-  method: (field) => /hello/g.test(field.value),
-  message: 'Secret is a required field',
-})
-
-chatSocketSettingsForm.addEventListener('submit', (e) => {
+formValidator.form.addEventListener('submit', (e) => {
+  const form = e.target
+  if (!(form instanceof HTMLFormElement)) return
   e.preventDefault()
 
-  const fields = chatSocketSettingsForm.fields
+  const { url, name, secret, channel, logFromField } = form.fields
+  localStorageSettings.value = {
+    url: url.value,
+    name: name.value,
+    secret: secret.value,
+    channel: channel.value,
+    logFromField: logFromField.checked,
+  }
 
-  localStorage.setItem(
-    'chatsocket.settings',
-    TRA.encrypt(JSON.stringify({ url: fields.url.value, secret: fields.secret.value }), 64)
-  )
   chatSocketSettingsDialog.close()
 })
 
 chatSocketSettingsDialog.addEventListener('mousedown', (e) => {
   if (e.target === chatSocketSettingsDialog) chatSocketSettingsDialog.close()
+})
+
+// Validation
+
+formValidator.addValidator({
+  name: 'chatsocketsettings-url',
+  method: (field) => /^wss?:\/\/(?:[a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+(?::\d{1,5})?(?:\/\S*)?$/.test(field.value),
+  message: 'WebSocket Server URL does not match pattern: ws(s)://domain(:port)(/path)',
+})
+
+formValidator.addValidator({
+  name: 'chatsocketsettings-name',
+  method: (field) => field.value.length,
+  message: 'Name is a required field',
+})
+
+formValidator.addValidator({
+  name: 'chatsocketsettings-secret',
+  method: (field) => field.value.trim().length,
+  message: 'Secret Key is a required field',
+})
+
+formValidator.addValidator({
+  name: 'chatsocketsettings-channel',
+  method: (field) => typeof field.value === 'string',
+  message: 'Channel must be a string (XSS)',
+})
+
+formValidator.addValidator({
+  name: 'chatsocketsettings-log-from-field',
+  method: (field) => typeof field.checked === 'boolean',
+  message: 'Log From Field must be a boolean (XSS)',
 })
