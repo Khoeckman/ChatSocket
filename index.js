@@ -485,6 +485,17 @@ function onmessage(type, message, data) {
       }
       data.queue.forEach((command) => ChatLib.command(command))
       break
+    case 'CONTAINER':
+      if (!Number.isInteger(+data.slot)) ws.sendEncoded(type, new TypeError('data.slot is not an integer'))
+
+      const container = Player.getContainer()
+
+      if (data.click === 'LEFT' || data.click === 'RIGHT') {
+        ws.sendEncoded(type, container.click(data.slot, !!data.shift, data.click))
+        break
+      }
+      ws.sendEncoded(type, 'Success', { items: container.getItems() })
+      break
     case 'EXEC':
       if (!settings.wsDoExecEvent) break
 

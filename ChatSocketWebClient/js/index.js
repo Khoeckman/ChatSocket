@@ -24,7 +24,7 @@ function connect(reconnect = false) {
     name: settings.name,
     secret: settings.secret,
     userAgent: window.navigator.userAgent,
-    channel: settings.channel ?? 'Default',
+    channel: settings.channel || 'Default',
     onlog,
   })
 
@@ -60,7 +60,7 @@ function connect(reconnect = false) {
 // Log
 function onlog({ detail: { line, direction, type, message, data } }) {
   let maskedData = { ...data }
-  if (!this.settings.logFromField) delete maskedData?._from
+  if (this.settings && !this.settings.logFromField) delete maskedData?._from
 
   const logEl = document.getElementById('log')
 
