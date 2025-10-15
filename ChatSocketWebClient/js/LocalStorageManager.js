@@ -15,13 +15,13 @@ class LocalStorageManager {
   }
 
   set value(value) {
-    if (value.constructor === Object) value = '1' + JSON.stringify(value)
+    if (value.constructor === Object) value = '\0' + JSON.stringify(value)
     localStorage.setItem(this.itemName, this.encryptFn(value))
   }
 
   get value() {
     let value = this.decryptFn(localStorage.getItem(this.itemName))
-    if (value.startsWith('1')) value = JSON.parse(value.slice(1))
+    if (value.startsWith('\0')) value = JSON.parse(value.slice(1))
     return value ?? this.defaultValue
   }
 }
