@@ -1,7 +1,7 @@
 class MinecraftApp {
   inServer = false
   inWorld = false
-  connectTimeout = 0
+  inHouse = false
 
   constructor(ws) {
     if (!(ws instanceof ChatSocketWebClient)) throw new TypeError('ws is not an instance of ChatSocketWebClient')
@@ -12,16 +12,27 @@ class MinecraftApp {
     this.ws.addEventListener('open', () => {
       this.ws.sendEncoded('SERVER')
       this.ws.sendEncoded('WORLD')
+
+      this.ws.sendEncoded('CLIENT_SAY', '&7[&6&lCS&7]&a Message from &fWebClient&a!')
+
+      // Refill mine every 30 mins
+      /* setInterval(() => {
+        if (!this.inServer || !this.inWorld) return
+        this.ws.sendEncoded(
+          'SERVER_CMD',
+          'set 14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1'
+        )
+        this.ws.sendEncoded('SERVER_CMD', 'variable global set mine1mined 0', { cooldown: 10 })
+        this.ws.sendEncoded('SERVER_CMD', 'variable global inc totalMined 1', { cooldown: 10 })
+      }, 30 * 60 * 1000) */
     })
 
-    setInterval(() => {
-      if (!this.inServer || !this.inWorld) return
-      this.ws.sendEncoded(
-        'SERVER_CMD',
-        'set 14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1'
-      )
-      this.ws.sendEncoded('SERVER_CMD', 'variable global set mine1mined 0')
-    }, 10 * 60 * 1000)
+    /* setInterval(() => {
+      if (this.inWorld) return
+
+      ws.sendEncoded('SERVER_CMD', 'visit Khoeckman')
+      setTimeout(() => ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 12 }), 2000)
+    }, 2000) */
   }
 
   /**
@@ -72,10 +83,11 @@ class MinecraftApp {
         break
       case 'CONNECT':
         this.inServer = !!data.server?.ip?.length
+        this.inHouse = false
         break
       case 'DISCONNECT':
         this.inServer = false
-        break // @todo put back
+        this.inHouse = false
 
         clearTimeout(this.connectTimeout)
         // Attempt reconnect after 2s
@@ -86,17 +98,27 @@ class MinecraftApp {
         break
       case 'WORLD':
         this.inWorld = message !== 'null'
+        this.inHouse = false
+        break
       case 'LOAD':
+        this.inWorld = true
         break
       case 'UNLOAD':
+        this.inWorld = false
+        this.inHouse = false
+
+        setTimeout(() => ws.sendEncoded('SERVER_CMD', 'visit Khoeckman'), 2000)
+        setTimeout(() => ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 12 }), 4000)
         break
       case 'CLIENT_SAY':
         if (this.inServer && this.inWorld) {
-          this.welcome(message)
-          this.welcomeBack(message)
+          // this.welcome(message)
+          // this.welcomeBack(message)
 
-          // Message must contain " [CS] "
-          if (/\s+\[CS\]\s+/.test(rawMessage)) {
+          this.refillMine(message)
+          break
+
+          if (/^&r&7\*\s&r&f\[CS\]\s/.test(message)) {
             this.teleport(rawMessage)
             this.selectRegion(rawMessage)
             this.proTool(rawMessage)
@@ -104,10 +126,13 @@ class MinecraftApp {
         }
         break
       case 'SERVER_SAY':
+        if (!this.inHouse && message === '§r§e§r§b§oDopamine §r§3§oStimulator§r') this.inHouse = true
         break
       case 'CLIENT_CMD':
         break
       case 'SERVER_CMD':
+        break
+      case 'CONTAINER':
         break
       case 'EXEC':
         break
@@ -151,20 +176,53 @@ class MinecraftApp {
     if (!regex.test(rawMessage)) return
 
     const [_, x1, y1, z1, x2, y2, z2] = regex.exec(rawMessage).map(Number)
-    const queue = HypixelUtils.selectRegion(this.ws, [x1, y1, z1], [x2, y2, z2])
-    ws.sendEncoded('SERVER_CMD', '', { queue })
+    const queue = HypixelUtils.selectRegion([x1, y1, z1], [x2, y2, z2])
+    this.ws.sendEncoded('SERVER_CMD', '', { queue })
   }
 
   // -> SERVER_SAY "… [CS] proTool <tool> <args>"
   // <- SERVER_CMD HypixelUtils.proTool
   proTool(rawMessage) {
     const regex = /\[CS\]\s+\/?proTool\s+(set|fill|replace|walls|wireframe|cut|copy|paste|undo)\s+\[([^\]]+)\]/
-    console.log(rawMessage, regex.test(rawMessage))
     if (!regex.test(rawMessage)) return
 
     const [_, tool, args] = regex.exec(rawMessage)
-    const cmd = HypixelUtils.proTool(this.ws, tool, args.trim().replace(/\s+/g, ' '))
-    ws.sendEncoded('SERVER_CMD', cmd)
+    const cmd = HypixelUtils.proTool(tool, args.trim().replace(/\s+/g, ' '))
+    this.ws.sendEncoded('SERVER_CMD', cmd)
+  }
+
+  refillMine(message) {
+    const regex = /^&r&7\*\s&r&f\[CS\]\srefillMine/
+    if (!regex.test(message)) return
+
+    // Cooldown: 30s
+    const now = Date.now()
+    if (now - this.lastRefillMineUnix < 30000) return
+    this.lastRefillMineUnix = now
+
+    let queue = HypixelUtils.selectRegion([112, 27, -102], [88, 1, -78])
+    queue.push(HypixelUtils.proTool('set', '0'))
+    this.ws.sendEncoded('SERVER_CMD', '', { queue })
+
+    setTimeout(() => {
+      queue = HypixelUtils.selectPos1([112, 2, -102])
+      queue.push(HypixelUtils.proTool('set', '7'))
+      this.ws.sendEncoded('SERVER_CMD', '', { queue })
+    }, 3000)
+
+    setTimeout(() => {
+      queue = HypixelUtils.selectRegion([112, 27, -102], [88, 3, -78])
+      queue.push(
+        HypixelUtils.proTool(
+          'set',
+          '14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1'
+        )
+      )
+      queue.push('variable global set mine1mined 0')
+      queue.push('spawn')
+      this.ws.sendEncoded('SERVER_CMD', '', { queue })
+      this.lastRefillMineUnix = now
+    }, 5000)
   }
   // [CS] selectRegion [112 27 -102] [88 3 -78] | proTool set [14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   // Only blocks: /set 14,15,16,56,129,41,133,57,41,133,57,49,1
