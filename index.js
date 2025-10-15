@@ -417,10 +417,12 @@ function registerHeatManagementTriggers() {
  * }
  */
 function onmessage(type, message, data) {
-  // Prevent executing events from another Minecraft client
+  // Prevent executing events from other Minecraft clients
   const from = data._from
-
   if (type !== 'CHANNEl' && typeof from?.userAgent === 'string' && from.userAgent.split(' ')[0] === 'Minecraft') return
+
+  const ws = this
+  const id = data?.id
 
   switch (type) {
     case 'DEBUG':
@@ -441,10 +443,10 @@ function onmessage(type, message, data) {
         motd: Server.getMOTD(),
         ping: Server.getPing(),
       }
-      this.sendEncoded(
-        'SERVER',
-        `${this.name} is ${server && server.ip ? 'connected to ' + server.ip : 'not connected to any server'}`,
-        { server }
+      ws.sendEncoded(
+        type,
+        `${ws.name} is ${server && server.ip ? 'connected to ' + server.ip : 'not connected to any server'}`,
+        { server, id }
       )
       break
     case 'CONNECT':
@@ -461,13 +463,13 @@ function onmessage(type, message, data) {
       break
     case 'WORLD':
       const world = World.getWorld()
-      this.sendEncoded('WORLD', String(world))
+      ws.sendEncoded(type, String(world))
       break
     case 'LOAD':
-      this.sendEncoded('LOAD', 'Not implemented yet')
+      ws.sendEncoded(type, 'Not implemented yet')
       break
     case 'UNLOAD':
-      this.sendEncoded('UNLOAD', 'Not implemented yet')
+      ws.sendEncoded(type, 'Not implemented yet')
       break
     case 'CLIENT_SAY':
       if (!settings.wsLogChat) ChatLib.chat(message)
@@ -501,16 +503,16 @@ function onmessage(type, message, data) {
 
       try {
         const result = runCall(message, data.global !== false)
-        this.sendEncoded('EXEC', result ?? 'Success', { success: true, result })
+        ws.sendEncoded(type, result ?? 'Success', { success: true, result })
       } catch (err) {
         error('Error while executing &6&lEXEC&c event.')
         if (settings.wsPrintEx) error(`WebSocket Exception:&f ${err}`, settings.printStackTrace, true)
-        this.sendEncoded('EXEC', err, { success: false })
+        ws.sendEncoded(type, err, { success: false })
       }
       break
     default:
       error(`WebSocketError: Unsupported message type '${type}'`, settings.printStackTrace, true)
-      this.sendEncoded(type, 'Unsupported message type')
+      ws.sendEncoded(type, 'Unsupported message type')
       break
   }
 }
