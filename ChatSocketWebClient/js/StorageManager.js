@@ -7,7 +7,7 @@
  * This class includes an internal cache (`#value`) to improve performance.
  * Using the {@link StorageManager.value|value} getter is significantly faster
  * than reading from storage repeatedly. However, if the stored value is modified
- * externally (e.g., via {@link Storage.setItem|storage.setItem()} or the browser console),
+ * externally (e.g., via {@link Storage.setItem} or the browser console),
  * the cached value will become outdated.
  *
  * To re-synchronize the cache with the actual stored value, call
@@ -55,13 +55,16 @@ class StorageManager {
    * @param {Function} [options.decryptFn] - A custom function to decrypt values after retrieving.
    * Should accept one argument (the stored string) and return the decrypted value.
    * @param {Storage} [options.storage=window.localStorage] - A custom storage provider.
-   * Must implement the standard Storage API (`getItem`, `setItem`, `removeItem`).
+   * Must implement the standard Storage API (`getItem`, `setItem`).
    *
    * @throws {TypeError} Throws if `itemName` is not a string.
    * @throws {TypeError} Throws if `encryptFn` or `decryptFn` are defined but not functions.
    * @throws {TypeError} Throws if `storage` does not implement the standard Storage API.
    */
-  constructor(itemName, { defaultValue, encryptFn, decryptFn, storage = window.localStorage } = {}) {
+  constructor(
+    itemName,
+    { defaultValue, encryptFn = TRA.encrypt, decryptFn = TRA.decrypt, storage = window.localStorage } = {}
+  ) {
     if (typeof itemName !== 'string') {
       throw new TypeError('itemName is not a string')
     }
@@ -82,20 +85,14 @@ class StorageManager {
     }
     this.decryptFn = decryptFn || ((value) => value)
 
-    if (
-      !storage ||
-      typeof storage.getItem !== 'function' ||
-      typeof storage.setItem !== 'function' ||
-      typeof storage.removeItem !== 'function'
-    ) {
+    if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function')
       throw new TypeError('storage must implement the standard Storage API')
-    }
 
     /** @private @readonly */
     this.storage = storage
 
     // Initialize if missing
-    if (this.getItem() === undefined) this.reset()
+    if (this.getItem() === null) this.reset()
   }
 
   /**
@@ -106,7 +103,7 @@ class StorageManager {
    */
   set value(value) {
     this.#value = value
-    if (typeof value !== 'string') '\0' + JSON.stringify(value)
+    if (typeof value !== 'string') value = '\0' + JSON.stringify(value)
     this.storage.setItem(this.itemName, this.encryptFn(value))
   }
 
@@ -125,28 +122,27 @@ class StorageManager {
 
   /**
    * Resets the stored value to the default value.
-   * If no default value is defined, the item is removed from storage.
-   *
-   * @returns {*} The stored value after reset.
    */
   reset() {
-    if (this.defaultValue === undefined) {
-      this.storage.removeItem(this.itemName)
-      return (this.#value = undefined)
-    }
-    return (this.value = this.defaultValue)
+    this.value = this.defaultValue
   }
 
   /**
-   * Synchronizes the internal cache with the latest stored value.
-   * Reads the actual value from storage, decrypts and parses it,
-   * then updates the internal cache (`#value`).
+   * Retrieves and synchronizes the internal cache with the latest stored value.
    *
-   * @returns {*} The latest stored value, or the default value if none exists.
+   * This method reads the raw value from the underlying storage, applies decryption
+   * if configured, parses JSON-encoded objects (marked with a `\0` prefix),
+   * and updates the internal cache (`#value`) accordingly.
+   *
+   * Unlike the {@link StorageManager.value|value} getter, this method always performs
+   * a real storage read and decryption to ensure synchronization with external changes.
+   *
+   * @returns {*} The actual value, or the default value if none exists.
    */
   getItem() {
     let value = this.storage.getItem(this.itemName)
-    if (typeof value === 'string' && value.startsWith('\0')) value = JSON.parse(this.decryptFn(value).slice(1))
-    return (this.#value = value ?? this.defaultValue)
+    if (typeof value !== 'string') return (this.#value = value ?? this.defaultValue)
+    value = this.decryptFn(value)
+    return (this.#value = value.startsWith('\0') ? JSON.parse(value.slice(1)) : value)
   }
 }
