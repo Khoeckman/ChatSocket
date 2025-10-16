@@ -516,3 +516,7 @@ function onmessage(type, message, data) {
       break
   }
 }
+
+register('command', () => {
+  ChatLib.say(' ')
+}).setName('empty')
