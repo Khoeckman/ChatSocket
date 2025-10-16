@@ -114,8 +114,7 @@ form {
 }
 
 #chatSocketSettings .actions button {
-  flex: 1;
-  max-width: 6rem;
+  min-width: 6rem;
 }
 
 #log {

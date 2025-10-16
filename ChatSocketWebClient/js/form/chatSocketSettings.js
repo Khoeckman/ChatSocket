@@ -23,16 +23,29 @@ formValidator.form.fields = {
   logFromField: formValidator.form.querySelector('.log-from-field input'),
 }
 
+formValidator.form.actions = {
+  reset: formValidator.form.querySelector('#chatsocketsettings-action-reset'),
+}
+
+// Load `localStorageSettings` into the form fields
+function populateFormWithSettings() {
+  const { url, name: name_, secret, channel, logFromField } = formValidator.form.fields
+  const settings = localStorageSettings.value
+  url.value = settings.url
+  name_.value = settings.name
+  secret.value = settings.secret
+  channel.value = settings.channel
+  logFromField.checked = settings.logFromField
+}
+populateFormWithSettings()
+
+// Form reset button handler
+formValidator.form.actions.reset.addEventListener('click', () => {
+  localStorageSettings.reset()
+  populateFormWithSettings()
+})
+
 // Form submission
-
-const { url, name: name_, secret, channel, logFromField } = formValidator.form.fields
-const settings = localStorageSettings.value
-url.value = settings.url
-name_.value = settings.name
-secret.value = settings.secret
-channel.value = settings.channel
-logFromField.checked = settings.logFromField
-
 formValidator.form.addEventListener('submit', (e) => {
   const form = e.target
   if (!(form instanceof HTMLFormElement)) return
