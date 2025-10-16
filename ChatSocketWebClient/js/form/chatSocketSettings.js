@@ -1,7 +1,7 @@
 const chatSocketSettingsDialog = document.getElementById('chatSocketSettingsDialog')
 const chatSocketSettingsForm = document.getElementById('chatSocketSettings')
 
-const localStorageSettings = new LocalStorageManager('chatsocket.settings', {
+const localStorageSettings = new StorageManager('chatsocket.settings', {
   defaultValue: {
     url: 'wss://chatsocket-a1xp.onrender.com',
     name: 'WebClient',
