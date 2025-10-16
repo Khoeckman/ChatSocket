@@ -92,7 +92,7 @@ class StorageManager {
     this.storage = storage
 
     // Initialize if missing
-    if (this.getItem() === null) this.reset()
+    if (this.getItem() === undefined) this.reset()
   }
 
   /**
