@@ -106,7 +106,7 @@ class StorageManager {
    */
   set value(value) {
     this.#value = value
-    if (value?.constructor === Object) value = '\0' + JSON.stringify(value)
+    if (typeof value !== 'string') '\0' + JSON.stringify(value)
     this.storage.setItem(this.itemName, this.encryptFn(value))
   }
 
@@ -145,8 +145,8 @@ class StorageManager {
    * @returns {*} The latest stored value, or the default value if none exists.
    */
   getItem() {
-    let value = this.decryptFn(this.storage.getItem(this.itemName))
-    if (typeof value === 'string' && value.startsWith('\0')) value = JSON.parse(value.slice(1))
+    let value = this.storage.getItem(this.itemName)
+    if (typeof value === 'string' && value.startsWith('\0')) value = JSON.parse(this.decryptFn(value).slice(1))
     return (this.#value = value ?? this.defaultValue)
   }
 }
