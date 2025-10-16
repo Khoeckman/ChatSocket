@@ -1,3 +1,5 @@
+let minecraftConnectLoop
+
 class MinecraftApp {
   inServer = false
   inWorld = false
@@ -27,12 +29,22 @@ class MinecraftApp {
       }, 30 * 60 * 1000) */
     })
 
-    /* setInterval(() => {
-      if (this.inWorld) return
+    clearInterval(minecraftConnectLoop)
 
-      ws.sendEncoded('SERVER_CMD', 'visit Khoeckman')
-      setTimeout(() => ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 12 }), 2000)
-    }, 2000) */
+    minecraftConnectLoop = setInterval(() => {
+      if (this.inHouse) return
+
+      if (!this.inServer) {
+        this.ws.sendEncoded('CONNECT', 'play.hypixel.net')
+        return
+      }
+
+      if (!this.inWorld) return
+
+      this.ws.sendEncoded('SERVER_CMD', 'lobby housing')
+      setTimeout(() => (!this.inHouse ? this.ws.sendEncoded('SERVER_CMD', 'visit Khoeckman') : null), 1500)
+      setTimeout(() => (!this.inHouse ? this.ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 12 }) : null), 3000)
+    }, 3000)
   }
 
   /**
@@ -48,7 +60,7 @@ class MinecraftApp {
    * @param {Object<string, any>} [data] - Structured message data payload.
    *
    * @example
-   * ws.addEventListener("message", onmessage)
+   * this.ws.addEventListener("message", onmessage)
    *
    * function onmessage(type, message, data) {
    *   this.log(this.url, type, message, data)
@@ -88,30 +100,24 @@ class MinecraftApp {
       case 'DISCONNECT':
         this.inServer = false
         this.inHouse = false
-
-        clearTimeout(this.connectTimeout)
-        // Attempt reconnect after 2s
-        this.connectTimeout = setTimeout(
-          () => (!this.inServer ? ws.sendEncoded('CONNECT', 'play.hypixel.net') : null),
-          2000
-        )
         break
       case 'WORLD':
         this.inWorld = message !== 'null'
-        this.inHouse = false
+        this.ws.sendEncoded('SERVER_CMD', 'testplaceholder %house.name%')
         break
       case 'LOAD':
         this.inWorld = true
+        this.inHouse = false
+        this.ws.sendEncoded('SERVER_CMD', 'testplaceholder %house.name%')
         break
       case 'UNLOAD':
         this.inWorld = false
         this.inHouse = false
-
-        setTimeout(() => ws.sendEncoded('SERVER_CMD', 'visit Khoeckman'), 2000)
-        setTimeout(() => ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 12 }), 4000)
         break
       case 'CLIENT_SAY':
         if (this.inServer && this.inWorld) {
+          if (!this.inhouse && message === '&r&e&r&b&oDopamine &r&3&oStimulator&r') this.inHouse = true
+
           // this.welcome(message)
           // this.welcomeBack(message)
 
@@ -126,7 +132,6 @@ class MinecraftApp {
         }
         break
       case 'SERVER_SAY':
-        if (!this.inHouse && message === '§r§e§r§b§oDopamine §r§3§oStimulator§r') this.inHouse = true
         break
       case 'CLIENT_CMD':
         break
@@ -137,7 +142,7 @@ class MinecraftApp {
       case 'EXEC':
         break
       default:
-        ws.log(`&cWebSocketError: &fUnsupported message type '${type}'`)
+        this.ws.log(`&cWebSocketError: &fUnsupported message type '${type}'`)
         break
     }
   }
@@ -183,7 +188,7 @@ class MinecraftApp {
   // -> SERVER_SAY "… [CS] proTool <tool> <args>"
   // <- SERVER_CMD HypixelUtils.proTool
   proTool(rawMessage) {
-    const regex = /\[CS\]\s+\/?proTool\s+(set|fill|replace|walls|wireframe|cut|copy|paste|undo)\s+\[([^\]]+)\]/
+    const regex = /\[CS\]\s+\/?proTool\s+(\w+)\s+\[([^\]]+)\]/
     if (!regex.test(rawMessage)) return
 
     const [_, tool, args] = regex.exec(rawMessage)
@@ -195,12 +200,16 @@ class MinecraftApp {
     const regex = /^&r&7\*\s&r&f\[CS\]\srefillMine/
     if (!regex.test(message)) return
 
+    const mineBlocks =
+      '14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1'
+
     // Cooldown: 30s
     const now = Date.now()
     if (now - this.lastRefillMineUnix < 30000) return
     this.lastRefillMineUnix = now
 
-    let queue = HypixelUtils.selectRegion([112, 27, -102], [88, 1, -78])
+    let queue = ['variable global set mineLocked 1']
+    queue.push(...HypixelUtils.selectRegion([112, 27, -102], [88, 1, -78]))
     queue.push(HypixelUtils.proTool('set', '0'))
     this.ws.sendEncoded('SERVER_CMD', '', { queue })
 
@@ -212,17 +221,16 @@ class MinecraftApp {
 
     setTimeout(() => {
       queue = HypixelUtils.selectRegion([112, 27, -102], [88, 3, -78])
-      queue.push(
-        HypixelUtils.proTool(
-          'set',
-          '14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1'
-        )
-      )
+      queue.push(HypixelUtils.proTool('set', mineBlocks))
       queue.push('variable global set mine1mined 0')
       queue.push('spawn')
       this.ws.sendEncoded('SERVER_CMD', '', { queue })
       this.lastRefillMineUnix = now
     }, 5000)
+
+    setTimeout(() => {
+      this.ws.sendEncoded('SERVER_CMD', 'variable global set mineLocked 0')
+    }, 6000)
   }
   // [CS] selectRegion [112 27 -102] [88 3 -78] | proTool set [14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,14,15,16,56,129,1,42,41,133,57,1,42,41,133,57,1,49,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
   // Only blocks: /set 14,15,16,56,129,41,133,57,41,133,57,49,1
