@@ -127,15 +127,14 @@ class StorageManager {
    * Resets the stored value to the default value.
    * If no default value is defined, the item is removed from storage.
    *
-   * @returns {void}
+   * @returns {*} The stored value after reset.
    */
   reset() {
     if (this.defaultValue === undefined) {
       this.storage.removeItem(this.itemName)
-      this.#value = undefined
-      return
+      return (this.#value = undefined)
     }
-    this.value = this.defaultValue
+    return (this.value = this.defaultValue)
   }
 
   /**
@@ -148,7 +147,6 @@ class StorageManager {
   getItem() {
     let value = this.decryptFn(this.storage.getItem(this.itemName))
     if (typeof value === 'string' && value.startsWith('\0')) value = JSON.parse(value.slice(1))
-    this.#value = value ?? this.defaultValue
-    return this.#value
+    return (this.#value = value ?? this.defaultValue)
   }
 }
