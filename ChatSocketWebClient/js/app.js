@@ -216,17 +216,13 @@ class MinecraftApp {
     setTimeout(() => {
       queue = HypixelUtils.selectPos1([112, 2, -102])
       queue.push(HypixelUtils.proTool('set', '7'))
-      this.ws.sendEncoded('SERVER_CMD', '', { queue })
-    }, 3000)
-
-    setTimeout(() => {
-      queue = HypixelUtils.selectRegion([112, 27, -102], [88, 3, -78])
+      queue.push(...HypixelUtils.selectRegion([112, 27, -102], [88, 3, -78]))
       queue.push(HypixelUtils.proTool('set', mineBlocks))
       queue.push('variable global set mine1mined 0')
       queue.push('spawn')
       this.ws.sendEncoded('SERVER_CMD', '', { queue })
       this.lastRefillMineUnix = now
-    }, 5000)
+    }, 4000)
 
     setTimeout(() => {
       this.ws.sendEncoded('SERVER_CMD', 'variable global set mineLocked 0')
