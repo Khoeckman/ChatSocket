@@ -32,7 +32,7 @@ class MinecraftApp {
     clearInterval(minecraftConnectLoop)
 
     minecraftConnectLoop = setInterval(() => {
-      if (this.inHouse) return
+      if (this.ws.readyState !== this.ws.OPEN || this.inHouse) return
 
       if (!this.inServer) {
         this.ws.sendEncoded('CONNECT', 'play.hypixel.net')
