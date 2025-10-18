@@ -196,7 +196,7 @@ class MinecraftApp {
     this.ws.sendEncoded('SERVER_CMD', cmd)
   }
 
-  refillMine(message) {
+  async refillMine(message) {
     const regex = /^&r&7\*\s&r&f\[CS\]\srefillMine/
     if (!regex.test(message)) return
 
@@ -212,6 +212,11 @@ class MinecraftApp {
     queue.push(...HypixelUtils.selectRegion([112, 27, -102], [88, 1, -78]))
     queue.push(HypixelUtils.proTool('set', '0'))
     this.ws.sendEncoded('SERVER_CMD', '', { queue })
+
+    await this.ws.awaitMessage((type, message, data) => {
+      const rawMessage = Utils.removeMcFormatting(message)
+      return rawMessage === 'Teleported to 1, 2, 3'
+    })
 
     setTimeout(() => {
       queue = HypixelUtils.selectPos1([112, 2, -102])

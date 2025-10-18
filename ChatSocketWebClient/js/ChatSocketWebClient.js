@@ -88,6 +88,13 @@ class ChatSocketWebClient extends WebSocket {
     this.dispatchEvent(new CustomEvent('decoded', { detail: { type, message, data } }))
   }
 
+  // #onerror(event) {}
+
+  #onclose({ code, reason, wasClean }) {
+    if (reason) this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7] &cReason: &f${reason}`)
+    else this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7]`)
+  }
+
   sendEncoded(type, message, data = {}) {
     type = String(type).toUpperCase()
     message = String(message ?? '')
@@ -113,11 +120,24 @@ class ChatSocketWebClient extends WebSocket {
     })
   }
 
-  // #onerror(event) {}
+  awaitMessage(testFn, timeoutMs = 5000) {
+    return new Promise((res, rej) => {
+      const onmessage = (event) => {
+        const { type, message, data } = ChatSocketProtocol.decodeMessage(TRA[atob('ZGVjcnlwdA')](event.data, 64))
+        if (!testFn(type, message, data)) return
 
-  #onclose({ code, reason, wasClean }) {
-    if (reason) this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7] &cReason: &f${reason}`)
-    else this.log(`&c&l-&c Disconnected from &f&n${this.url}&c &7[&e${code}&7]`)
+        clearTimeout(responseTimeoutId)
+        this.removeEventListener('message', onmessage)
+        res(event)
+      }
+
+      const responseTimeoutId = setTimeout(() => {
+        this.removeEventListener('message', onmessage)
+        rej(new Error('timed out'))
+      }, timeoutMs)
+
+      this.addEventListener('message', onmessage)
+    })
   }
 
   authenticate(channel = null) {
