@@ -43,7 +43,7 @@ class MinecraftApp {
 
       this.ws.sendEncoded('SERVER_CMD', 'lobby housing')
       setTimeout(() => (!this.inHouse ? this.ws.sendEncoded('SERVER_CMD', 'visit Khoeckman') : null), 1500)
-      setTimeout(() => (!this.inHouse ? this.ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 12 }) : null), 3000)
+      setTimeout(() => (!this.inHouse ? this.ws.sendEncoded('CONTAINER', '', { click: 'LEFT', slot: 14 }) : null), 3000)
     }, 3000)
   }
 
@@ -213,10 +213,10 @@ class MinecraftApp {
     queue.push(HypixelUtils.proTool('set', '0'))
     this.ws.sendEncoded('SERVER_CMD', '', { queue })
 
-    await this.ws.awaitMessage((type, message, data) => {
+    /* await this.ws.awaitMessage((type, message, data) => {
       const rawMessage = Utils.removeMcFormatting(message)
       return rawMessage === 'Teleported to 1, 2, 3'
-    })
+    }) */
 
     setTimeout(() => {
       queue = HypixelUtils.selectPos1([112, 2, -102])

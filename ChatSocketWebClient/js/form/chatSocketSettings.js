@@ -1,16 +1,14 @@
 const chatSocketSettingsDialog = document.getElementById('chatSocketSettingsDialog')
 const chatSocketSettingsForm = document.getElementById('chatSocketSettings')
 
-const localStorageSettings = new StorageManager('chatsocket.settings', {
+const ChatSocketStore = new StorageManager('chatsocket.settings', {
   defaultValue: {
     url: 'wss://chatsocket-a1xp.onrender.com',
     name: 'WebClient',
-    secret: '*',
+    secret: '39063e0f5d3604e6bd5e908caa1cf17cb5967cbd1190c60be383ba9a33a0c28b',
     channel: 'Default',
     logFromField: false,
   },
-  encryptFn: (value) => TRA.encrypt(value, 64),
-  decryptFn: (value) => TRA.decrypt(value, 64),
 })
 
 const formValidator = new FormValidator(chatSocketSettingsForm)
@@ -27,10 +25,10 @@ formValidator.form.actions = {
   reset: formValidator.form.querySelector('#chatsocketsettings-action-reset'),
 }
 
-// Load `localStorageSettings` into the form fields
+// Load `ChatSocketStore` into the form fields
 function populateFormWithSettings() {
   const { url, name: name_, secret, channel, logFromField } = formValidator.form.fields
-  const settings = localStorageSettings.value
+  const settings = ChatSocketStore.value
   url.value = settings.url
   name_.value = settings.name
   secret.value = settings.secret
@@ -41,7 +39,7 @@ populateFormWithSettings()
 
 // Form reset button handler
 formValidator.form.actions.reset.addEventListener('click', () => {
-  localStorageSettings.reset()
+  ChatSocketStore.reset()
   populateFormWithSettings()
 })
 
@@ -52,7 +50,7 @@ formValidator.form.addEventListener('submit', (e) => {
   e.preventDefault()
 
   const { url, name, secret, channel, logFromField } = form.fields
-  localStorageSettings.value = {
+  ChatSocketStore.value = {
     url: url.value,
     name: name.value,
     secret: secret.value,

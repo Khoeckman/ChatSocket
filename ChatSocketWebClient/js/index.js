@@ -14,7 +14,7 @@ let retryCount = 0
 window.onload = connect
 
 function connect(reconnect = false) {
-  const settings = localStorageSettings.value
+  const settings = ChatSocketStore.value
 
   if (!reconnect && ws && ws.readyState === ws.OPEN) return
 
@@ -58,11 +58,16 @@ function connect(reconnect = false) {
 }
 
 // Log
+const logEl = document.getElementById('log')
+
 function onlog({ detail: { line, direction, type, message, data } }) {
   let maskedData = { ...data }
   if (this.settings && !this.settings.logFromField) delete maskedData?._from
 
-  const logEl = document.getElementById('log')
+  if (line === null) {
+    line =
+      direction === 'incoming' ? `&2➔ ` : `&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>`
+  }
 
   if (logEl === null) {
     line += `${type} ${message} \t${JSON.stringify(maskedData)}`
@@ -73,7 +78,7 @@ function onlog({ detail: { line, direction, type, message, data } }) {
   if (typeof type === 'string') {
     line += `&6&l${type}${direction === 'incoming' ? '&a' : '&b'} ${Utils.shortenInnerHTML(message, 128)}`
 
-    if (localStorageSettings.value)
+    if (ChatSocketStore.value)
       line += ` \t&7${JSON.stringify(maskedData, (_, value) => (typeof value === 'string' ? value + '&7' : value))}`
   }
 
@@ -119,11 +124,11 @@ function updateReadyState(readyState) {
 }
 
 // Falling chars animation
-const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+/* const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 new FallingChars(document.getElementById('falling-chars'), chars, '', {
   spawnDensityPerSecond: 15,
-})
+}) */
 
 // Hue rotation effect
 /* let hue = 40

@@ -42,6 +42,8 @@ class ByteArrayConverter {
     if (!Number.isInteger(radix)) throw new TypeError('radix is not an integer')
     if ((radix < 2 || radix > 36) && radix !== 64) throw new RangeError('radix is not between 2 and 36 or 64')
 
+    if (!(byteArray instanceof Uint8Array)) byteArray = new Uint8Array(byteArray)
+
     if (radix === 64) {
       if (typeof btoa === 'undefined') return Buffer.from(byteArray).toString('base64')
 
@@ -49,7 +51,7 @@ class ByteArrayConverter {
       const chunk = 0x8000 // 32k chunks to avoid arg limit
 
       for (let i = 0; i < byteArray.length; i += chunk)
-        binary += String.fromCharCode.apply(null, byteArray.subarray(i, i + chunk))
+        binary += String.fromCharCode(...byteArray.subarray(i, i + chunk))
 
       return btoa(binary)
     }

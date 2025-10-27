@@ -59,7 +59,7 @@ class ChatSocketWebClient extends WebSocket {
 
   #onmessage(event) {
     const { type, message, data } = ChatSocketProtocol.decodeMessage(TRA[atob('ZGVjcnlwdA')](event.data, 64))
-    this.log(`&2➔ `, { direction: 'incoming', type, message, data })
+    this.log(null, { direction: 'incoming', type, message, data })
 
     const { name, uuid, userAgent } = data?._from
 
@@ -112,7 +112,7 @@ class ChatSocketWebClient extends WebSocket {
     // Mask secret
     if (data.secret) data.secret = '*'
 
-    this.log(`&3<span style="display: inline-block; transform: rotate(180deg);"> ➔</span>`, {
+    this.log(null, {
       direction: 'outgoing',
       type,
       message,
@@ -121,19 +121,19 @@ class ChatSocketWebClient extends WebSocket {
   }
 
   awaitMessage(testFn, timeoutMs = 5000) {
-    return new Promise((res, rej) => {
+    return new Promise((resolve, reject) => {
       const onmessage = (event) => {
         const { type, message, data } = ChatSocketProtocol.decodeMessage(TRA[atob('ZGVjcnlwdA')](event.data, 64))
         if (!testFn(type, message, data)) return
 
         clearTimeout(responseTimeoutId)
         this.removeEventListener('message', onmessage)
-        res(event)
+        resolve(event)
       }
 
       const responseTimeoutId = setTimeout(() => {
         this.removeEventListener('message', onmessage)
-        rej(new Error('timed out'))
+        reject(new Error('timed out'))
       }, timeoutMs)
 
       this.addEventListener('message', onmessage)

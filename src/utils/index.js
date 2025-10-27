@@ -3,7 +3,8 @@
 
 const Random = Java.type('java.util.Random')
 
-export const PREFIX = '&7[&6&lCS&7]&r '
+export const NAME = '&6&lCS'
+export const PREFIX = `&7[${NAME}&7]&r `
 export const TAB = '    '
 
 // Java
@@ -65,6 +66,7 @@ export const error = (message, printStackTrace = false, silent = false) => {
         .forEach((line) => ChatLib.chat('&c' + line))
     }
   }
+
   if (!silent) World.playSound('random.anvil_land', 0.3, 1)
 }
 

@@ -41,7 +41,8 @@ try {
             '&e/cs &6c&elose &7 Disconnects from &fWebSocket&7.',
             '&e/cs &6r&eeconnect &7 Reconnects to the &fWebSocket&7.',
             '&e/cs &6st&eatus &7 Prints info of the &fWebSocket&7.',
-            '&e/cs &6cl&eear &7 Clear the command queue.',
+            '&e/cs &ecommmand&7|&6cmd &6p&erint &7 Print the command queue.',
+            '&e/cs &ecommmand&7|&6cmd &6c&elear &7 Clear the command queue.',
             // '&e/cs fly [on|off] &7 Change your flying state.',
             '&e/cs &6ver&esion &7 Prints the &aversion&7 status of &6ChatSocket&7.',
           ])
@@ -84,11 +85,19 @@ try {
           ws.printConnectionStatus()
           break
 
-        case 'clear':
-        case 'cl':
-          cmdQueue.clear()
-          chat('&eCleared the command queue.')
-          World.playSound('dig.glass', 0.7, 1)
+        case 'command':
+        case 'cmd':
+          if (args.length && (args[0] === 'print' || args[0] === 'p')) {
+            dialog('Command queue', cmdQueue.queue)
+            break
+          }
+
+          if (args.length && (args[0] === 'clear' || args[0] === 'c')) {
+            cmdQueue.clear()
+            chat('&eCleared the command queue.')
+            World.playSound('dig.glass', 0.7, 1)
+            break
+          }
           break
 
         /* case "fly":

@@ -1,9 +1,10 @@
 /// <reference types="../../../CTAutocomplete" />
 /// <reference lib="es2015" />
 
-import { chat, error } from './'
+import { NAME, chat, error } from './'
 import settings from '../vigilance/Settings'
 
+// Helper class to load and parse the module's metadata.json
 class Metadata {
   constructor(moduleName, fileName, remoteURL = 'null') {
     try {
@@ -58,7 +59,7 @@ class Metadata {
           `&aVersion ${this.local.version} `,
           new TextComponent('&7[&8&lGitHub&7]')
             .setClick('open_url', this.local.homepage)
-            .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+            .setHover('show_text', `&fClick to view ${NAME}&f on &8&lGitHub`)
         ).setChatLineId(47576000)
       )
       return
@@ -85,7 +86,7 @@ class Metadata {
         new Message(
           `&aVersion ${this.local.version} ${latestVersion} `,
           new TextComponent('&7[&8&lGitHub&7]')
-            .setHover('show_text', '&fClick to view &6ChatSocket&f on &8&lGitHub')
+            .setHover('show_text', `&fClick to view ${NAME}&f on &8&lGitHub`)
             .setClick('open_url', this.local.homepage)
         ).setChatLineId(messageId)
       )
