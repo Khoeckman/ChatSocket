@@ -527,5 +527,21 @@ function onmessage(type, message, data) {
 }
 
 register('command', () => {
-  ChatLib.say(' ')
-}).setName('empty')
+  const inv = Player.getContainer()
+  if (!inv || !inv.isContainer()) {
+    ChatLib.chat('&cNo container open!')
+    return
+  }
+
+  const items = inv
+    .getItems()
+    .filter((item) => item) // remove empty/null slots
+    .map((item) => ({
+      name: item.getName(),
+      id: item.getID(),
+      count: item.getStackSize(),
+    }))
+
+  ChatLib.chat(`&aFound ${items.length} items:`)
+  items.forEach((it, i) => ChatLib.chat(`&7[${i}] &r${it.name} &8(ID: ${it.id}, x${it.count})`))
+}).setName('pc')
