@@ -32,7 +32,7 @@ function connect(reconnect = false) {
   ws.settings = settings
 
   // Custom logic
-  new MinecraftApp(ws)
+  // new MinecraftApp(ws)
 
   updateReadyState(ws.readyState)
 
