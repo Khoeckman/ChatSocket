@@ -71,7 +71,7 @@ class Metadata {
   }
 
   updateVersionStatus = (messageId) => {
-    if (!World.isLoaded()) return
+    if (!World.isLoaded() || !this.local || !this.remote) return
 
     const latestVersion =
       this.remote && typeof this.remote.version === 'string'
