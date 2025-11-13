@@ -9,7 +9,7 @@
   --hue: 40;
   --pri: hsl(var(--hue), 100%, 60%);
 
-  --err: hsl(0, 100%, 60%);
+  --err: #f33;
 
   --bg: hsl(var(--hue), 18%, 8%);
   --c12: hsl(var(--hue), 18%, 12%);

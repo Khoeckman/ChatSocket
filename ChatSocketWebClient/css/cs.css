@@ -43,7 +43,6 @@ form {
 }
 
 #chatSocketStatus {
-  content: attr(data-ready-state);
   display: inline-block;
   background-color: #0003;
   border: 1px solid var(--c48);
